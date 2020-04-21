@@ -18,15 +18,14 @@ import React, { FunctionComponent, useState, useEffect } from 'react';
 
 import { I18n } from '@atlassian/wrm-react-i18n';
 import moment from 'moment';
+import Spinner from '@atlaskit/spinner';
 import {
     MigrationTransferProps,
     MigrationTransferPage,
     Progress,
 } from '../shared/MigrationTransferPage';
 import { fs } from '../../api/fs';
-import Spinner from '@atlaskit/spinner';
 import { migration, MigrationStage } from '../../api/migration';
-import styled from 'styled-components';
 
 const dummyStarted = moment();
 
@@ -37,6 +36,23 @@ const getFsMigrationProgress = (): Promise<Progress> => {
     return fs
         .getFsMigrationStatus()
         .then(result => {
+            if (result?.failedFiles.length > 0) {
+                const failedFilesCount = result.failedFiles.length;
+                const reasons: Record<string, boolean> = {};
+
+                result.failedFiles.forEach(failure => {
+                    if (!reasons[failure.reason]) {
+                        reasons[failure.reason] = true;
+                    }
+                });
+
+                const reasonsString = Object.keys(reasons).join(', ');
+
+                progressResult = {
+                    ...progressResult,
+                    error: `Encountered ${failedFilesCount} upload errors. Error details: ${reasonsString}`,
+                };
+            }
             if (result.status === 'UPLOADING') {
                 const progress: Progress = {
                     phase: I18n.getText('atlassian.migration.datacenter.fs.phase.upload'),
