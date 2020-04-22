@@ -65,7 +65,7 @@ const getCompletenessFromResult = (result: FileSystemMigrationStatusResponse): n
 const getPhaseFromStatus = (result: FileSystemMigrationStatusResponse): string => {
     switch (result.status) {
         case 'DONE':
-            return I18n.getText('atlassian.migration.datacenter.fs.phase.download');
+            return I18n.getText('atlassian.migration.datacenter.fs.phase.complete');
         case 'DOWNLOADING':
             return I18n.getText('atlassian.migration.datacenter.fs.phase.download');
         case 'UPLOADING':
