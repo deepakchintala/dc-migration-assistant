@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableMap
+import java.time.Duration
 import javax.ws.rs.Consumes
 import javax.ws.rs.DELETE
 import javax.ws.rs.GET
@@ -71,10 +72,17 @@ class DatabaseMigrationEndpoint(
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     fun getMigrationStatus(): Response {
+        val elapsed = databaseMigrationService.elapsedTime
+                .orElse(Duration.ZERO)
+        val dto = DatabaseMigrationStatus(
+                stageToStatus(migrationService.currentStage),
+                elapsed)
+
         return try {
             Response
-                .ok(mapper.writeValueAsString(migrationService.currentStage))
+                .ok(mapper.writeValueAsString(dto))
                 .build()
+
         } catch (e: JsonProcessingException) {
             Response
                 .serverError()
