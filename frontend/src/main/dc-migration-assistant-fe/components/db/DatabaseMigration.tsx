@@ -27,7 +27,7 @@ import { dbStatusReportEndpoint, DatabaseMigrationStatus, toI18nProp } from '../
 
 const toProgress = (status: DatabaseMigrationStatus): Progress => {
     return {
-        phase: toI18nProp(status.status),
+        phase: I18n.getText(toI18nProp(status.status)),
         elapsedTimeSeconds: status.elapsedTime.seconds,
     };
 };
