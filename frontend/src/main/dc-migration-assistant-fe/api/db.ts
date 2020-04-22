@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { MigrationDuration } from './common';
+
 const dbAPIBase = 'migation/db';
 export const dbStatusReportEndpoint = `${dbAPIBase}/report`;
 
@@ -30,4 +32,10 @@ export enum DBMigrationStatus {
 export const toI18nProp = (status: DBMigrationStatus): string => {
     const name = DBMigrationStatus[status].toLowerCase();
     return `atlassian.migration.datacenter.db.status.${name}`;
+};
+
+// See DatabaseMigrationProgress.kt
+type DatabaseMigrationStatus = {
+    status: DBMigrationStatus;
+    elapsedTime: MigrationDuration;
 };
