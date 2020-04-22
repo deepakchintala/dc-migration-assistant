@@ -78,6 +78,10 @@ public class S3SyncCommandStatus {
     }
 
     public int getFilesRemainingToDownload() {
+        if (finished && code == 0) {
+            // When the command is finished, fileRemaining is not set. We assume it worked if the exit code is 0
+            return 0;
+        }
         return filesRemaining;
     }
 
