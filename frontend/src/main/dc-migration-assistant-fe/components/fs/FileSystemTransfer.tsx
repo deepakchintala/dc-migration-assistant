@@ -36,6 +36,7 @@ const getFsMigrationProgress = (): Promise<Progress> => {
     return fs
         .getFsMigrationStatus()
         .then(result => {
+            let error = '';
             if (result?.failedFiles.length > 0) {
                 const failedFilesCount = result.failedFiles.length;
                 const reasons: Record<string, boolean> = {};
@@ -48,11 +49,9 @@ const getFsMigrationProgress = (): Promise<Progress> => {
 
                 const reasonsString = Object.keys(reasons).join(', ');
 
-                progressResult = {
-                    ...progressResult,
-                    error: `Encountered ${failedFilesCount} upload errors. Error details: ${reasonsString}`,
-                };
+                error = `Encountered ${failedFilesCount} upload errors. Error details: ${reasonsString}`;
             }
+
             if (result.status === 'UPLOADING') {
                 const progress: Progress = {
                     phase: I18n.getText('atlassian.migration.datacenter.fs.phase.upload'),
@@ -63,6 +62,7 @@ const getFsMigrationProgress = (): Promise<Progress> => {
                     const weightedProgress = 0.5 * uploadProgress;
                     return {
                         ...progress,
+                        error,
                         completeness: weightedProgress,
                     };
                 }
@@ -72,12 +72,14 @@ const getFsMigrationProgress = (): Promise<Progress> => {
                 const downloadProgress = result.downloadedFiles / result.filesFound;
                 const weightedProgress = 0.5 + 0.5 * downloadProgress;
                 return {
+                    error,
                     phase: I18n.getText('atlassian.migration.datacenter.fs.phase.download'),
                     completeness: weightedProgress,
                 };
             }
             if (result.status === 'DONE') {
                 return {
+                    error,
                     phase: I18n.getText('atlassian.migration.datacenter.fs.phase.download'),
                     completeness: 1,
                     completeMessage: {
@@ -98,6 +100,7 @@ const getFsMigrationProgress = (): Promise<Progress> => {
                 };
             }
             return {
+                error,
                 phase: I18n.getText('atlassian.migration.datacenter.generic.error'),
                 completeness: 0,
             };
