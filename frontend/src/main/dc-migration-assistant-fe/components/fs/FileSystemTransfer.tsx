@@ -19,12 +19,8 @@ import React, { FunctionComponent, useState, useEffect } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
-import {
-    MigrationTransferProps,
-    MigrationTransferPage,
-    Progress,
-    ProgressBuilder,
-} from '../shared/MigrationTransferPage';
+import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
+import { Progress, ProgressBuilder } from '../shared/Progress';
 import { fs } from '../../api/fs';
 import { migration, MigrationStage } from '../../api/migration';
 
