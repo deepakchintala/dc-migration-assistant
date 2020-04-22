@@ -17,8 +17,28 @@
 import React, { FunctionComponent } from 'react';
 
 import { I18n } from '@atlassian/wrm-react-i18n';
-import moment from 'moment';
-import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
+import {
+    MigrationTransferProps,
+    MigrationTransferPage,
+    Progress,
+} from '../shared/MigrationTransferPage';
+import { callAppRest } from '../../utils/api';
+import { dbStatusReportEndpoint, DatabaseMigrationStatus, toI18nProp } from '../../api/db';
+
+const toProgress = (status: DatabaseMigrationStatus): Progress => {
+    return {
+        phase: toI18nProp(status.status),
+        elapsedTimeSeconds: status.elapsedTime.seconds,
+    };
+};
+
+const fetchDBMigrationStatus = (): Promise<DatabaseMigrationStatus> => {
+    return callAppRest('GET', dbStatusReportEndpoint).then((result: any) => result.json());
+};
+
+const getProgressFromStatus = (): Promise<Progress> => {
+    return fetchDBMigrationStatus().then(toProgress);
+};
 
 const props: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.db.title'),
@@ -27,16 +47,7 @@ const props: MigrationTransferProps = {
     startMoment: moment(),
     hasStarted: true,
     startMigrationPhase: Promise.resolve,
-    getProgress: () => {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve({
-                    completeness: 0.5,
-                    phase: 'uploading files...',
-                });
-            }, 500);
-        });
-    },
+    getProgress: getProgressFromStatus,
 };
 
 export const DatabaseTransferPage: FunctionComponent = () => {

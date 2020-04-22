@@ -21,12 +21,11 @@ export const dbStatusReportEndpoint = `${dbAPIBase}/report`;
 
 export enum DBMigrationStatus {
     NOT_STARTED,
-    FAILED,
     EXPORTING,
     UPLOADING,
     IMPORTING,
     DONE,
-    UNKNOWN,
+    FAILED,
 }
 
 export const toI18nProp = (status: DBMigrationStatus): string => {
@@ -35,7 +34,7 @@ export const toI18nProp = (status: DBMigrationStatus): string => {
 };
 
 // See DatabaseMigrationProgress.kt
-type DatabaseMigrationStatus = {
+export type DatabaseMigrationStatus = {
     status: DBMigrationStatus;
     elapsedTime: MigrationDuration;
 };
