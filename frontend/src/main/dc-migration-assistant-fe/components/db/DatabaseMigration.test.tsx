@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { enableFetchMocks } from 'jest-fetch-mock'
-enableFetchMocks()
+/* eslint-disable */
+import { enableFetchMocks } from 'jest-fetch-mock';
+enableFetchMocks();
 
 import React from 'react';
 import { render } from '@testing-library/react';
