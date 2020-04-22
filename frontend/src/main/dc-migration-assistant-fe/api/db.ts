@@ -29,7 +29,7 @@ export enum DBMigrationStatus {
 }
 
 export const toI18nProp = (status: DBMigrationStatus): string => {
-    const name = DBMigrationStatus[status].toLowerCase();
+    const name = status.toString().toLowerCase();
     return `atlassian.migration.datacenter.db.status.${name}`;
 };
 
