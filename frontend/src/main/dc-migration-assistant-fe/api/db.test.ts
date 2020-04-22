@@ -14,21 +14,9 @@
  * limitations under the License.
  */
 
-import { DBMigrationStatus, toUIStatus, toI18nProp } from './db';
+import { DBMigrationStatus, toI18nProp } from './db';
 
 describe('DB', () => {
-    it('Backend string to status map', () => {
-        const status = toUIStatus('NOT_STARTED');
-
-        expect(status).toBe(DBMigrationStatus.NOT_STARTED);
-    });
-
-    it('Backend string to status map FAIL', () => {
-        const status = toUIStatus('NOT_A_VALID_STATUS');
-
-        expect(status).toBe(DBMigrationStatus.UNKNOWN);
-    });
-
     it('Status to i18n property', () => {
         const prop = toI18nProp(DBMigrationStatus.UPLOADING);
 
