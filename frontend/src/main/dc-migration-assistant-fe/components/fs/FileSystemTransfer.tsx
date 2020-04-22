@@ -21,7 +21,7 @@ import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
 import { Progress, ProgressBuilder } from '../shared/Progress';
-import { fs } from '../../api/fs';
+import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
 import { migration, MigrationStage } from '../../api/migration';
 
 const dummyStarted = moment();
@@ -29,48 +29,65 @@ const dummyStarted = moment();
 dummyStarted.subtract(49, 'hours');
 dummyStarted.subtract(23, 'minutes');
 
+const getErrorFromResult = (result: FileSystemMigrationStatusResponse): string | undefined => {
+    if (result?.failedFiles.length > 0) {
+        const failedFilesCount = result.failedFiles.length;
+        const reasons: Record<string, boolean> = {};
+
+        result.failedFiles.forEach(failure => {
+            if (!reasons[failure.reason]) {
+                reasons[failure.reason] = true;
+            }
+        });
+
+        const reasonsString = Object.keys(reasons).join(', ');
+
+        return `Encountered ${failedFilesCount} upload errors. Error details: ${reasonsString}`;
+    }
+    return undefined;
+};
+
+const getCompletenessFromResult = (result: FileSystemMigrationStatusResponse): number => {
+    if (result.status === 'UPLOADING' || result.status === 'DOWNLOADING') {
+        let offset = 0;
+        if (result.status === 'DOWNLOADING') {
+            offset = 0.5;
+        }
+        const downloadProgress = result.downloadedFiles / result.filesFound;
+        return offset + 0.5 * downloadProgress;
+    }
+    if (result.status === 'DONE') {
+        return 1;
+    }
+    return 0;
+};
+
+const getPhaseFromStatus = (result: FileSystemMigrationStatusResponse): string => {
+    switch (result.status) {
+        case 'DONE':
+            return I18n.getText('atlassian.migration.datacenter.fs.phase.download');
+        case 'DOWNLOADING':
+            return I18n.getText('atlassian.migration.datacenter.fs.phase.download');
+        case 'UPLOADING':
+            return I18n.getText('atlassian.migration.datacenter.fs.phase.upload');
+        case 'NOT_STARTED':
+            return I18n.getText('atlassian.migration.datacenter.fs.phase.notStarted');
+        default:
+            return I18n.getText('atlassian.migration.datacenter.generic.error');
+    }
+};
+
 const getFsMigrationProgress = (): Promise<Progress> => {
     return fs
         .getFsMigrationStatus()
         .then(result => {
             const builder: ProgressBuilder = new ProgressBuilder();
 
-            if (result?.failedFiles.length > 0) {
-                const failedFilesCount = result.failedFiles.length;
-                const reasons: Record<string, boolean> = {};
-
-                result.failedFiles.forEach(failure => {
-                    if (!reasons[failure.reason]) {
-                        reasons[failure.reason] = true;
-                    }
-                });
-
-                const reasonsString = Object.keys(reasons).join(', ');
-
-                builder.setError(
-                    `Encountered ${failedFilesCount} upload errors. Error details: ${reasonsString}`
-                );
-            }
-
-            if (result.crawlingFinished) {
-                const uploadProgress = result.uploadedFiles / result.filesFound;
-                const weightedProgress = 0.5 * uploadProgress;
-                builder.setCompleteness(weightedProgress);
-            }
-
-            if (result.status === 'UPLOADING') {
-                builder.setPhase(I18n.getText('atlassian.migration.datacenter.fs.phase.upload'));
-            }
-            if (result.status === 'DOWNLOADING') {
-                const downloadProgress = result.downloadedFiles / result.filesFound;
-                const weightedProgress = 0.5 + 0.5 * downloadProgress;
-                builder.setPhase(I18n.getText('atlassian.migration.datacenter.fs.phase.download'));
-                builder.setCompleteness(weightedProgress);
-            }
+            builder.setError(getErrorFromResult(result));
+            builder.setCompleteness(getCompletenessFromResult(result));
+            builder.setPhase(getPhaseFromStatus(result));
 
             if (result.status === 'DONE') {
-                builder.setPhase(I18n.getText('atlassian.migration.datacenter.fs.phase.download'));
-                builder.setCompleteness(1);
                 builder.setCompleteMessage(
                     I18n.getText(
                         'atlassian.migration.datacenter.fs.completeMessage.boldPrefix',
@@ -78,12 +95,6 @@ const getFsMigrationProgress = (): Promise<Progress> => {
                         result.filesFound
                     ),
                     I18n.getText('atlassian.migration.datacenter.fs.completeMessage.message')
-                );
-            }
-
-            if (result.status === 'NOT_STARTED') {
-                builder.setPhase(
-                    I18n.getText('atlassian.migration.datacenter.fs.phase.notStarted')
                 );
             }
 

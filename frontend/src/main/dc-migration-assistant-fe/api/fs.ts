@@ -10,7 +10,7 @@ type FailedFile = {
     reason: string;
 };
 
-type FileSystemMigrationStatusResponse = {
+export type FileSystemMigrationStatusResponse = {
     status: 'NOT_STARTED' | 'FAILED' | 'UPLOADING' | 'DOWNLOADING' | 'DONE';
     failedFiles: Array<FailedFile>;
     uploadedFiles: number;
