@@ -64,13 +64,14 @@ export class ProgressBuilder {
             throw new Error('must include phase in progress object');
         }
 
-        const { phase, completeMessage, completeness, error } = this;
+        const { phase, completeMessage, completeness, error, elapsedSeconds } = this;
 
         return {
             phase,
             completeMessage,
             completeness,
             error,
+            elapsedTimeSeconds: elapsedSeconds,
         };
     }
 }

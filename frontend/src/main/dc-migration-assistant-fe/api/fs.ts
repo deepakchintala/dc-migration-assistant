@@ -12,7 +12,11 @@ type FailedFile = {
 
 type FileSystemMigrationDuration = {
     seconds: number;
+    nano: number;
     nanos: number;
+    negative: boolean;
+    units: Array<string>;
+    zero: boolean;
 };
 
 export type FileSystemMigrationStatusResponse = {

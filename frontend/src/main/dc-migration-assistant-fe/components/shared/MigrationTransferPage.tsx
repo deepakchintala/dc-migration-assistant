@@ -139,7 +139,7 @@ const renderContentIfLoading = (
                     'atlassian.migration.datacenter.common.progress.started',
                     (
                         started || calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds)
-                    ).format('D/MMM/YY h:m A')
+                    ).format('D/MMM/YY h:mm A')
                 )}
             </p>
             <p>
