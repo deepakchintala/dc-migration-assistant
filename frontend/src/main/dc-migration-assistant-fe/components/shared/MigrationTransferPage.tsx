@@ -213,10 +213,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 setLoading(false);
             })
             .catch(err => {
-                const error = err as Error;
-                console.log('setting error from progress');
-                console.log(error.name);
-                console.log(err);
                 setError(err);
                 setLoading(false);
             });

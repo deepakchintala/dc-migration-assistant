@@ -66,7 +66,10 @@ const getFsMigrationProgress = (): Promise<Progress> => {
                         completeness: weightedProgress,
                     };
                 }
-                return progress;
+                return {
+                    ...progress,
+                    error,
+                };
             }
             if (result.status === 'DOWNLOADING') {
                 const downloadProgress = result.downloadedFiles / result.filesFound;
