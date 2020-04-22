@@ -86,6 +86,7 @@ const getFsMigrationProgress = (): Promise<Progress> => {
             builder.setError(getErrorFromResult(result));
             builder.setCompleteness(getCompletenessFromResult(result));
             builder.setPhase(getPhaseFromStatus(result));
+            builder.setElapsedSeconds(result.elapsedTime.seconds);
 
             if (result.status === 'DONE') {
                 builder.setCompleteMessage(
@@ -119,7 +120,6 @@ const fsMigrationTranferPageProps: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.fs.title'),
     description: I18n.getText('atlassian.migration.datacenter.fs.description'),
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
-    startMoment: dummyStarted,
     hasStarted: false,
     startMigrationPhase: fs.startFsMigration,
     getProgress: getFsMigrationProgress,

@@ -12,6 +12,7 @@ export type CompleteMessage = {
 export type Progress = {
     phase: string;
     completeness?: number;
+    elapsedTimeSeconds?: number;
     error?: string;
     completeMessage?: CompleteMessage;
 };
@@ -27,6 +28,13 @@ export class ProgressBuilder {
     error: string;
 
     completeMessage: CompleteMessage;
+
+    elapsedSeconds: number;
+
+    setElapsedSeconds(seconds: number): ProgressBuilder {
+        this.elapsedSeconds = seconds;
+        return this;
+    }
 
     setPhase(phase: string): ProgressBuilder {
         this.phase = phase;
