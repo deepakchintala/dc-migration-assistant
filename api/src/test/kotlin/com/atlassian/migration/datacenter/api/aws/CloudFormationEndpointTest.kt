@@ -18,10 +18,7 @@ package com.atlassian.migration.datacenter.api.aws
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
-import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus
-import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService
-import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
+import com.atlassian.migration.datacenter.spi.infrastructure.*
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -32,6 +29,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
 import javax.ws.rs.core.Response
 import kotlin.test.expect
@@ -141,4 +140,29 @@ internal class CloudFormationEndpointTest {
         assertEquals(Response.Status.OK.statusCode, response.status)
         assertEquals(expectedStatus, (response.entity as Map<*, *>)["status"])
     }
+
+    @Test
+    fun shouldReturnApplicationAsPhaseWhenApplicationStackIsBeingDeployed() {
+        val expectedPhase = "app_infra"
+        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentStatus.CREATE_IN_PROGRESS
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_APPLICATION_WAIT
+
+        val response = endpoint.infrastructureStatus()
+
+        assertEquals(Response.Status.OK.statusCode, response.status)
+        assertEquals(expectedPhase, (response.entity as Map<*, *>)["phase"])
+    }
+
+    @Test
+    fun shouldReturnMigrationAsPhaseWhenMigrationStackIsBeingDeployed() {
+        val expectedPhase = "migration_infra"
+        every { helperDeploymentService.deploymentStatus } returns InfrastructureDeploymentStatus.CREATE_IN_PROGRESS
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK_WAIT
+
+        val response = endpoint.infrastructureStatus()
+
+        assertEquals(Response.Status.OK.statusCode, response.status)
+        assertEquals(expectedPhase, (response.entity as Map<*, *>)["phase"])
+    }
+
 }

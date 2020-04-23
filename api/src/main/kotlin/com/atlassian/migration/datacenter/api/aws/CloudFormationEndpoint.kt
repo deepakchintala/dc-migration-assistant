@@ -60,24 +60,23 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
     @Produces(MediaType.APPLICATION_JSON)
     fun infrastructureStatus(): Response {
         if (migrationService.currentStage == MigrationStage.PROVISION_APPLICATION_WAIT) {
-            return safelyGetDeploymentStatus(deploymentService)
+            return try {
+                val status = deploymentService.deploymentStatus
+                Response.ok(mapOf("status" to status, "phase" to "app_infra")).build()
+            } catch (e: Exception) {
+                Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to e.message)).build()
+            }
         }
         if (migrationService.currentStage == MigrationStage.PROVISION_MIGRATION_STACK) {
             return Response.ok(mapOf("status" to PENDING_MIGRATION_INFR_STATUS)).build()
         }
         if (migrationService.currentStage == MigrationStage.PROVISION_MIGRATION_STACK_WAIT) {
-            return safelyGetDeploymentStatus(helperDeploymentService)
-        }
+            return try {
+                val status = helperDeploymentService.deploymentStatus
+                Response.ok(mapOf("status" to status, "phase" to "migration_infra")).build()
+            } catch (e: Exception) {
+                Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to e.message)).build()
+            }        }
         return Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to "not currently deploying any infrastructure")).build()
     }
-
-    fun safelyGetDeploymentStatus(deploymentService: DeploymentService): Response {
-        return try {
-            val status = deploymentService.deploymentStatus
-            Response.ok(mapOf("status" to status)).build()
-        } catch (e: Exception) {
-            Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to e.message)).build()
-        }
-    }
-
 }
