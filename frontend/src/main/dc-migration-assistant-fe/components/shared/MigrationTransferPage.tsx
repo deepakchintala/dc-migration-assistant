@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState, useEffect, ReactElement } from 'react';
+import React, { FunctionComponent, useState, useEffect, ReactElement, ReactNode } from 'react';
 import ProgressBar, { SuccessProgressBar } from '@atlaskit/progress-bar';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
@@ -25,37 +25,17 @@ import Spinner from '@atlaskit/spinner';
 
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { overviewPath } from '../../utils/RoutePaths';
+import { ProgressCallback, Progress } from './Progress';
 
 const POLL_INTERVAL_MILLIS = 3000;
-
-/**
- * **boldPrefix** - text that will be at the beginning of the message in bold. This should be used
- * to communicate *how much* data has been migrated
- *
- * **message** - the remainder of the complete text
- */
-export type CompleteMessage = {
-    boldPrefix: string;
-    message: string;
-};
-
-export type Progress = {
-    phase: string;
-    completeness?: number;
-    elapsedTimeSeconds?: number;
-    error?: string;
-    completeMessage?: CompleteMessage;
-};
-
-export interface ProgressCallback {
-    (): Promise<Progress>;
-}
 
 export type MigrationTransferProps = {
     heading: string;
     description: string;
     nextText: string;
-    started?: moment.Moment;
+    startMoment?: moment.Moment;
+    hasStarted: boolean;
+    startMigrationPhase: () => Promise<void>;
     getProgress: ProgressCallback;
 };
 
@@ -159,7 +139,7 @@ const renderContentIfLoading = (
                     'atlassian.migration.datacenter.common.progress.started',
                     (
                         started || calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds)
-                    ).format('D/MMM/YY h:m A')
+                    ).format('D/MMM/YY h:mm A')
                 )}
             </p>
             <p>
@@ -174,39 +154,119 @@ const renderContentIfLoading = (
     );
 };
 
+const renderMigrationProgress = (
+    progress: Progress,
+    loading: boolean,
+    startedMoment: Moment
+): ReactNode => {
+    return (
+        <>
+            {progress?.completeness === 1 && (
+                <SectionMessage appearance="confirmation">
+                    <strong>{progress.completeMessage.boldPrefix}</strong>{' '}
+                    {progress.completeMessage.message}
+                </SectionMessage>
+            )}
+            {renderContentIfLoading(loading, progress, startedMoment)}
+        </>
+    );
+};
+
+const renderMigrationActions = (
+    completeness: number,
+    nextText: string,
+    startMigrationPhase: () => Promise<void>,
+    updateProgress: () => Promise<void>,
+    started: boolean,
+    loading: boolean
+): ReactNode => {
+    const defaultButtonStyle = {
+        padding: '5px',
+    };
+    const marginButtonStyle = {
+        ...defaultButtonStyle,
+        marginRight: '20px',
+    };
+
+    if (completeness === 1) {
+        return (
+            <Button style={defaultButtonStyle} appearance="primary">
+                {nextText}
+            </Button>
+        );
+    }
+    if (started) {
+        return (
+            <Button style={marginButtonStyle} isLoading={loading} onClick={updateProgress}>
+                Refresh
+            </Button>
+        );
+    }
+    return (
+        <Button
+            style={marginButtonStyle}
+            isLoading={loading}
+            appearance="primary"
+            onClick={startMigrationPhase}
+        >
+            Start
+        </Button>
+    );
+};
+
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
     heading,
     nextText,
-    started,
+    startMoment,
     getProgress,
+    startMigrationPhase,
+    hasStarted,
 }) => {
     const [progress, setProgress] = useState<Progress>();
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(hasStarted);
     const [error, setError] = useState<string>();
+    const [started, setStarted] = useState<boolean>(hasStarted);
+
+    const updateProgress = (): Promise<void> => {
+        return getProgress()
+            .then(result => {
+                setProgress(result);
+                setLoading(false);
+            })
+            .catch(err => {
+                setError(err);
+                setLoading(false);
+            });
+    };
+
+    const startMigration = (): Promise<void> => {
+        setLoading(true);
+        setError('');
+        return startMigrationPhase()
+            .then(() => {
+                setStarted(true);
+            })
+            .catch(err => {
+                console.log('setting error from start');
+                setError(err.message);
+                setLoading(false);
+            });
+    };
 
     useEffect(() => {
-        const updateProgress = (): Promise<void> => {
-            return getProgress()
-                .then(result => {
-                    setProgress(result);
-                    setLoading(false);
-                })
-                .catch(err => {
-                    console.error(err);
-                    setError(err);
-                });
-        };
+        if (started) {
+            const id = setInterval(async () => {
+                await updateProgress();
+            }, POLL_INTERVAL_MILLIS);
 
-        const id = setInterval(async () => {
-            await updateProgress();
-        }, POLL_INTERVAL_MILLIS);
+            setLoading(true);
+            updateProgress();
 
-        setLoading(true);
-        updateProgress();
-
-        return (): void => clearInterval(id);
-    }, []);
+            return (): void => clearInterval(id);
+        }
+        return (): void => undefined;
+    }, [started]);
 
     const transferError = progress?.error || error;
 
@@ -218,23 +278,22 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 {transferError && (
                     <SectionMessage appearance="error">{transferError}</SectionMessage>
                 )}
-                {progress?.completeness === 1 && (
-                    <SectionMessage appearance="confirmation">
-                        <strong>{progress.completeMessage.boldPrefix}</strong>{' '}
-                        {progress.completeMessage.message}
-                    </SectionMessage>
-                )}
-                {renderContentIfLoading(loading, progress, started)}
+                {started && renderMigrationProgress(progress, loading, startMoment)}
             </TransferContentContainer>
             <TransferActionsContainer>
+                {renderMigrationActions(
+                    progress?.completeness,
+                    nextText,
+                    startMigration,
+                    updateProgress,
+                    started,
+                    loading
+                )}
                 <Link to={overviewPath}>
-                    <Button style={{ marginRight: '20px' }}>
+                    <Button style={{ marginLeft: '20px', paddingLeft: '5px' }}>
                         {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
                     </Button>
                 </Link>
-                <Button appearance="primary" isDisabled={progress?.completeness !== 1}>
-                    {nextText}
-                </Button>
             </TransferActionsContainer>
         </TransferPageContainer>
     );
