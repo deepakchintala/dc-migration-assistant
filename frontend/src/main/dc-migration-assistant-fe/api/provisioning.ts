@@ -1,3 +1,4 @@
+import { I18n } from '@atlassian/wrm-react-i18n';
 import { callAppRest } from '../utils/api';
 
 export enum ProvisioningStatus {
@@ -46,10 +47,18 @@ export const provisioning = {
                             return ProvisioningStatus.Complete;
                         case 'CREATE_FAILED':
                             // TODO: internationalise
-                            throw new Error('Deployment to AWS failed');
+                            throw new Error(
+                                I18n.getText(
+                                    'atlassian.migration.datacenter.provision.aws.status.failed'
+                                )
+                            );
                         default:
-                            // TODO: internationalise
-                            throw new Error(`Unexpected deployment state: ${phase}`);
+                            throw new Error(
+                                I18n.getText(
+                                    'atlassian.migration.datacenter.provision.aws.status.unexpected',
+                                    `${phase}`
+                                )
+                            );
                     }
                 }
                 if (resp.error) {
@@ -57,7 +66,12 @@ export const provisioning = {
                     const errorResponse = resp as StackStatusErrorResponse;
                     throw new Error(errorResponse.error);
                 }
-                throw new Error(`Bad response from server ${JSON.stringify(resp)}`);
+                throw new Error(
+                    I18n.getText(
+                        'atlassian.migration.datacenter.provision.aws.status.badServer',
+                        `${JSON.stringify(resp)}`
+                    )
+                );
             });
     },
 };
