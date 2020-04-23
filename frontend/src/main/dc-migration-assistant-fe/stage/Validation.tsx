@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, ReactFragment } from 'react';
+import React, { FunctionComponent, ReactFragment, useEffect, useState } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import SectionMessage from '@atlaskit/section-message';
-import TableTree, { Rows, Row, Cell } from '@atlaskit/table-tree';
+import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
 
-type MigrationSummary = {
+type MigrationSummaryData = {
     key: string;
     value: string;
 };
-
-const stubData: Array<MigrationSummary> = [
-    { key: 'AWS Jira Instance', value: 'http://loadbalancer' },
-    { key: 'Migration Time', value: '1/Apr/2020 08:00 AM - 2/Apr/2020 12:00 PM' },
-    { key: 'Total number of files transferred', value: '12345 of 12345' },
-    { key: 'Database size transferred', value: '34 GB of 34 GB' },
-];
 
 const renderMigrationSummaryActionCallout = (): ReactFragment => {
     return (
@@ -48,25 +41,38 @@ const renderMigrationSummaryActionCallout = (): ReactFragment => {
     );
 };
 
-// Use a flex box instead?
+// Use a simple div with a display:table instead
 const MigrationSummary: FunctionComponent = () => {
+    const [summaryData, setSummaryData]: [Array<MigrationSummaryData>, Function] = useState<
+        Array<MigrationSummaryData>
+    >([]);
+
+    useEffect(() => {
+        Promise.resolve([
+            { key: 'AWS Jira Instance', value: 'http://loadbalancer' },
+            { key: 'Migration Time', value: '1/Apr/2020 08:00 AM - 2/Apr/2020 12:00 PM'},
+            { key: 'Total number of files transferred', value: '12345 of 12345'},
+            { key: 'Database size transferred', value: '34 GB of 34 GB'},
+        ]).then(data => setSummaryData(data));
+    }, []);
+
     return (
         <>
             <div>
                 <h4>Migration details</h4>
             </div>
             <TableTree>
-                {stubData.map(summary => (
+                {summaryData.map(summary => (
                     <Row
                         key={`migration-summary-${summary.key
                             .toLocaleLowerCase()
                             .replace(' ', '_')}`}
                         hasChildren={false}
                     >
-                        <Cell width={300} singleLine>
+                        <Cell width={400} singleLine>
                             {summary.key}
                         </Cell>
-                        <Cell width={500}>{summary.value}</Cell>
+                        <Cell width={400}>{summary.value}</Cell>
                     </Row>
                 ))}
             </TableTree>
