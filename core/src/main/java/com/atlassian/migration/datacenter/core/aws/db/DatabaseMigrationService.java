@@ -28,11 +28,16 @@ import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailur
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationErrorReport;
 import com.atlassian.scheduler.config.JobId;
+import org.checkerframework.checker.nullness.Opt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DatabaseMigrationService
 {
@@ -49,7 +54,7 @@ public class DatabaseMigrationService
     private final MigrationRunner migrationRunner;
     private final AWSMigrationHelperDeploymentService  migrationHelperDeploymentService;
 
-    private final AtomicBoolean isRunning = new AtomicBoolean(false);
+    private final AtomicReference<Optional<LocalDateTime>> startTime = new AtomicReference<>(Optional.empty());
 
     public DatabaseMigrationService(Path tempDirectory,
                                     MigrationService migrationService,
@@ -80,6 +85,7 @@ public class DatabaseMigrationService
     public FileSystemMigrationErrorReport performMigration() throws DatabaseMigrationFailure, InvalidMigrationStageError
     {
         migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT);
+        startTime.set(Optional.of(LocalDateTime.now()));
 
         Path pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory, stageTransitionCallback);
 
@@ -109,6 +115,15 @@ public class DatabaseMigrationService
         migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD_WAIT);
 
         return report;
+    }
+
+    public Optional<Duration> getElapsedTime() {
+        Optional<LocalDateTime> start = startTime.get();
+        if (!start.isPresent()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(Duration.between(start.get(), LocalDateTime.now()));
     }
 
     public Boolean scheduleMigration() {
