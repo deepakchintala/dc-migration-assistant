@@ -17,10 +17,7 @@
 import React, { FunctionComponent } from 'react';
 
 import { I18n } from '@atlassian/wrm-react-i18n';
-import {
-    MigrationTransferProps,
-    MigrationTransferPage,
-} from '../shared/MigrationTransferPage';
+import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
 import { Progress } from '../shared/Progress';
 import { callAppRest } from '../../utils/api';
 import { dbStatusReportEndpoint, DatabaseMigrationStatus, toI18nProp } from '../../api/db';
