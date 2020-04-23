@@ -15,9 +15,12 @@
  */
 package com.atlassian.migration.datacenter.api.aws
 
+import com.atlassian.migration.datacenter.spi.MigrationService
+import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -31,11 +34,18 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
 import javax.ws.rs.core.Response
+import kotlin.test.expect
 
 @ExtendWith(MockKExtension::class)
 internal class CloudFormationEndpointTest {
     @MockK(relaxUnitFun = true)
     lateinit var deploymentService: ApplicationDeploymentService
+
+    @MockK(relaxUnitFun = true)
+    lateinit var helperDeploymentService: MigrationInfrastructureDeploymentService
+
+    @MockK(relaxUnitFun = true)
+    lateinit var migrationSerivce: MigrationService
 
     @InjectMockKs
     lateinit var endpoint: CloudFormationEndpoint
@@ -76,6 +86,7 @@ internal class CloudFormationEndpointTest {
     fun shouldGetCurrentProvisioningStatusForGivenStackId() {
         val expectedStatus = InfrastructureDeploymentStatus.CREATE_IN_PROGRESS
         every { deploymentService.deploymentStatus } returns expectedStatus
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_APPLICATION_WAIT
 
         val response = endpoint.infrastructureStatus()
 
@@ -86,6 +97,7 @@ internal class CloudFormationEndpointTest {
     @Test
     fun shouldGetHandleErrorWhenStatusCannotBeRetrieved() {
         val expectedErrorMessage = "stack Id not found"
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_APPLICATION_WAIT
         every { deploymentService.deploymentStatus } throws StackInstanceNotFoundException.builder()
             .message(expectedErrorMessage).build()
 
@@ -93,5 +105,40 @@ internal class CloudFormationEndpointTest {
 
         assertEquals(Response.Status.NOT_FOUND.statusCode, response.status)
         assertEquals(expectedErrorMessage, (response.entity as Map<*, *>)["error"])
+    }
+
+    @Test
+    fun shouldReturnMigrationStackDeploymentStatusWhenItIsBeingDeployed() {
+        val expectedStatus = InfrastructureDeploymentStatus.CREATE_IN_PROGRESS
+        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentStatus.CREATE_COMPLETE
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK_WAIT
+        every { helperDeploymentService.deploymentStatus } returns expectedStatus
+
+        val response = endpoint.infrastructureStatus()
+
+        assertEquals(Response.Status.OK.statusCode, response.status)
+        assertEquals(expectedStatus, (response.entity as Map<*, *>)["status"])
+    }
+
+    @Test
+    fun shouldReturnNotFoundWhenNoInfraIsBeingDeployed() {
+        val expectedErrorMessage = "not currently deploying any infrastructure"
+        every { migrationSerivce.currentStage } returns MigrationStage.FS_MIGRATION_COPY
+
+        val response = endpoint.infrastructureStatus()
+
+        assertEquals(Response.Status.NOT_FOUND.statusCode, response.status)
+        assertEquals(expectedErrorMessage, (response.entity as Map<*, *>)["error"])
+    }
+
+    @Test
+    fun shouldReturnIntermediatePhaseWhileBetweenDeployments() {
+        val expectedStatus = "PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT"
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK
+
+        val response = endpoint.infrastructureStatus()
+
+        assertEquals(Response.Status.OK.statusCode, response.status)
+        assertEquals(expectedStatus, (response.entity as Map<*, *>)["status"])
     }
 }

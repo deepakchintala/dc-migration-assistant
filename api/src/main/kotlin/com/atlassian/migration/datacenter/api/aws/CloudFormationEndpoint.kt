@@ -15,15 +15,12 @@
  */
 package com.atlassian.migration.datacenter.api.aws
 
+import com.atlassian.migration.datacenter.spi.MigrationService
+import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
-import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService
-import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
+import com.atlassian.migration.datacenter.spi.infrastructure.*
 import org.slf4j.LoggerFactory
-import javax.ws.rs.Consumes
-import javax.ws.rs.GET
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -31,10 +28,12 @@ import javax.ws.rs.core.Response
  * REST API Endpoint for managing AWS provisioning.
  */
 @Path("/aws/stack")
-class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymentService) {
+class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymentService, private val migrationService: MigrationService, private val helperDeploymentService: MigrationInfrastructureDeploymentService) {
     companion object {
         private val log = LoggerFactory.getLogger(CloudFormationEndpoint::class.java)
     }
+
+    val PENDING_MIGRATION_INFR_STATUS = "PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT"
 
     @POST
     @Path("/create")
@@ -60,6 +59,19 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun infrastructureStatus(): Response {
+        if (migrationService.currentStage == MigrationStage.PROVISION_APPLICATION_WAIT) {
+            return safelyGetDeploymentStatus(deploymentService)
+        }
+        if (migrationService.currentStage == MigrationStage.PROVISION_MIGRATION_STACK) {
+            return Response.ok(mapOf("status" to PENDING_MIGRATION_INFR_STATUS)).build()
+        }
+        if (migrationService.currentStage == MigrationStage.PROVISION_MIGRATION_STACK_WAIT) {
+            return safelyGetDeploymentStatus(helperDeploymentService)
+        }
+        return Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to "not currently deploying any infrastructure")).build()
+    }
+
+    fun safelyGetDeploymentStatus(deploymentService: DeploymentService): Response {
         return try {
             val status = deploymentService.deploymentStatus
             Response.ok(mapOf("status" to status)).build()
@@ -67,4 +79,5 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
             Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to e.message)).build()
         }
     }
+
 }

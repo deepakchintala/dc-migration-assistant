@@ -16,13 +16,6 @@
 
 package com.atlassian.migration.datacenter.spi.infrastructure;
 
-
-import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
-
-import java.util.Map;
-
-public interface ApplicationDeploymentService extends DeploymentService {
-
-    void deployApplication(String deploymentId, Map<String, String> params) throws InvalidMigrationStageError;
-
+public interface DeploymentService {
+    InfrastructureDeploymentStatus getDeploymentStatus();
 }
