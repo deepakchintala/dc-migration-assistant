@@ -37,5 +37,6 @@ export const quickstartStatusPath = `${awsBasePath}/:stackId/status`;
 export const awsAuthPath = `${awsBasePath}/auth`;
 
 export const fsPath = `${routePrefix}/fs`;
-
 export const dbPath = `${routePrefix}/db`;
+
+export const validationPath = `${routePrefix}/validation`;

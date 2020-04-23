@@ -172,6 +172,21 @@
     react-transition-group "^2.2.1"
     tslib "^1.9.3"
 
+"@atlaskit/table-tree@^8.0.2":
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/@atlaskit/table-tree/-/table-tree-8.0.2.tgz#cc3ab8a365850afbe7cbd780fb4f5133f57c2885"
+  integrity sha512-QAL0lRG22dPPFhuTRC7bh5vnQ2Y8W+GojGUz7/27R1CtEgJFjcTQScR+P2pX083Z7wATndKno016C5hZR5h6XQ==
+  dependencies:
+    "@atlaskit/analytics-next" "^6.3.5"
+    "@atlaskit/button" "^13.3.9"
+    "@atlaskit/icon" "^20.1.0"
+    "@atlaskit/spinner" "^12.1.6"
+    "@atlaskit/theme" "^9.5.1"
+    "@babel/runtime" "^7.0.0"
+    lodash.get "^4.4.2"
+    lodash.set "^4.3.2"
+    prop-types "^15.5.10"
+
 "@atlaskit/textfield@^3.1.4":
   version "3.1.9"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/textfield/-/textfield-3.1.9.tgz#3db4a66c1294fb92a3084dffc124f9cdc81ec645"
@@ -7881,10 +7896,20 @@ lodash.debounce@^4.0.8:
   resolved "https://packages.atlassian.com/api/npm/npm-remote/lodash.debounce/-/lodash.debounce-4.0.8.tgz#82d79bff30a67c4005ffd5e2515300ad9ca4d7af"
   integrity sha1-gteb/zCmfEAF/9XiUVMArZyk168=
 
+lodash.get@^4.4.2:
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/lodash.get/-/lodash.get-4.4.2.tgz#2d177f652fa31e939b4438d5341499dfa3825e99"
+  integrity sha1-LRd/ZS+jHpObRDjVNBSZ36OCXpk=
+
 lodash.memoize@4.x, lodash.memoize@^4.1.2:
   version "4.1.2"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
   integrity sha1-vMbEmkKihA7Zl/Mj6tpezRguC/4=
+
+lodash.set@^4.3.2:
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/lodash.set/-/lodash.set-4.3.2.tgz#d8757b1da807dde24816b0d6a84bea1a76230b23"
+  integrity sha1-2HV7HagH3eJIFrDWqEvqGnYjCyM=
 
 lodash.sortby@^4.7.0:
   version "4.7.0"
