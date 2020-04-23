@@ -18,15 +18,49 @@ import React, { FunctionComponent } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { MigrationTransferPage } from '../../shared/MigrationTransferPage';
-import { ProgressBuilder, Progress } from '../../shared/Progress';
+import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
+import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
+
+const getDeploymentProgress: ProgressCallback = () => {
+    return provisioning
+        .getProvisioningStatus()
+        .then(result => {
+            const builder = new ProgressBuilder();
+            switch (result) {
+                case ProvisioningStatus.Complete:
+                    builder.setPhase('Deployment Complete');
+                    builder.setCompleteness(1);
+                    break;
+                case ProvisioningStatus.ProvisioningApplicationStack:
+                    builder.setPhase('Deploying Jira infrastructure');
+                    builder.setCompleteness(0.25);
+                    break;
+                case ProvisioningStatus.PreProvisionMigrationStack:
+                    builder.setPhase('Preparing migration infrastructure deployment');
+                    builder.setCompleteness(0.5);
+                    break;
+                case ProvisioningStatus.ProvisioningMigrationStack:
+                    builder.setPhase('Deploying migration infrastructure');
+                    builder.setCompleteness(0.75);
+                    break;
+                default:
+                    builder.setError(`Unexpected deployment status ${result}`);
+            }
+            return builder.build();
+        })
+        .catch(err => {
+            const builder = new ProgressBuilder();
+            builder.setError(err.message);
+            builder.setCompleteness(0);
+            return builder.build();
+        });
+};
 
 export const ProvisioningStatusPage: FunctionComponent = () => {
     return (
         <MigrationTransferPage
             description={I18n.getText('atlassian.migration.datacenter.provision.aws.description')}
-            getProgress={(): Promise<Progress> =>
-                Promise.resolve(new ProgressBuilder().setPhase('').build())
-            }
+            getProgress={getDeploymentProgress}
             hasStarted
             heading={I18n.getText('atlassian.migration.datacenter.provision.aws.title')}
             nextText={I18n.getText('atlassian.migration.datacenter.generic.next')}
