@@ -16,8 +16,10 @@
 
 import React, { ReactElement } from 'react';
 import Button from '@atlaskit/button';
+import InlineMessage from '@atlaskit/inline-message';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { overviewPath, fsPath, dbPath, startPath } from '../utils/RoutePaths';
 
@@ -38,11 +40,17 @@ const ButtonContainer = styled.div`
     align-self: flex-end;
 `;
 
+const InfoProps = {
+    title: I18n.getText('atlassian.migration.datacenter.home.info.title'),
+    secondaryText: I18n.getText('atlassian.migration.datacenter.home.info.content'),
+}
+
 export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
     return (
         <HomeContainer>
             <h2>{title}</h2>
             <p>{synopsis}</p>
+            <InlineMessage {...InfoProps}/>
             <ButtonContainer>
                 <Link to={startPath}>
                     <Button appearance="primary">{startButtonText}</Button>

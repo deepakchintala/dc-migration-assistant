@@ -33,6 +33,18 @@
     memoize-one "^5.1.0"
     tslib "^1.9.3"
 
+"@atlaskit/button@^13.3.11":
+  version "13.3.11"
+  resolved "https://registry.yarnpkg.com/@atlaskit/button/-/button-13.3.11.tgz#a90faee9bc546721925038da688883cf6191e044"
+  integrity sha512-2JM+ifeOIb9X/K0PWCM8uzyf9IflQbV7eZ7GdPZnxeyE4nLlQlO/dg4Nly8WCzDrXNoXPD1qMtjxIhAPiDzdSw==
+  dependencies:
+    "@atlaskit/analytics-next" "^6.3.6"
+    "@atlaskit/spinner" "^12.1.6"
+    "@atlaskit/theme" "^9.5.3"
+    "@emotion/core" "^10.0.9"
+    memoize-one "^5.1.0"
+    tslib "^1.9.3"
+
 "@atlaskit/button@^13.3.5", "@atlaskit/button@^13.3.9":
   version "13.3.9"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/button/-/button-13.3.9.tgz#0f66e41324c020b4f4bb36006bae3aa1ba208fd7"
@@ -102,6 +114,37 @@
     tslib "^1.9.3"
     uuid "^3.1.0"
 
+"@atlaskit/icon@^20.1.1":
+  version "20.1.1"
+  resolved "https://registry.yarnpkg.com/@atlaskit/icon/-/icon-20.1.1.tgz#ce3ed8d09389028643e70a7ccfde31fc74713175"
+  integrity sha512-yd4MvBPi6Bf6BqzOjktnAsGJVAmPhe2YFEUAq7fO0Zz7KK/eQU5fEIyclINeK65cAD/9VsI1P+gbTQ5ziK44/A==
+  dependencies:
+    "@atlaskit/theme" "^9.5.1"
+    tslib "^1.9.3"
+    uuid "^3.1.0"
+
+"@atlaskit/inline-dialog@^12.1.12":
+  version "12.1.12"
+  resolved "https://registry.yarnpkg.com/@atlaskit/inline-dialog/-/inline-dialog-12.1.12.tgz#5c66bc5717e866dc812cccaf7ee5b5b7bb31e1bb"
+  integrity sha512-pwOvLLLO8hLZQbg6AovYN2lQXt8NuMs8Q4V6u/1xhmA2oK6U9R+CAWhiTWxNHvxVVMU2e8oyqLo0Ln6M0Hl6mA==
+  dependencies:
+    "@atlaskit/analytics-next" "^6.3.5"
+    "@atlaskit/popper" "^3.1.12"
+    "@atlaskit/theme" "^9.5.1"
+    react-node-resolver "^1.0.1"
+    tslib "^1.9.3"
+
+"@atlaskit/inline-message@^10.1.6":
+  version "10.1.6"
+  resolved "https://registry.yarnpkg.com/@atlaskit/inline-message/-/inline-message-10.1.6.tgz#45fcbd5b95ebf9a8337c66477cc41a12f08980e4"
+  integrity sha512-sePMX79coz68CdnhvSrjj0gisxGjLgEs0n6yXX9cESJsmac36gxOSyLD3ucdXAPnmCTHzKbOKXUWeXPfofvg6w==
+  dependencies:
+    "@atlaskit/button" "^13.3.11"
+    "@atlaskit/icon" "^20.1.1"
+    "@atlaskit/inline-dialog" "^12.1.12"
+    "@atlaskit/theme" "^9.5.1"
+    tslib "^1.9.3"
+
 "@atlaskit/panel@^0.3.5":
   version "0.3.5"
   resolved "https://registry.yarnpkg.com/@atlaskit/panel/-/panel-0.3.5.tgz#30cf67e61c242a06751419d18d3bb0bc2c092761"
@@ -112,6 +155,15 @@
     "@atlaskit/theme" "^9.5.3"
     react-animate-height "^2.0.5"
     react-focus-within "^2.0.1"
+    tslib "^1.9.3"
+
+"@atlaskit/popper@^3.1.12":
+  version "3.1.12"
+  resolved "https://registry.yarnpkg.com/@atlaskit/popper/-/popper-3.1.12.tgz#9c8722d7787c847229c9cbd8232ba646eefa8353"
+  integrity sha512-KATLHu/SAAGMqjDoWX9li6x0IKYfx0Q7HvoCbGq+A5m4e8qYhZ51g6M9wWNW/eidhAlM3WAsUgEspNbLMer6AA==
+  dependencies:
+    memoize-one "^5.1.0"
+    react-popper "1.3.6"
     tslib "^1.9.3"
 
 "@atlaskit/portal@^3.1.6":
