@@ -28,10 +28,12 @@ const renderMigrationSummaryActionCallout = (): ReactFragment => {
                 <h4>Actions required on your side</h4>
             </div>
             <div>
-                <ul>{I18n.getText('atlassian.migration.datacenter.validation.post.action.1')}</ul>
-                <ul>{I18n.getText('atlassian.migration.datacenter.validation.post.action.2')}</ul>
-                <ul>{I18n.getText('atlassian.migration.datacenter.validation.post.action.3')}</ul>
-                <ul>{I18n.getText('atlassian.migration.datacenter.validation.post.action.4')}</ul>
+                <ul>
+                    <li>{I18n.getText('atlassian.migration.datacenter.validation.post.action.1')}</li>
+                    <li>{I18n.getText('atlassian.migration.datacenter.validation.post.action.2')}</li>
+                    <li>{I18n.getText('atlassian.migration.datacenter.validation.post.action.3')}</li>
+                    <li>{I18n.getText('atlassian.migration.datacenter.validation.post.action.4')}</li>
+                </ul>
             </div>
         </>
     );
@@ -79,12 +81,11 @@ const MigrationSummary: FunctionComponent = () => {
             </div>
             <TableTree>
                 {summaryData.map(summary => {
+                    const phraseId = `atlassian.migration.datacenter.validation.summary.phrase.${summary.key}`;
                     return (
                         <Row key={`migration-summary-${summary.key}`} hasChildren={false}>
                             <Cell width={400} singleLine>
-                                {I18n.getText(
-                                    `atlassian.migration.datacenter.validation.summary.phrase.${summary.key}`
-                                )}
+                                {I18n.getText(phraseId)}
                             </Cell>
                             <Cell width={400}>{summary.value}</Cell>
                         </Row>
