@@ -24,11 +24,7 @@ describe('Home', () => {
     it('Should render', () => {
         const { queryByText } = render(
             <MemoryRouter>
-                <Home
-                    title="Test Title"
-                    synopsis="Test synopsis"
-                    exploreMigrationButtonText="Test button"
-                />
+                <Home title="Test Title" synopsis="Test synopsis" startButtonText="Test button" />
             </MemoryRouter>
         );
 
