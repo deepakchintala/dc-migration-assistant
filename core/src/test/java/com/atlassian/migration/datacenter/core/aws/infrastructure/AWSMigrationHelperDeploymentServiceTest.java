@@ -63,6 +63,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     static final String MIGRATION_ASG = "migration-asg";
     static final String MIGRATION_BUCKET = "migration-bucket";
     static final String MIGRATION_HOST_INSTANCE_ID = "i-12345";
+    public static final String DEPLOYMENT_FAILURE_MESSAGE = "it broke";
 
     @Mock
     CfnApi mockCfn;
@@ -116,7 +117,7 @@ class AWSMigrationHelperDeploymentServiceTest {
         givenMigrationStackHasStartedDeploying();
         givenMigrationStackNameHasBeenStoredInContext();
 
-        assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, sut.getDeploymentStatus());
+        assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, sut.getDeploymentStatus().getState());
     }
 
     @Test
@@ -127,7 +128,7 @@ class AWSMigrationHelperDeploymentServiceTest {
 
         Thread.sleep(100);
 
-        assertEquals(InfrastructureDeploymentState.CREATE_COMPLETE, sut.getDeploymentStatus());
+        assertEquals(InfrastructureDeploymentState.CREATE_COMPLETE, sut.getDeploymentStatus().getState());
     }
 
     @Test
@@ -138,7 +139,9 @@ class AWSMigrationHelperDeploymentServiceTest {
 
         Thread.sleep(100);
 
-        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, sut.getDeploymentStatus());
+        InfrastructureDeploymentStatus status = sut.getDeploymentStatus();
+        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, status.getState());
+        assertEquals(DEPLOYMENT_FAILURE_MESSAGE, status.getReason());
     }
 
     @Test
@@ -231,7 +234,7 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     private void givenMigrationStackDeploymentWillFail() {
         givenContextContainsMigrationHelperStackId();
-        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_FAILED, "it broke"));
+        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_FAILED, DEPLOYMENT_FAILURE_MESSAGE));
     }
 
     private void givenContextContainsMigrationHelperStackId() {
