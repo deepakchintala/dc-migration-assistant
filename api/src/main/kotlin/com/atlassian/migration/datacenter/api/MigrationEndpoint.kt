@@ -77,4 +77,31 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
                 .build()
         }
     }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @GET
+    @Path("/context")
+    fun getMigrationContext(): Response {
+        return if (migrationService.currentStage == MigrationStage.NOT_STARTED) {
+            Response
+                    .status(Response.Status.NOT_FOUND)
+                    .build()
+        } else {
+            Response
+                    .ok(migrationContextResponseEntity())
+                    .build()
+        }
+    }
+
+    //TODO: replace with invocation to `migrationService`
+    private fun migrationContextResponseEntity() : Map<String,String> {
+        return mapOf(
+            "migrationStartTime" to "1/Apr/2020 08:00 AM AEST",
+            "migrationEndTime" to "2/Apr/2020 09:00 PM AEST",
+            "databaseSize" to "34 GB",
+            "successfulFileTransferCount" to "12345",
+            "failedFileTransferCount" to "0"
+        )
+    }
 }
