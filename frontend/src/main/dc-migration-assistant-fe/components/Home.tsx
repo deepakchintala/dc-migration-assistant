@@ -43,14 +43,14 @@ const ButtonContainer = styled.div`
 const InfoProps = {
     title: I18n.getText('atlassian.migration.datacenter.home.info.title'),
     secondaryText: I18n.getText('atlassian.migration.datacenter.home.info.content'),
-}
+};
 
 export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
     return (
         <HomeContainer>
             <h2>{title}</h2>
             <p>{synopsis}</p>
-            <InlineMessage {...InfoProps}/>
+            <InlineMessage {...InfoProps} />
             <ButtonContainer>
                 <Link to={startPath}>
                     <Button appearance="primary">{startButtonText}</Button>
