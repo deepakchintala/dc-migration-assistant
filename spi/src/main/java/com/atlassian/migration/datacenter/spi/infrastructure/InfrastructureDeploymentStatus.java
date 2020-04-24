@@ -16,6 +16,11 @@
 
 package com.atlassian.migration.datacenter.spi.infrastructure;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@JsonAutoDetect()
 public class InfrastructureDeploymentStatus {
 
     private InfrastructureDeploymentState state;
@@ -26,10 +31,13 @@ public class InfrastructureDeploymentStatus {
         this.reason = reason;
     }
 
+    @JsonProperty("state")
     public InfrastructureDeploymentState getState() {
         return state;
     }
 
+    @JsonProperty("reason")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getReason() {
         return reason;
     }
