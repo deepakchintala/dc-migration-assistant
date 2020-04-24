@@ -25,6 +25,9 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
+import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.not
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -88,7 +91,7 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        assertEquals(expectedStatus, (response.entity as Map<*, *>)["status"])
+        assertThat(response.entity as String, containsString("CREATE_IN_PROGRESS"))
     }
 
     @Test
@@ -114,18 +117,29 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        assertEquals(expectedStatus, (response.entity as Map<*, *>)["status"])
+        assertThat(response.entity as String, containsString("CREATE_IN_PROGRESS"))
+        assertThat(response.entity as String, not(containsString("CREATE_COMPLETE")))
     }
 
     @Test
     fun shouldReturnNotFoundWhenNoInfraIsBeingDeployed() {
         val expectedErrorMessage = "not currently deploying any infrastructure"
-        every { migrationSerivce.currentStage } returns MigrationStage.FS_MIGRATION_COPY
+        every { migrationSerivce.currentStage } returns MigrationStage.AUTHENTICATION
 
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.NOT_FOUND.statusCode, response.status)
         assertEquals(expectedErrorMessage, (response.entity as Map<*, *>)["error"])
+    }
+
+    @Test
+    fun shouldReturnCompleteAfterProvisioningPhase() {
+        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_COMPLETE, "")
+        every { migrationSerivce.currentStage } returns MigrationStage.FS_MIGRATION_COPY
+
+        val response = endpoint.infrastructureStatus()
+
+        assertThat(response.entity as String, containsString("CREATE_COMPLETE"))
     }
 
     @Test
@@ -136,7 +150,7 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        assertEquals(expectedStatus, (response.entity as Map<*, *>)["status"])
+        assertThat(response.entity as String, containsString(expectedStatus));
     }
 
     @Test
@@ -148,7 +162,7 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        assertEquals(expectedPhase, (response.entity as Map<*, *>)["phase"])
+        assertThat(response.entity as String, containsString(expectedPhase))
     }
 
     @Test
@@ -160,7 +174,7 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        assertEquals(expectedPhase, (response.entity as Map<*, *>)["phase"])
+        assertThat(response.entity as String, containsString(expectedPhase))
     }
 
     @Test
@@ -174,9 +188,8 @@ internal class CloudFormationEndpointTest {
 
         assertEquals(Response.Status.OK.statusCode, response.status)
 
-        val status = (response.entity as Map<*, *>)["status"] as InfrastructureDeploymentStatus
-        assertEquals(expectedStatus.reason, status.reason)
-        assertEquals(expectedStatus.state, status.state)
+        assertThat(response.entity as String, containsString(failedStatusMessage))
+        assertThat(response.entity as String, containsString("CREATE_FAILED"))
     }
 
 }
