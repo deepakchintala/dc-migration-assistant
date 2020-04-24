@@ -16,21 +16,9 @@
 
 package com.atlassian.migration.datacenter.spi.infrastructure;
 
-public class InfrastructureDeploymentStatus {
-
-    private InfrastructureDeploymentState state;
-    private String reason;
-
-    public InfrastructureDeploymentStatus(InfrastructureDeploymentState state, String reason) {
-        this.state = state;
-        this.reason = reason;
-    }
-
-    public InfrastructureDeploymentState getState() {
-        return state;
-    }
-
-    public String getReason() {
-        return reason;
-    }
+/**
+ * Represents the status of the deployment of infrastructure
+ */
+public enum InfrastructureDeploymentState {
+    CREATE_IN_PROGRESS, CREATE_COMPLETE, CREATE_FAILED
 }
