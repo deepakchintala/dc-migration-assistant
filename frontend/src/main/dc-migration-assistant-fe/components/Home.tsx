@@ -16,15 +16,17 @@
 
 import React, { ReactElement } from 'react';
 import Button from '@atlaskit/button';
+import InlineMessage from '@atlaskit/inline-message';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { I18n } from '@atlassian/wrm-react-i18n';
 
-import { overviewPath, fsPath, dbPath } from '../utils/RoutePaths';
+import { overviewPath, fsPath, dbPath, startPath } from '../utils/RoutePaths';
 
 type HomeProps = {
     title: string;
     synopsis: string;
-    exploreMigrationButtonText: string;
+    startButtonText: string;
 };
 
 const HomeContainer = styled.div`
@@ -38,20 +40,20 @@ const ButtonContainer = styled.div`
     align-self: flex-end;
 `;
 
-export const Home = ({ title, synopsis, exploreMigrationButtonText }: HomeProps): ReactElement => {
+const InfoProps = {
+    title: I18n.getText('atlassian.migration.datacenter.home.info.title'),
+    secondaryText: I18n.getText('atlassian.migration.datacenter.home.info.content'),
+};
+
+export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
     return (
         <HomeContainer>
             <h2>{title}</h2>
             <p>{synopsis}</p>
-            <Link to={fsPath}>
-                <Button appearance="primary">FS Migration</Button>
-            </Link>
-            <Link to={dbPath}>
-                <Button appearance="primary">Database Migration</Button>
-            </Link>
+            <InlineMessage {...InfoProps} />
             <ButtonContainer>
-                <Link to={overviewPath}>
-                    <Button appearance="primary">{exploreMigrationButtonText}</Button>
+                <Link to={startPath}>
+                    <Button appearance="primary">{startButtonText}</Button>
                 </Link>
             </ButtonContainer>
         </HomeContainer>
