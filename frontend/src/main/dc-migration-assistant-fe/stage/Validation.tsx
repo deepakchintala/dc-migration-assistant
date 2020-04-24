@@ -29,10 +29,18 @@ const renderMigrationSummaryActionCallout = (): ReactFragment => {
             </div>
             <div>
                 <ul>
-                    <li>{I18n.getText('atlassian.migration.datacenter.validation.post.action.1')}</li>
-                    <li>{I18n.getText('atlassian.migration.datacenter.validation.post.action.2')}</li>
-                    <li>{I18n.getText('atlassian.migration.datacenter.validation.post.action.3')}</li>
-                    <li>{I18n.getText('atlassian.migration.datacenter.validation.post.action.4')}</li>
+                    <li>
+                        {I18n.getText('atlassian.migration.datacenter.validation.post.action.1')}
+                    </li>
+                    <li>
+                        {I18n.getText('atlassian.migration.datacenter.validation.post.action.2')}
+                    </li>
+                    <li>
+                        {I18n.getText('atlassian.migration.datacenter.validation.post.action.3')}
+                    </li>
+                    <li>
+                        {I18n.getText('atlassian.migration.datacenter.validation.post.action.4')}
+                    </li>
                 </ul>
             </div>
         </>
