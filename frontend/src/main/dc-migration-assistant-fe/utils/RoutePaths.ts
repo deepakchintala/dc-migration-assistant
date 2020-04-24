@@ -33,7 +33,7 @@ export const overviewPath = `${routePrefix}/overview`;
 
 export const awsBasePath = `${routePrefix}/aws`;
 export const quickstartPath = `${awsBasePath}/provision`;
-export const quickstartStatusPath = `${awsBasePath}/:stackId/status`;
+export const quickstartStatusPath = `${awsBasePath}/provision/status`;
 export const awsAuthPath = `${awsBasePath}/auth`;
 
 export const fsPath = `${routePrefix}/fs`;

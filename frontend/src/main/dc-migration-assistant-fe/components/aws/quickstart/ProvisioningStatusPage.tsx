@@ -44,12 +44,18 @@ const getDeploymentProgress: ProgressCallback = () => {
                     builder.setCompleteness(0.75);
                     break;
                 default:
+                    builder.setPhase(
+                        I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
+                    );
                     builder.setError(`Unexpected deployment status ${result}`);
             }
             return builder.build();
         })
         .catch(err => {
             const builder = new ProgressBuilder();
+            builder.setPhase(
+                I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
+            );
             builder.setError(err.message);
             builder.setCompleteness(0);
             return builder.build();
