@@ -19,11 +19,7 @@ import { I18n } from '@atlassian/wrm-react-i18n';
 import SectionMessage from '@atlaskit/section-message';
 import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
-
-type MigrationSummaryData = {
-    key: string;
-    value: string;
-};
+import { callAppRest, RestApiPathConstants } from '../utils/api';
 
 const renderMigrationSummaryActionCallout = (): ReactFragment => {
     return (
@@ -41,6 +37,11 @@ const renderMigrationSummaryActionCallout = (): ReactFragment => {
     );
 };
 
+type MigrationSummaryData = {
+    key: string;
+    value: string;
+};
+
 // Use a simple div with a display:table instead
 const MigrationSummary: FunctionComponent = () => {
     const [summaryData, setSummaryData]: [Array<MigrationSummaryData>, Function] = useState<
@@ -48,12 +49,17 @@ const MigrationSummary: FunctionComponent = () => {
     >([]);
 
     useEffect(() => {
-        Promise.resolve([
-            { key: 'AWS Jira Instance', value: 'http://loadbalancer' },
-            { key: 'Migration Time', value: '1/Apr/2020 08:00 AM - 2/Apr/2020 12:00 PM'},
-            { key: 'Total number of files transferred', value: '12345 of 12345'},
-            { key: 'Database size transferred', value: '34 GB of 34 GB'},
-        ]).then(data => setSummaryData(data));
+        callAppRest('GET', RestApiPathConstants.getMigrationContextPath)
+            .then(response => response.json())
+            .then(data => {
+                setSummaryData(
+                    Object.entries(data).map(summary => {
+                        const [key, value] = summary;
+                        return { key, value };
+                    })
+                );
+            })
+            .catch(() => setSummaryData([]));
     }, []);
 
     return (
