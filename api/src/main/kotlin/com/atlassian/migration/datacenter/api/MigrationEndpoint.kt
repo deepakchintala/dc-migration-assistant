@@ -97,11 +97,10 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     //TODO: replace with invocation to `migrationService`
     private fun migrationContextResponseEntity() : Map<String,String> {
         return mapOf(
-            "migrationStartTime" to "1/Apr/2020 08:00 AM AEST",
-            "migrationEndTime" to "2/Apr/2020 09:00 PM AEST",
+            "instanceUrl" to "https://my.loadbalancer.url",
+            "migrationDuration" to "1/Apr/2020 08:00 AM AEST - 2/Apr/2020 09:00 PM AEST" ,
             "databaseSize" to "34 GB",
-            "successfulFileTransferCount" to "12345",
-            "failedFileTransferCount" to "0"
+            "fileTransferCount" to "12345 of 12345"
         )
     }
 }
