@@ -25,7 +25,7 @@ import java.util.Map;
  * This service should be implemented if a migration requires any additional infrastructure to facilitate
  * the migration.
  */
-public interface MigrationInfrastructureDeploymentService {
+public interface MigrationInfrastructureDeploymentService extends DeploymentService {
 
     /**
      * Deploys any infrastructure required to facilitate the migration. Leaves naming of the infrastructure
@@ -35,6 +35,5 @@ public interface MigrationInfrastructureDeploymentService {
      */
     void deployMigrationInfrastructure(Map<String, String> params) throws InvalidMigrationStageError;
 
-    InfrastructureDeploymentStatus getDeploymentStatus();
 
 }

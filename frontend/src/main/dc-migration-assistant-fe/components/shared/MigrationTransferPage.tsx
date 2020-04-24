@@ -161,7 +161,7 @@ const renderMigrationProgress = (
 ): ReactNode => {
     return (
         <>
-            {progress?.completeness === 1 && (
+            {progress?.completeness === 1 && progress?.completeMessage && (
                 <SectionMessage appearance="confirmation">
                     <strong>{progress.completeMessage.boldPrefix}</strong>{' '}
                     {progress.completeMessage.message}

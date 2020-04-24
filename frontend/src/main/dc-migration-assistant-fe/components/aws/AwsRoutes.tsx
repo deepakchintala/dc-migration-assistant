@@ -19,9 +19,9 @@ import { Route, Switch } from 'react-router-dom';
 
 import { awsAuthPath, quickstartPath, quickstartStatusPath } from '../../utils/RoutePaths';
 import { QuickStartDeploy } from './quickstart/QuickStartDeploy';
-import { QuickStartStatus } from './quickstart/QuickStartStatus';
 import { AuthenticateAWS, CredSubmitFun, QueryRegionFun } from './auth/AuthenticateAWS';
 import { callAppRest, RestApiPathConstants } from '../../utils/api';
+import { ProvisioningStatusPage } from './quickstart/ProvisioningStatusPage';
 
 const getRegions: QueryRegionFun = () => {
     return callAppRest('GET', RestApiPathConstants.awsRegionListPath).then(response =>
@@ -53,7 +53,7 @@ export const AWSRoutes: FunctionComponent = () => (
             <QuickStartDeploy />
         </Route>
         <Route exact path={quickstartStatusPath}>
-            <QuickStartStatus />
+            <ProvisioningStatusPage />
         </Route>
         <Route exact path={awsAuthPath}>
             <AuthenticateAWS getRegions={getRegions} onSubmitCreds={saveAWSCredentials} />
