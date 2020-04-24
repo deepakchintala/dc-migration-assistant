@@ -27,7 +27,7 @@ describe('Home', () => {
                 <Home
                     title="Test Title"
                     synopsis="Test synopsis"
-                    exploreMigrationButtonText="Test button"
+                    startButtonText="Test button"
                 />
             </MemoryRouter>
         );

@@ -44,8 +44,8 @@ export const App: FunctionComponent = () => (
                 <Home
                     title={I18n.getText('atlassian.migration.datacenter.home.title')}
                     synopsis={I18n.getText('atlassian.migration.datacenter.home.synopsis')}
-                    exploreMigrationButtonText={I18n.getText(
-                        'atlassian.migration.datacenter.home.explore.migration'
+                    startButtonText={I18n.getText(
+                        'atlassian.migration.datacenter.home.migration.start'
                     )}
                 />
             </Route>
