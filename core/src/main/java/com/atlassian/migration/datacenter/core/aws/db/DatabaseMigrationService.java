@@ -39,8 +39,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DatabaseMigrationService
-{
+public class DatabaseMigrationService {
     private static Logger logger = LoggerFactory.getLogger(DatabaseMigrationService.class);
 
     private final Path tempDirectory;
@@ -52,7 +51,7 @@ public class DatabaseMigrationService
     private final DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback;
     private final MigrationService migrationService;
     private final MigrationRunner migrationRunner;
-    private final AWSMigrationHelperDeploymentService  migrationHelperDeploymentService;
+    private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
 
     private final AtomicReference<Optional<LocalDateTime>> startTime = new AtomicReference<>(Optional.empty());
 
@@ -64,8 +63,8 @@ public class DatabaseMigrationService
                                     DatabaseArtifactS3UploadService s3UploadService,
                                     DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
                                     SsmPsqlDatabaseRestoreService restoreService,
-                                    DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback, AWSMigrationHelperDeploymentService migrationHelperDeploymentService)
-    {
+                                    DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback,
+                                    AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.tempDirectory = tempDirectory;
         this.databaseArchivalService = databaseArchivalService;
         this.stageTransitionCallback = stageTransitionCallback;
@@ -82,8 +81,7 @@ public class DatabaseMigrationService
      * Start database dump and upload to S3 bucket. This is a blocking operation and should be started from ExecutorService
      * or preferably from ScheduledJob. The status of the migration can be queried via getStatus().
      */
-    public FileSystemMigrationErrorReport performMigration() throws DatabaseMigrationFailure, InvalidMigrationStageError
-    {
+    public FileSystemMigrationErrorReport performMigration() throws DatabaseMigrationFailure, InvalidMigrationStageError {
         migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT);
         startTime.set(Optional.of(LocalDateTime.now()));
 
@@ -112,7 +110,7 @@ public class DatabaseMigrationService
             migrationService.error(e);
             throw new DatabaseMigrationFailure("Error when restoring database", e);
         }
-        migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD_WAIT);
+        migrationService.transition(MigrationStage.VALIDATE);
 
         return report;
     }
