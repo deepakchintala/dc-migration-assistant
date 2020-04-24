@@ -28,12 +28,17 @@ enum RestApiPathConstants {
     GetDeploymentStatusPath = 'aws/stack/status',
 }
 
+type InfrastructureDeploymentState =
+    | 'CREATE_IN_PROGRESS'
+    | 'CREATE_COMPLETE'
+    | 'CREATE_FAILED'
+    | 'PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT';
+
 type StackStatusResponse = {
-    status:
-        | 'CREATE_IN_PROGRESS'
-        | 'CREATE_COMPLETE'
-        | 'CREATE_FAILED'
-        | 'PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT';
+    status: {
+        state: InfrastructureDeploymentState;
+        reason: string;
+    };
     phase?: 'app_infra' | 'migration_infra';
 };
 
@@ -49,10 +54,9 @@ export const provisioning = {
             .then(resp => resp.json())
             .then(resp => {
                 if (resp.status) {
-                    // handle success
                     const statusResp = resp as StackStatusResponse;
                     const { phase, status } = statusResp;
-                    switch (status) {
+                    switch (status.state) {
                         case 'PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT':
                             return ProvisioningStatus.PreProvisionMigrationStack;
                         case 'CREATE_IN_PROGRESS':
@@ -62,10 +66,10 @@ export const provisioning = {
                         case 'CREATE_COMPLETE':
                             return ProvisioningStatus.Complete;
                         case 'CREATE_FAILED':
-                            // TODO: internationalise
                             throw new Error(
                                 I18n.getText(
-                                    'atlassian.migration.datacenter.provision.aws.status.failed'
+                                    'atlassian.migration.datacenter.provision.aws.status.failed',
+                                    status.reason
                                 )
                             );
                         default:
