@@ -17,6 +17,8 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -89,7 +91,7 @@ public class CfnApi {
         return client;
     }
 
-    public StackStatus getStatus(String stackName) {
+    public InfrastructureDeploymentStatus getStatus(String stackName) {
         Optional<Stack> stack = getStack(stackName);
         if (!stack.isPresent()) {
             throw StackInstanceNotFoundException
@@ -97,7 +99,20 @@ public class CfnApi {
                     .message(String.format("Stack with name %s not found", stackName))
                     .build();
         }
-        return stack.get().stackStatus();
+        Stack theStack = stack.get();
+        InfrastructureDeploymentState deploymentState;
+        switch (theStack.stackStatus()) {
+            case CREATE_COMPLETE:
+                deploymentState = InfrastructureDeploymentState.CREATE_COMPLETE;
+                break;
+            case CREATE_IN_PROGRESS:
+                deploymentState = InfrastructureDeploymentState.CREATE_IN_PROGRESS;
+                break;
+            default:
+                deploymentState = InfrastructureDeploymentState.CREATE_FAILED;
+                break;
+        }
+        return new InfrastructureDeploymentStatus(deploymentState, theStack.stackStatusReason());
     }
 
     public Optional<String> provisionStack(String templateUrl, String stackName, Map<String, String> params) {
