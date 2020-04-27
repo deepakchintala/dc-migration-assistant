@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.spi.infrastructure;
+import { MigrationDuration } from './common';
 
+const dbAPIBase = 'migration/db';
+export const dbStatusReportEndpoint = `${dbAPIBase}/report`;
 
-import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
-
-import java.util.Map;
-
-public interface ApplicationDeploymentService extends DeploymentService {
-
-    void deployApplication(String deploymentId, Map<String, String> params) throws InvalidMigrationStageError;
-
+export enum DBMigrationStatus {
+    NOT_STARTED,
+    EXPORTING,
+    UPLOADING,
+    IMPORTING,
+    DONE,
+    FAILED,
 }
+
+export const toI18nProp = (status: DBMigrationStatus): string => {
+    const name = status.toString().toLowerCase();
+    return `atlassian.migration.datacenter.db.status.${name}`;
+};
+
+// See DatabaseMigrationProgress.kt
+export type DatabaseMigrationStatus = {
+    status: DBMigrationStatus;
+    elapsedTime: MigrationDuration;
+};

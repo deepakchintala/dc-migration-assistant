@@ -24,6 +24,7 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/* eslint-disable */
+import { enableFetchMocks } from 'jest-fetch-mock';
+enableFetchMocks();
+
 import React from 'react';
 import { render } from '@testing-library/react';
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -21,7 +25,13 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { DatabaseTransferPage } from './DatabaseMigration';
 
 describe('Database Migration page', () => {
+    beforeEach(() => {
+        fetchMock.resetMocks()
+    });
+
     it('should render', () => {
+        fetchMock.mockResponseOnce(JSON.stringify({ status: "NOT_STARTED", elapsedTime: { seconds: 1, nanos: 2} }))
+
         const { getByText } = render(
             <Router>
                 <DatabaseTransferPage />

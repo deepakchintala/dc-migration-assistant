@@ -21,15 +21,15 @@ export type Progress = {
  * Builder or creating Progress objects. You must at least set a phase.
  */
 export class ProgressBuilder {
-    phase: string;
+    private phase: string;
 
-    completeness: number;
+    private completeness: number;
 
-    error: string;
+    private error: string;
 
-    completeMessage: CompleteMessage;
+    private completeMessage: CompleteMessage;
 
-    elapsedSeconds: number;
+    private elapsedSeconds: number;
 
     setElapsedSeconds(seconds: number): ProgressBuilder {
         this.elapsedSeconds = seconds;

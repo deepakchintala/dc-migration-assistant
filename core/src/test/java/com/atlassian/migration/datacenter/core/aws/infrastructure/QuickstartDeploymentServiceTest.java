@@ -22,6 +22,7 @@ import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -136,17 +137,18 @@ class QuickstartDeploymentServiceTest {
     @Test
     void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError {
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_IN_PROGRESS);
+        givenStackDeploymentWillBeInProgress();
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
 
         deploySimpleStack();
 
-        assertEquals(InfrastructureDeploymentStatus.CREATE_IN_PROGRESS, deploymentService.getDeploymentStatus());
+        InfrastructureDeploymentStatus status = deploymentService.getDeploymentStatus();
+        assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, status.getState());
     }
 
     @Test
     void shouldTransitionToWaitingForDeploymentWhileDeploymentIsCompleting() throws InvalidMigrationStageError, InterruptedException {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_IN_PROGRESS);
+        givenStackDeploymentWillBeInProgress();
 
         deploySimpleStack();
 
@@ -157,8 +159,7 @@ class QuickstartDeploymentServiceTest {
 
     @Test
     void shouldTransitionMigrationServiceStateWhenDeploymentFinishes() throws InterruptedException, InvalidMigrationStageError {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_COMPLETE);
-
+        givenStackDeploymentWillComplete();
         deploySimpleStack();
 
         Thread.sleep(100);
@@ -168,7 +169,7 @@ class QuickstartDeploymentServiceTest {
 
     @Test
     void shouldTransitionMigrationServiceToErrorWhenDeploymentFails() throws InterruptedException, InvalidMigrationStageError {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_FAILED);
+        givenStackDeploymentWillFail();
 
         deploySimpleStack();
 
@@ -179,7 +180,7 @@ class QuickstartDeploymentServiceTest {
 
     @Test
     void shouldDeployMigrationStackWithApplicationStackOutputsAndResources() throws InvalidMigrationStageError, InterruptedException {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_COMPLETE);
+        givenStackDeploymentWillComplete();
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
 
         deploySimpleStack();
@@ -197,6 +198,18 @@ class QuickstartDeploymentServiceTest {
         }};
 
         verify(migrationHelperDeploymentService).deployMigrationInfrastructure(expectedMigrationStackParams);
+    }
+
+    private void givenStackDeploymentWillBeInProgress() {
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_IN_PROGRESS, ""));
+    }
+
+    private void givenStackDeploymentWillComplete() {
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_COMPLETE, ""));
+    }
+
+    private void givenStackDeploymentWillFail() {
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_FAILED, "it broke"));
     }
 
     private void deploySimpleStack() throws InvalidMigrationStageError {
