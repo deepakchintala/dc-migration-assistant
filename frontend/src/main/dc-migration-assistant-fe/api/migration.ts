@@ -1,7 +1,7 @@
 import { callAppRest } from '../utils/api';
 
 enum RestApiPathConstants {
-    getMigrationRestPath = `migration`,
+    migrationRestPath = `migration`,
 }
 
 export enum MigrationStage {
@@ -32,11 +32,19 @@ type GetMigrationResult = {
 
 export const migration = {
     getMigrationStage: (): Promise<MigrationStage> => {
-        return callAppRest('GET', RestApiPathConstants.getMigrationRestPath)
+        return callAppRest('GET', RestApiPathConstants.migrationRestPath)
             .then(res => res.json())
             .then(res => {
                 const response = res as GetMigrationResult;
                 return response.stage;
             });
+    },
+    createMigration: (): Promise<void> => {
+        return callAppRest('POST', RestApiPathConstants.migrationRestPath).then(res => {
+            if (res.ok) {
+                return Promise.resolve();
+            }
+            return res.json().then(json => Promise.reject(json.error));
+        });
     },
 };

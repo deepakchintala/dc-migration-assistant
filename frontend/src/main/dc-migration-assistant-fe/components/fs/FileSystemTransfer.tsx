@@ -120,7 +120,7 @@ const fsMigrationTranferPageProps: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.fs.title'),
     description: I18n.getText('atlassian.migration.datacenter.fs.description'),
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
-    hasStarted: false,
+    inProgressStages: [MigrationStage.FS_MIGRATION_COPY_WAIT],
     startMigrationPhase: fs.startFsMigration,
     getProgress: getFsMigrationProgress,
 };
@@ -147,5 +147,5 @@ export const FileSystemTransferPage: FunctionComponent = () => {
     if (loading) {
         return <Spinner />;
     }
-    return <MigrationTransferPage {...fsMigrationTranferPageProps} hasStarted={hasStarted} />;
+    return <MigrationTransferPage {...fsMigrationTranferPageProps} />;
 };
