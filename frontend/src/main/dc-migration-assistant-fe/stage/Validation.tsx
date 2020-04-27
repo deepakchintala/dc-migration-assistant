@@ -42,7 +42,7 @@ const MigrationDetailsContainer = styled.div`
 
 const SectionMessageContainer = styled.div`
     margin-top: 15px;
-    display: flex;
+    width: 100%;
 `;
 
 const MigrationSummaryActionCallout = (): ReactElement => {
