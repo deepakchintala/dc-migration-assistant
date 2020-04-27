@@ -40,6 +40,11 @@ const MigrationDetailsContainer = styled.div`
     margin-top: 25px;
 `;
 
+const SectionMessageContainer = styled.div`
+    margin-top: 15px;
+    display: flex;
+`;
+
 const MigrationSummaryActionCallout = (): ReactElement => {
     return (
         <MigrationSummaryContainer>
@@ -121,7 +126,7 @@ const MigrationSummary: FunctionComponent = () => {
 
 export const ValidateStagePage: FunctionComponent = () => {
     const history = useHistory();
-    const defaultButtonStyle = {
+    const defaultMarginStyle = {
         marginTop: '15px',
     };
     const redirectUserToHome = (): void => {
@@ -132,15 +137,17 @@ export const ValidateStagePage: FunctionComponent = () => {
         <>
             <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
             <h3>{I18n.getText('atlassian.migration.datacenter.validation.message')}</h3>
-            <SectionMessage appearance="info">
-                {I18n.getText('atlassian.migration.datacenter.validation.section.message')}
-            </SectionMessage>
+            <SectionMessageContainer>
+                <SectionMessage appearance="info">
+                    {I18n.getText('atlassian.migration.datacenter.validation.section.message')}
+                </SectionMessage>
+            </SectionMessageContainer>
             <MigrationSummary />
             <MigrationSummaryActionCallout />
             <Button
                 isLoading={false}
                 appearance="primary"
-                style={defaultButtonStyle}
+                style={defaultMarginStyle}
                 onClick={redirectUserToHome}
             >
                 {I18n.getText('atlassian.migration.datacenter.validation.next.button')}
