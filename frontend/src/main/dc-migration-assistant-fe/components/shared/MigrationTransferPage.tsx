@@ -293,26 +293,34 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             <TransferContentContainer>
                 <h1>{heading}</h1>
                 <p>{description}</p>
-                {transferError && (
-                    <SectionMessage appearance="error">{transferError}</SectionMessage>
-                )}
-                {started && renderMigrationProgress(progress, loading, startMoment)}
             </TransferContentContainer>
-            <TransferActionsContainer>
-                {renderMigrationActions(
-                    progress?.completeness,
-                    nextText,
-                    startMigration,
-                    updateProgress,
-                    started,
-                    loading
-                )}
-                <Link to={overviewPath}>
-                    <Button style={{ marginLeft: '20px', paddingLeft: '5px' }}>
-                        {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
-                    </Button>
-                </Link>
-            </TransferActionsContainer>
+            {loading ? (
+                <Spinner />
+            ) : (
+                <>
+                    <TransferContentContainer>
+                        {transferError && (
+                            <SectionMessage appearance="error">{transferError}</SectionMessage>
+                        )}
+                        {started && renderMigrationProgress(progress, loading, startMoment)}
+                    </TransferContentContainer>
+                    <TransferActionsContainer>
+                        {renderMigrationActions(
+                            progress?.completeness,
+                            nextText,
+                            startMigration,
+                            updateProgress,
+                            started,
+                            loading
+                        )}
+                        <Link to={overviewPath}>
+                            <Button style={{ marginLeft: '20px', paddingLeft: '5px' }}>
+                                {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
+                            </Button>
+                        </Link>
+                    </TransferActionsContainer>
+                </>
+            )}
         </TransferPageContainer>
     );
 };
