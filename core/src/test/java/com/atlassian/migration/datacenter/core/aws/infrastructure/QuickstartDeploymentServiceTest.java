@@ -42,6 +42,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
+import static com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY;
+import static com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.SECURITY_GROUP_NAME_STACK_OUTPUT_KEY;
+import static com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.SERVICE_URL_STACK_OUTPUT_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -61,9 +64,11 @@ class QuickstartDeploymentServiceTest {
 
     static final String TEST_SG = "test-sg";
     static final String TEST_DB_ENDPOINT = "my-db.com";
+    static final String TEST_SERVICE_URL = "https://my.loadbalancer";
     static final List<Output> MOCK_OUTPUTS = new LinkedList<Output>() {{
-        add(Output.builder().outputKey("SGname").outputValue(TEST_SG).build());
-        add(Output.builder().outputKey("DBEndpointAddress").outputValue(TEST_DB_ENDPOINT).build());
+        add(Output.builder().outputKey(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY).outputValue(TEST_SG).build());
+        add(Output.builder().outputKey(DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY).outputValue(TEST_DB_ENDPOINT).build());
+        add(Output.builder().outputKey(SERVICE_URL_STACK_OUTPUT_KEY).outputValue(TEST_SERVICE_URL).build());
     }};
 
     static final String TEST_SUBNET_1 = "subnet-123";
@@ -198,6 +203,18 @@ class QuickstartDeploymentServiceTest {
         }};
 
         verify(migrationHelperDeploymentService).deployMigrationInfrastructure(expectedMigrationStackParams);
+    }
+
+    @Test
+    void shouldStoreServiceUrlInMigrationContext() throws InvalidMigrationStageError, InterruptedException {
+        givenStackDeploymentWillComplete();
+        when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
+
+        deploySimpleStack();
+
+        Thread.sleep(100);
+
+        verify(mockContext).setServiceUrl(TEST_SERVICE_URL);
     }
 
     private void givenStackDeploymentWillBeInProgress() {
