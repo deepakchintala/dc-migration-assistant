@@ -18,6 +18,7 @@ import { MigrationDuration } from './common';
 
 const dbAPIBase = 'migration/db';
 export const dbStatusReportEndpoint = `${dbAPIBase}/report`;
+export const dbStartEndpoint = `${dbAPIBase}/start`;
 
 export enum DBMigrationStatus {
     NOT_STARTED,

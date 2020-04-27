@@ -20,7 +20,12 @@ import { I18n } from '@atlassian/wrm-react-i18n';
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
 import { Progress } from '../shared/Progress';
 import { callAppRest } from '../../utils/api';
-import { dbStatusReportEndpoint, DatabaseMigrationStatus, toI18nProp } from '../../api/db';
+import {
+    dbStatusReportEndpoint,
+    dbStartEndpoint,
+    DatabaseMigrationStatus,
+    toI18nProp,
+} from '../../api/db';
 import 'moment';
 
 const toProgress = (status: DatabaseMigrationStatus): Progress => {
@@ -34,6 +39,10 @@ const fetchDBMigrationStatus = (): Promise<DatabaseMigrationStatus> => {
     return callAppRest('GET', dbStatusReportEndpoint).then((result: any) => result.json());
 };
 
+const startDbMigration = (): Promise<void> => {
+    return callAppRest('PUT', dbStartEndpoint).then(result => result.json());
+};
+
 const getProgressFromStatus = (): Promise<Progress> => {
     return fetchDBMigrationStatus().then(toProgress);
 };
@@ -42,8 +51,8 @@ const props: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.db.title'),
     description: I18n.getText('atlassian.migration.datacenter.db.description'),
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
-    hasStarted: true,
-    startMigrationPhase: Promise.resolve,
+    hasStarted: false,
+    startMigrationPhase: startDbMigration,
     getProgress: getProgressFromStatus,
 };
 
