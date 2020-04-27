@@ -22,6 +22,10 @@ import moment from 'moment';
 import { MigrationTransferProps, MigrationTransferPage } from './MigrationTransferPage';
 import { MigrationStage } from '../../api/migration';
 
+const mockFetch = jest.fn();
+mockFetch.mockReturnValue(Promise.resolve());
+window.fetch = mockFetch;
+
 const props: MigrationTransferProps = {
     heading: 'heading',
     description: 'description',
