@@ -86,7 +86,7 @@ class DatabaseMigrationEndpoint(
         } catch (e: JsonProcessingException) {
             Response
                 .serverError()
-                .entity("Unable to get file system status. Please contact support and show them this error: ${e.message}")
+                .entity("Unable to get db migration status. Please contact support and show them this error: ${e.message}")
                 .build()
         }
     }
@@ -103,7 +103,7 @@ class DatabaseMigrationEndpoint(
         } catch (e: InvalidMigrationStageError) {
             Response
                 .status(Response.Status.CONFLICT)
-                .entity(mapOf("error" to "filesystem migration is not in progress"))
+                .entity(mapOf("error" to "db migration is not in progress"))
                 .build()
         }
     }
