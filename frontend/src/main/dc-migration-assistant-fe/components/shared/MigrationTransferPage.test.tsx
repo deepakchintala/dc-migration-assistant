@@ -20,14 +20,15 @@ import { BrowserRouter as Router } from 'react-router-dom';
 
 import moment from 'moment';
 import { MigrationTransferProps, MigrationTransferPage } from './MigrationTransferPage';
+import { MigrationStage } from '../../api/migration';
 
 const props: MigrationTransferProps = {
     heading: 'heading',
     description: 'description',
     nextText: 'nextText',
     startMoment: moment().subtract(20, 'minutes'),
-    hasStarted: true,
     startMigrationPhase: Promise.resolve,
+    inProgressStages: [MigrationStage.AUTHENTICATION],
     getProgress: () => {
         return new Promise(resolve => {
             setTimeout(() => {

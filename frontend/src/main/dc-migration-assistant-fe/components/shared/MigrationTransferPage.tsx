@@ -26,6 +26,7 @@ import Spinner from '@atlaskit/spinner';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { overviewPath } from '../../utils/RoutePaths';
 import { ProgressCallback, Progress } from './Progress';
+import { migration, MigrationStage } from '../../api/migration';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -34,7 +35,7 @@ export type MigrationTransferProps = {
     description: string;
     nextText: string;
     startMoment?: moment.Moment;
-    hasStarted: boolean;
+    inProgressStages: Array<MigrationStage>;
     startMigrationPhase: () => Promise<void>;
     getProgress: ProgressCallback;
 };
@@ -220,13 +221,13 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     nextText,
     startMoment,
     getProgress,
+    inProgressStages,
     startMigrationPhase,
-    hasStarted,
 }) => {
     const [progress, setProgress] = useState<Progress>();
-    const [loading, setLoading] = useState<boolean>(hasStarted);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>();
-    const [started, setStarted] = useState<boolean>(hasStarted);
+    const [started, setStarted] = useState<boolean>(false);
 
     const updateProgress = (): Promise<void> => {
         return getProgress()
@@ -253,6 +254,23 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 setLoading(false);
             });
     };
+
+    useEffect(() => {
+        setLoading(true);
+        migration
+            .getMigrationStage()
+            .then(stage => {
+                if (inProgressStages.includes(stage)) {
+                    setStarted(true);
+                    return updateProgress();
+                }
+                setLoading(false);
+            })
+            .catch(() => {
+                setStarted(false);
+                setLoading(false);
+            });
+    }, []);
 
     useEffect(() => {
         if (started) {

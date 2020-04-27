@@ -20,6 +20,7 @@ import { I18n } from '@atlassian/wrm-react-i18n';
 import { MigrationTransferPage } from '../../shared/MigrationTransferPage';
 import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
 import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
+import { MigrationStage } from '../../../api/migration';
 
 const getDeploymentProgress: ProgressCallback = () => {
     return provisioning
@@ -62,12 +63,19 @@ const getDeploymentProgress: ProgressCallback = () => {
         });
 };
 
+const inProgressStages = [
+    MigrationStage.PROVISION_APPLICATION,
+    MigrationStage.PROVISION_APPLICATION_WAIT,
+    MigrationStage.PROVISION_MIGRATION_STACK,
+    MigrationStage.PROVISION_MIGRATION_STACK_WAIT,
+];
+
 export const ProvisioningStatusPage: FunctionComponent = () => {
     return (
         <MigrationTransferPage
             description={I18n.getText('atlassian.migration.datacenter.provision.aws.description')}
             getProgress={getDeploymentProgress}
-            hasStarted
+            inProgressStages={inProgressStages}
             heading={I18n.getText('atlassian.migration.datacenter.provision.aws.title')}
             nextText={I18n.getText('atlassian.migration.datacenter.generic.next')}
             // This page is only rendered when provisioning has already started. The deployment will be started by the QuickstartDeploy page
