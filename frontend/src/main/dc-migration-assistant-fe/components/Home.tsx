@@ -82,8 +82,7 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
                 <ErrorFlag
                     showError={error && error !== ''}
                     dismissErrorFunc={(): void => setError('')}
-                    // FIXME: Internationalisation
-                    title="Unable to create migration"
+                    title={I18n.getText('atlassian.migration.datacenter.home.start.error')}
                     description={error}
                     id="migration-creation-error"
                 />
@@ -96,7 +95,11 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
             </>
         );
     }
-    return <SectionMessage appearance="warning">You are already in a migration.</SectionMessage>;
+    return (
+        <SectionMessage appearance="warning">
+            {I18n.getText('atlassian.migration.datacenter.home.start.alreadyStarted')}
+        </SectionMessage>
+    );
 };
 
 export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
