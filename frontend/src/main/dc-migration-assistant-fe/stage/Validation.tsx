@@ -52,7 +52,8 @@ type MigrationSummaryData = {
     value: string;
 };
 
-// Use a simple div with a display:table instead
+const INSTANCE_URL_MIGRATION_CONTEXT_KEY = 'instanceUrl';
+
 const MigrationSummary: FunctionComponent = () => {
     const [summaryData, setSummaryData]: [Array<MigrationSummaryData>, Function] = useState<
         Array<MigrationSummaryData>
@@ -70,15 +71,7 @@ const MigrationSummary: FunctionComponent = () => {
                 );
             })
             .catch(() => {
-                Promise.resolve([
-                    { key: 'instanceUrl', value: 'http://loadbalancer' },
-                    {
-                        key: 'migrationDuration',
-                        value: '1/Apr/2020 08:00 AM - 2/Apr/2020 12:00 PM',
-                    },
-                    { key: 'fileTransferCount', value: '12345 of 12345' },
-                    { key: 'databaseSize', value: '34 GB of 34 GB' },
-                ]).then(data => setSummaryData(data));
+                setSummaryData([]);
             });
     }, []);
 
@@ -88,17 +81,20 @@ const MigrationSummary: FunctionComponent = () => {
                 <h4>Migration details</h4>
             </div>
             <TableTree>
-                {summaryData.map(summary => {
-                    const phraseId = `atlassian.migration.datacenter.validation.summary.phrase.${summary.key}`;
-                    return (
-                        <Row key={`migration-summary-${summary.key}`} hasChildren={false}>
-                            <Cell width={400} singleLine>
-                                {I18n.getText(phraseId)}
-                            </Cell>
-                            <Cell width={400}>{summary.value}</Cell>
-                        </Row>
-                    );
-                })}
+                {summaryData
+                    .filter(x => x.key === INSTANCE_URL_MIGRATION_CONTEXT_KEY)
+                    .map(summary => {
+                        return (
+                            <Row key={`migration-summary-${summary.key}`} hasChildren={false}>
+                                <Cell width={400} singleLine>
+                                    {I18n.getText(
+                                        'atlassian.migration.datacenter.validation.summary.phrase.instanceUrl'
+                                    )}
+                                </Cell>
+                                <Cell width={400}>{summary.value}</Cell>
+                            </Row>
+                        );
+                    })}
             </TableTree>
         </>
     );
