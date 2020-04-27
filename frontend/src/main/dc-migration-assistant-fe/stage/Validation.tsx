@@ -14,16 +14,35 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, ReactFragment, useEffect, useState } from 'react';
+import React, { FunctionComponent, ReactElement, useEffect, useState } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import SectionMessage from '@atlaskit/section-message';
 import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
+import styled from 'styled-components';
+import { useHistory } from 'react-router-dom';
 import { callAppRest, RestApiPathConstants } from '../utils/api';
+import { homePath } from '../utils/RoutePaths';
 
-const renderMigrationSummaryActionCallout = (): ReactFragment => {
+const MigrationSummaryContainer = styled.div`
+    display: grid;
+    justify-items: start;
+    margin-top: 25px;
+    & li {
+        align-self: center;
+    }
+    & div {
+        padding-bottom: 5px;
+    }
+`;
+
+const MigrationDetailsContainer = styled.div`
+    margin-top: 25px;
+`;
+
+const MigrationSummaryActionCallout = (): ReactElement => {
     return (
-        <>
+        <MigrationSummaryContainer>
             <div>
                 <h4>Actions required on your side</h4>
             </div>
@@ -43,7 +62,7 @@ const renderMigrationSummaryActionCallout = (): ReactFragment => {
                     </li>
                 </ul>
             </div>
-        </>
+        </MigrationSummaryContainer>
     );
 };
 
@@ -76,7 +95,7 @@ const MigrationSummary: FunctionComponent = () => {
     }, []);
 
     return (
-        <>
+        <MigrationDetailsContainer>
             <div>
                 <h4>Migration details</h4>
             </div>
@@ -96,11 +115,19 @@ const MigrationSummary: FunctionComponent = () => {
                         );
                     })}
             </TableTree>
-        </>
+        </MigrationDetailsContainer>
     );
 };
 
 export const ValidateStagePage: FunctionComponent = () => {
+    const history = useHistory();
+    const defaultButtonStyle = {
+        marginTop: '15px',
+    };
+    const redirectUserToHome = (): void => {
+        history.push(homePath);
+    };
+
     return (
         <>
             <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
@@ -109,8 +136,13 @@ export const ValidateStagePage: FunctionComponent = () => {
                 {I18n.getText('atlassian.migration.datacenter.validation.section.message')}
             </SectionMessage>
             <MigrationSummary />
-            {renderMigrationSummaryActionCallout()}
-            <Button isLoading={false} appearance="primary">
+            <MigrationSummaryActionCallout />
+            <Button
+                isLoading={false}
+                appearance="primary"
+                style={defaultButtonStyle}
+                onClick={redirectUserToHome}
+            >
                 {I18n.getText('atlassian.migration.datacenter.validation.next.button')}
             </Button>
         </>
