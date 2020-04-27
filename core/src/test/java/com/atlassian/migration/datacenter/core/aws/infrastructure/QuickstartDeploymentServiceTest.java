@@ -49,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -215,6 +216,7 @@ class QuickstartDeploymentServiceTest {
         Thread.sleep(100);
 
         verify(mockContext).setServiceUrl(TEST_SERVICE_URL);
+        verify(mockContext, times(2)).save();
     }
 
     private void givenStackDeploymentWillBeInProgress() {
