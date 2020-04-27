@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useState } from 'react';
 import Button from '@atlaskit/button';
 import InlineMessage from '@atlaskit/inline-message';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
-import { overviewPath, fsPath, dbPath, startPath } from '../utils/RoutePaths';
+import { startPath } from '../utils/RoutePaths';
+import { migration } from '../api/migration';
+import { ErrorFlag } from './shared/ErrorFlag';
 
 type HomeProps = {
     title: string;
@@ -46,15 +48,41 @@ const InfoProps = {
 };
 
 export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
+    const [error, setError] = useState<string>();
+    const [loading, setLoading] = useState<boolean>(false);
+
+    const createMigration = (): void => {
+        setLoading(true);
+        migration
+            .createMigration()
+            .then(() => {
+                // Route to next page
+            })
+            .catch(err => {
+                setError(err);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
+
     return (
         <HomeContainer>
             <h2>{title}</h2>
             <p>{synopsis}</p>
+            <ErrorFlag
+                showError={error && error !== ''}
+                dismissErrorFunc={(): void => setError('')}
+                // FIXME: Internationalisation
+                title="Unable to create migration"
+                description={error}
+                id="migration-creation-error"
+            />
             <InlineMessage {...InfoProps} />
             <ButtonContainer>
-                <Link to={startPath}>
-                    <Button appearance="primary">{startButtonText}</Button>
-                </Link>
+                <Button isLoading={loading} appearance="primary" onClick={createMigration}>
+                    {startButtonText}
+                </Button>
             </ButtonContainer>
         </HomeContainer>
     );

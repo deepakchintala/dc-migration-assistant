@@ -17,15 +17,12 @@
 import React, { FunctionComponent, ReactElement, useState } from 'react';
 import Form, { ErrorMessage, Field, FormFooter, HelperMessage } from '@atlaskit/form';
 import Button, { ButtonGroup } from '@atlaskit/button';
-import styled from 'styled-components';
 import TextField from '@atlaskit/textfield';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { AsyncSelect, OptionType } from '@atlaskit/select';
-import Flag from '@atlaskit/flag';
-import ErrorIcon from '@atlaskit/icon/glyph/error';
-import { colors } from '@atlaskit/theme';
 import { useHistory } from 'react-router-dom';
 import { quickstartPath } from '../../../utils/RoutePaths';
+import { ErrorFlag } from '../../shared/ErrorFlag';
 
 export type AWSCreds = {
     accessKeyId: string;
@@ -50,19 +47,6 @@ export type AuthenticateAWSProps = {
     getRegions: QueryRegionFun;
 };
 
-type AuthenticationErrorProps = {
-    showError: boolean;
-    dismissErrorFunc: () => void;
-};
-
-const AwsAuthErrorContainer = styled.div`
-    position: fixed;
-    top: 70px;
-    left: 75%;
-    right: 1%;
-    overflow: inherit;
-`;
-
 const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props): ReactElement => {
     const { getRegions } = props;
     const regionListPromiseOptions = (): Promise<Array<OptionType>> => {
@@ -83,33 +67,6 @@ const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props):
             loadOptions={regionListPromiseOptions}
         />
     );
-};
-
-const AuthenticationErrorFlag: FunctionComponent<AuthenticationErrorProps> = (
-    props
-): ReactElement => {
-    const { showError, dismissErrorFunc } = props;
-
-    if (showError) {
-        return (
-            <AwsAuthErrorContainer>
-                <Flag
-                    actions={[
-                        {
-                            content: 'Dismiss',
-                            onClick: dismissErrorFunc,
-                        },
-                    ]}
-                    icon={<ErrorIcon primaryColor={colors.R400} label="Info" />}
-                    description="You may not have permissions to connect to the AWS account with the supplied credentials. Please try again with a different set of credentials to continue with the migration."
-                    id="aws-auth-connect-error-flag"
-                    key="connect-error"
-                    title="AWS Credentials Error"
-                />
-            </AwsAuthErrorContainer>
-        );
-    }
-    return null;
 };
 
 export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
@@ -151,11 +108,15 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
         <>
             <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.phrase')}</h1>
             <h1>{I18n.getText('atlassian.migration.datacenter.authenticate.aws.title')}</h1>
-            <AuthenticationErrorFlag
+            <ErrorFlag
                 showError={credentialPersistError}
                 dismissErrorFunc={(): void => {
                     setCredentialPersistError(false);
                 }}
+                // FIXME: Internationalisation
+                description="You may not have permissions to connect to the AWS account with the supplied credentials. Please try again with a different set of credentials to continue with the migration."
+                id="aws-auth-connect-error-flag"
+                title="AWS Credentials Error"
             />
             <Form onSubmit={submitCreds}>
                 {({ formProps }: any): ReactElement => (
