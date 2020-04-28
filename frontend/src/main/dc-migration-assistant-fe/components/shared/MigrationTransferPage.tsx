@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState, useEffect, ReactElement, ReactNode } from 'react';
-import ProgressBar, { SuccessProgressBar } from '@atlaskit/progress-bar';
+import React, { FunctionComponent, useState, useEffect } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 import { Link } from 'react-router-dom';
 import moment, { Moment } from 'moment';
 import Spinner from '@atlaskit/spinner';
-
 import { I18n } from '@atlassian/wrm-react-i18n';
+
+import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { overviewPath } from '../../utils/RoutePaths';
 import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
+import { MigrationProgress } from './MigrationTransferProgress';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -64,156 +65,6 @@ const TransferActionsContainer = styled.div`
 
     margin-top: 20px;
 `;
-
-type TransferDuration = {
-    days: number;
-    hours: number;
-    minutes: number;
-};
-
-const calculateDurationFromBeginning = (start: Moment): TransferDuration => {
-    if (!start) {
-        return undefined;
-    }
-
-    const elapsedTime = moment.duration(moment.now() - start.valueOf());
-
-    return {
-        days: elapsedTime.days(),
-        hours: elapsedTime.hours(),
-        minutes: elapsedTime.minutes(),
-    };
-};
-
-const calcualateDurationFromElapsedSeconds = (seconds: number): TransferDuration => {
-    if (!seconds) {
-        return undefined;
-    }
-
-    const duration = moment.duration(seconds, 'seconds');
-
-    return {
-        days: duration.days(),
-        hours: duration.hours(),
-        minutes: duration.minutes(),
-    };
-};
-
-const calculateStartedFromElapsedSeconds = (elapsedSeconds: number): Moment => {
-    const now = moment();
-    return now.subtract(elapsedSeconds, 'seconds');
-};
-
-const renderContentIfLoading = (
-    loading: boolean,
-    progress: Progress,
-    started: Moment
-): ReactElement => {
-    if (loading) {
-        return (
-            <>
-                <Spinner />
-                <ProgressBar isIndeterminate />
-                <Spinner />
-            </>
-        );
-    }
-
-    const duration =
-        calculateDurationFromBeginning(started) ||
-        calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
-
-    return (
-        <>
-            <h4>
-                {progress.phase}
-                {progress.completeness === undefined &&
-                    ` (${I18n.getText('atlassian.migration.datacenter.common.estimating')}...)`}
-            </h4>
-            {progress.completeness ? (
-                <SuccessProgressBar value={progress.completeness} />
-            ) : (
-                <ProgressBar isIndeterminate />
-            )}
-            <p>
-                {I18n.getText(
-                    'atlassian.migration.datacenter.common.progress.started',
-                    (
-                        started || calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds)
-                    ).format('D/MMM/YY h:mm A')
-                )}
-            </p>
-            <p>
-                {duration &&
-                    I18n.getText(
-                        'atlassian.migration.datacenter.common.progress.mins_elapsed',
-                        `${duration.days * 24 + duration.hours}`,
-                        `${duration.minutes}`
-                    )}
-            </p>
-        </>
-    );
-};
-
-const renderMigrationProgress = (
-    progress: Progress,
-    loading: boolean,
-    startedMoment: Moment
-): ReactNode => {
-    return (
-        <>
-            {progress?.completeness === 1 && progress?.completeMessage && (
-                <SectionMessage appearance="confirmation">
-                    <strong>{progress.completeMessage.boldPrefix}</strong>{' '}
-                    {progress.completeMessage.message}
-                </SectionMessage>
-            )}
-            {renderContentIfLoading(loading, progress, startedMoment)}
-        </>
-    );
-};
-
-const renderMigrationActions = (
-    completeness: number,
-    nextText: string,
-    startMigrationPhase: () => Promise<void>,
-    updateProgress: () => Promise<void>,
-    started: boolean,
-    loading: boolean
-): ReactNode => {
-    const defaultButtonStyle = {
-        padding: '5px',
-    };
-    const marginButtonStyle = {
-        ...defaultButtonStyle,
-        marginRight: '20px',
-    };
-
-    if (completeness === 1) {
-        return (
-            <Button style={defaultButtonStyle} appearance="primary">
-                {nextText}
-            </Button>
-        );
-    }
-    if (started) {
-        return (
-            <Button style={marginButtonStyle} isLoading={loading} onClick={updateProgress}>
-                Refresh
-            </Button>
-        );
-    }
-    return (
-        <Button
-            style={marginButtonStyle}
-            isLoading={loading}
-            appearance="primary"
-            onClick={startMigrationPhase}
-        >
-            Start
-        </Button>
-    );
-};
 
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
@@ -302,17 +153,23 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                         {transferError && (
                             <SectionMessage appearance="error">{transferError}</SectionMessage>
                         )}
-                        {started && renderMigrationProgress(progress, loading, startMoment)}
+                        {started && (
+                            <MigrationProgress
+                                progress={progress}
+                                loading={loading}
+                                startedMoment={startMoment}
+                            />
+                        )}
                     </TransferContentContainer>
                     <TransferActionsContainer>
-                        {renderMigrationActions(
-                            progress?.completeness,
-                            nextText,
-                            startMigration,
-                            updateProgress,
-                            started,
-                            loading
-                        )}
+                        <MigrationTransferActions
+                            completeness={progress?.completeness}
+                            nextText={nextText}
+                            startMigrationPhase={startMigration}
+                            updateTransferProgress={updateProgress}
+                            started={started}
+                            loading={loading}
+                        />
                         <Link to={overviewPath}>
                             <Button style={{ marginLeft: '20px', paddingLeft: '5px' }}>
                                 {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
