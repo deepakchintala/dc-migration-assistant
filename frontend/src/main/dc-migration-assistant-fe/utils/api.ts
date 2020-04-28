@@ -66,4 +66,5 @@ export enum RestApiPathConstants {
     awsCredentialsStorePath = `aws/configure`,
     awsRegionListPath = `aws/global-infrastructure/regions`,
     awsAzListForRegion = `aws/availabilityZones`,
+    migrationSummaryRestPath = `migration/summary`,
 }

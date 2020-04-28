@@ -77,4 +77,28 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
                 .build()
         }
     }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @GET
+    @Path("/summary")
+    fun getMigrationSummary(): Response {
+        return if (migrationService.currentStage == MigrationStage.NOT_STARTED) {
+            Response
+                    .status(Response.Status.NOT_FOUND)
+                    .build()
+        } else {
+            Response
+                    .ok(migrationContextResponseEntity())
+                    .build()
+        }
+    }
+
+    private fun migrationContextResponseEntity() : Map<String,String> {
+        val currentContext = migrationService.currentContext
+
+        return mapOf(
+            "instanceUrl" to currentContext.serviceUrl
+        )
+    }
 }

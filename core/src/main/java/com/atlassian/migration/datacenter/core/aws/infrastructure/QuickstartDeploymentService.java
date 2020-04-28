@@ -24,7 +24,6 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +36,10 @@ import java.util.Map;
 import java.util.Optional;
 
 public class QuickstartDeploymentService extends CloudformationDeploymentService implements ApplicationDeploymentService {
+
+    static final String SERVICE_URL_STACK_OUTPUT_KEY = "ServiceURL";
+    static final String DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY = "DBEndpointAddress";
+    static final String SECURITY_GROUP_NAME_STACK_OUTPUT_KEY = "SGname";
 
     private final Logger logger = LoggerFactory.getLogger(QuickstartDeploymentService.class);
     private static final String QUICKSTART_TEMPLATE_URL = "https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc-with-vpc.template.yaml";
@@ -100,6 +103,8 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
             Map<String, String> applicationStackOutputsMap = new HashMap<>();
             applicationStack.outputs().forEach(output -> applicationStackOutputsMap.put(output.outputKey(), output.outputValue()));
 
+            storeServiceURLInContext(applicationStackOutputsMap.get(SERVICE_URL_STACK_OUTPUT_KEY));
+
             String exportPrefix = applicationStack.parameters().stream()
                     .filter(parameter -> parameter.parameterKey().equals("ExportPrefix"))
                     .findFirst()
@@ -120,9 +125,9 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
             HashMap<String, String> migrationStackParams = new HashMap<String, String>() {{
                put("NetworkPrivateSubnet", cfnExports.get(exportPrefix + "PriNets").split(",")[0]);
                put("EFSFileSystemId", efsId);
-               put("EFSSecurityGroup", applicationStackOutputsMap.get("SGname"));
-               put("RDSSecurityGroup", applicationStackOutputsMap.get("SGname"));
-               put("RDSEndpoint", applicationStackOutputsMap.get("DBEndpointAddress"));
+               put("EFSSecurityGroup", applicationStackOutputsMap.get(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY));
+               put("RDSSecurityGroup", applicationStackOutputsMap.get(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY));
+               put("RDSEndpoint", applicationStackOutputsMap.get(DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY));
                put("HelperInstanceType", "c5.large");
                put("HelperVpcId", cfnExports.get(exportPrefix + "VPCID"));
             }};
@@ -133,6 +138,14 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
             logger.error("tried to transition migration from {} but got error: {}.", MigrationStage.PROVISION_APPLICATION_WAIT, invalidMigrationStageError.getMessage());
             migrationService.error();
         }
+    }
+
+    private void storeServiceURLInContext(String serviceUrl) {
+        logger.info("Storing service URL in migration context");
+
+        MigrationContext context = migrationService.getCurrentContext();
+        context.setServiceUrl(serviceUrl);
+        context.save();
     }
 
     private void storeDbCredentials(Map<String, String> params) {

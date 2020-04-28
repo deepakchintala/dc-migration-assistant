@@ -46,7 +46,7 @@ public interface MigrationService {
     void assertCurrentStage(MigrationStage expected) throws InvalidMigrationStageError;
 
     /**
-     * Gets the Migration Object that can only be read. Setter invocation must to happen through the {@link MigrationService} interface
+     * Gets the Migration Object that can only be read. Setter invocation must happen through the {@link MigrationService} interface
      *
      * @return a read-only migration object.
      */

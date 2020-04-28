@@ -32,4 +32,8 @@ public interface MigrationContext extends Entity {
 
     void setHelperStackDeploymentId(String deploymentId);
 
+    String getServiceUrl();
+
+    void setServiceUrl(String url);
+
 }

@@ -18,12 +18,20 @@ import React, { FunctionComponent } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
-import { overviewPath, homePath, awsBasePath, fsPath, dbPath } from '../utils/RoutePaths';
+import {
+    overviewPath,
+    homePath,
+    awsBasePath,
+    fsPath,
+    dbPath,
+    validationPath,
+} from '../utils/RoutePaths';
 import { MigrationOverview } from './MigrationOverview';
 import { FileSystemTransferPage } from './fs/FileSystemTransfer';
 import { DatabaseTransferPage } from './db/DatabaseMigration';
 import { Home } from './Home';
 import { AWSRoutes } from './aws/AwsRoutes';
+import { ValidateStagePage } from '../stage/Validation';
 
 export const App: FunctionComponent = () => (
     <Router>
@@ -39,6 +47,9 @@ export const App: FunctionComponent = () => (
             </Route>
             <Route path={dbPath}>
                 <DatabaseTransferPage />
+            </Route>
+            <Route path={validationPath}>
+                <ValidateStagePage />
             </Route>
             <Route exact path={homePath}>
                 <Home
