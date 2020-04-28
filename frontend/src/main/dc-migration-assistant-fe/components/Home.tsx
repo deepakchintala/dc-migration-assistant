@@ -24,13 +24,19 @@ import SectionMessage from '@atlaskit/section-message';
 import Spinner from '@atlaskit/spinner';
 
 import { startPath } from '../utils/RoutePaths';
-import { migration } from '../api/migration';
+import { migration, MigrationStage, redirectForStage } from '../api/migration';
 import { ErrorFlag } from './shared/ErrorFlag';
 
 type HomeProps = {
     title: string;
     synopsis: string;
     startButtonText: string;
+};
+
+type ContinuationState = {
+    migrationInProgress: boolean;
+    currentStage: MigrationStage | undefined;
+    continuationPage: string | undefined;
 };
 
 const HomeContainer = styled.div`
@@ -50,13 +56,13 @@ const InfoProps = {
 };
 
 type ActionSectionProps = {
-    canStart: boolean;
+    continuation: ContinuationState;
     startButtonText: string;
 };
 
 const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
     startButtonText,
-    canStart,
+    continuation
 }) => {
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState<boolean>(false);
@@ -76,7 +82,18 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
             });
     };
 
-    if (canStart) {
+    if (continuation.migrationInProgress) {
+        return (
+            <SectionMessage appearance="warning">
+                {I18n.getText('atlassian.migration.datacenter.home.start.alreadyStarted')}
+                <ButtonContainer>
+                    <Link to={continuation.continuationPage}>
+                        <Button>{I18n.getText('atlassian.migration.datacenter.home.continue.button')}</Button>
+                    </Link>
+                </ButtonContainer>
+            </SectionMessage>
+        );
+    } else {
         return (
             <>
                 <ErrorFlag
@@ -95,26 +112,28 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
             </>
         );
     }
-    return (
-        <SectionMessage appearance="warning">
-            {I18n.getText('atlassian.migration.datacenter.home.start.alreadyStarted')}
-        </SectionMessage>
-    );
 };
 
 export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
-    const [canStart, setCanStart] = useState<boolean>(false);
     const [loadingCanStart, setLoadingCanStart] = useState<boolean>(true);
+    const [continuation, setContinuation] = useState<ContinuationState>({
+        migrationInProgress: false,
+        currentStage: undefined,
+        continuationPage: undefined,
+    });
 
     useEffect(() => {
         setLoadingCanStart(true);
         migration
             .getMigrationStage()
-            .then(stage => {
-                if (stage === 'not_started') {
-                    setCanStart(true);
-                } else {
-                    setCanStart(false);
+            .then((stage: string) => {
+                if (stage !== 'not_started') {
+                    let currentStage = stage as MigrationStage;
+                    setContinuation({
+                        migrationInProgress: true,
+                        currentStage: currentStage,
+                        continuationPage: redirectForStage[currentStage],
+                    });
                 }
             })
             .finally(() => {
@@ -129,7 +148,7 @@ export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElem
             {loadingCanStart ? (
                 <Spinner />
             ) : (
-                <MigrationActionSection startButtonText={startButtonText} canStart={canStart} />
+                <MigrationActionSection startButtonText={startButtonText} continuation={continuation} />
             )}
         </HomeContainer>
     );
