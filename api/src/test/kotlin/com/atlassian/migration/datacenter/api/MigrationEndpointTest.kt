@@ -71,7 +71,7 @@ class MigrationEndpointTest {
         every { migrationService.currentContext } returns migrationContext
         every { migrationContext.serviceUrl } returns expectedServiceUrl
 
-        val response = sut.getMigrationContext()
+        val response = sut.getMigrationSummary()
 
         assertThat(response.status, Matchers.equalTo(Response.Status.OK.statusCode))
         val entity = response.entity as? Map<String, String>

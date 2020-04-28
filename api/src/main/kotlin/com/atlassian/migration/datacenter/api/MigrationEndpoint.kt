@@ -81,8 +81,8 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @GET
-    @Path("/context")
-    fun getMigrationContext(): Response {
+    @Path("/summary")
+    fun getMigrationSummary(): Response {
         return if (migrationService.currentStage == MigrationStage.NOT_STARTED) {
             Response
                     .status(Response.Status.NOT_FOUND)

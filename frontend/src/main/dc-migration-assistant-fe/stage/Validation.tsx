@@ -20,7 +20,7 @@ import SectionMessage from '@atlaskit/section-message';
 import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
 import styled from 'styled-components';
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { callAppRest, RestApiPathConstants } from '../utils/api';
 import { homePath } from '../utils/RoutePaths';
 
@@ -49,21 +49,31 @@ const MigrationSummaryActionCallout = (): ReactElement => {
     return (
         <MigrationSummaryContainer>
             <div>
-                <h4>Actions required on your side</h4>
+                <h4>
+                    {I18n.getText('atlassian.migration.datacenter.validation.actions.required')}
+                </h4>
             </div>
             <div>
                 <ul>
                     <li>
-                        {I18n.getText('atlassian.migration.datacenter.validation.post.action.1')}
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.validation.post.action.aws.login'
+                        )}
                     </li>
                     <li>
-                        {I18n.getText('atlassian.migration.datacenter.validation.post.action.2')}
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.validation.post.action.aws.test'
+                        )}
                     </li>
                     <li>
-                        {I18n.getText('atlassian.migration.datacenter.validation.post.action.3')}
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.validation.post.action.reconnect.external.services'
+                        )}
                     </li>
                     <li>
-                        {I18n.getText('atlassian.migration.datacenter.validation.post.action.4')}
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.validation.post.action.redirect.dns'
+                        )}
                     </li>
                 </ul>
             </div>
@@ -84,7 +94,7 @@ const MigrationSummary: FunctionComponent = () => {
     >([]);
 
     useEffect(() => {
-        callAppRest('GET', RestApiPathConstants.getMigrationContextPath)
+        callAppRest('GET', RestApiPathConstants.migrationSummaryRestPath)
             .then(response => response.json())
             .then(data => {
                 setSummaryData(
@@ -115,7 +125,9 @@ const MigrationSummary: FunctionComponent = () => {
                                         'atlassian.migration.datacenter.validation.summary.phrase.instanceUrl'
                                     )}
                                 </Cell>
-                                <Cell width={400}>{summary.value}</Cell>
+                                <Cell width={400}>
+                                    <Link to={summary.value} />
+                                </Cell>
                             </Row>
                         );
                     })}
