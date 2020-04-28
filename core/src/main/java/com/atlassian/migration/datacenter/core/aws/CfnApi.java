@@ -31,7 +31,6 @@ import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourc
 import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesResponse;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksResponse;
-import software.amazon.awssdk.services.cloudformation.model.ListExportsRequest;
 import software.amazon.awssdk.services.cloudformation.model.ListExportsResponse;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
@@ -54,10 +53,13 @@ import java.util.stream.Collectors;
 public class CfnApi {
     private static final Logger logger = LoggerFactory.getLogger(CfnApi.class);
 
+    /**
+     * Stored client is only used for testing purposes
+     */
+    private final Optional<CloudFormationAsyncClient> client;
+
     private AwsCredentialsProvider credentialsProvider;
     private RegionService regionManager;
-
-    private Optional<CloudFormationAsyncClient> client;
 
     public CfnApi(AwsCredentialsProvider credentialsProvider, RegionService regionManager) {
         this.credentialsProvider = credentialsProvider;
@@ -66,7 +68,8 @@ public class CfnApi {
     }
 
     /**
-     * Package private constructor to consume a CFn Async Client. Currently used for testing. This will not be called by spring as no injectable <code>CloudFormationAsyncClient</code> instance exists in the container.
+     * Package private constructor to consume a CFn Async Client. Currently used for testing.
+     * his will not be called by spring as no injectable <code>CloudFormationAsyncClient</code> instance exists in the container.
      *
      * @param client An async CloudFormation client
      */
@@ -75,20 +78,15 @@ public class CfnApi {
     }
 
     /**
-     * Lazily create a CFN client; should only be called after necessary AWS information has been provided.
+     * Return a client should only be called after necessary AWS information has been provided.
      */
     private CloudFormationAsyncClient getClient() {
-        if (client.isPresent()) {
-            return client.get();
-        }
+        return client.orElseGet(
+                () -> CloudFormationAsyncClient.builder()
+                        .credentialsProvider(credentialsProvider)
+                        .region(Region.of(regionManager.getRegion()))
+                        .build());
 
-        CloudFormationAsyncClient client = CloudFormationAsyncClient.builder()
-                .credentialsProvider(credentialsProvider)
-                .region(Region.of(regionManager.getRegion()))
-                .build();
-
-        this.client = Optional.of(client);
-        return client;
     }
 
     public InfrastructureDeploymentStatus getStatus(String stackName) {
@@ -153,6 +151,7 @@ public class CfnApi {
 
     /**
      * Gets all Cloudformation exports. If there is an error retrieving the exports, an empty map will be returned
+     *
      * @return A map (of export name to export value) containing all cloudformation exports for the current region in the current account.
      */
     public Map<String, String> getExports() {
@@ -171,6 +170,7 @@ public class CfnApi {
 
     /**
      * Gets all resources for the given stack. If there is an error retrieving the resources, an empty map will be returned
+     *
      * @param stackName the name of the stack to get the resources of
      * @return a map of the logical resource ID to the resource for all resources in the given stack
      */
