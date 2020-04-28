@@ -15,8 +15,7 @@
  */
 
 import { callAppRest } from '../utils/api';
-import {homePath, quickstartStatusPath, awsAuthPath, fsPath, dbPath } from '../utils/RoutePaths';
-
+import { homePath, quickstartStatusPath, awsAuthPath } from '../utils/RoutePaths';
 
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
@@ -65,7 +64,7 @@ export const redirectForStage: Record<MigrationStage, string> = {
     [MigrationStage.CUTOVER]: 'FIXME',
     [MigrationStage.FINISHED]: 'FIXME',
     [MigrationStage.ERROR]: 'FIXME',
-}
+};
 
 type GetMigrationResult = {
     stage: MigrationStage;

@@ -62,7 +62,7 @@ type ActionSectionProps = {
 
 const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
     startButtonText,
-    continuation
+    continuation,
 }) => {
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState<boolean>(false);
@@ -88,30 +88,31 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
                 {I18n.getText('atlassian.migration.datacenter.home.start.alreadyStarted')}
                 <ButtonContainer>
                     <Link to={continuation.continuationPage}>
-                        <Button>{I18n.getText('atlassian.migration.datacenter.home.continue.button')}</Button>
+                        <Button>
+                            {I18n.getText('atlassian.migration.datacenter.home.continue.button')}
+                        </Button>
                     </Link>
                 </ButtonContainer>
             </SectionMessage>
         );
-    } else {
-        return (
-            <>
-                <ErrorFlag
-                    showError={error && error !== ''}
-                    dismissErrorFunc={(): void => setError('')}
-                    title={I18n.getText('atlassian.migration.datacenter.home.start.error')}
-                    description={error}
-                    id="migration-creation-error"
-                />
-                <InlineMessage {...InfoProps} />
-                <ButtonContainer>
-                    <Button isLoading={loading} appearance="primary" onClick={createMigration}>
-                        {startButtonText}
-                    </Button>
-                </ButtonContainer>
-            </>
-        );
     }
+    return (
+        <>
+            <ErrorFlag
+                showError={error && error !== ''}
+                dismissErrorFunc={(): void => setError('')}
+                title={I18n.getText('atlassian.migration.datacenter.home.start.error')}
+                description={error}
+                id="migration-creation-error"
+            />
+            <InlineMessage {...InfoProps} />
+            <ButtonContainer>
+                <Button isLoading={loading} appearance="primary" onClick={createMigration}>
+                    {startButtonText}
+                </Button>
+            </ButtonContainer>
+        </>
+    );
 };
 
 export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
@@ -128,7 +129,7 @@ export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElem
             .getMigrationStage()
             .then((stage: string) => {
                 if (stage !== 'not_started') {
-                    let currentStage = stage as MigrationStage;
+                    const currentStage = stage as MigrationStage;
                     setContinuation({
                         migrationInProgress: true,
                         currentStage: currentStage,
@@ -148,7 +149,10 @@ export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElem
             {loadingCanStart ? (
                 <Spinner />
             ) : (
-                <MigrationActionSection startButtonText={startButtonText} continuation={continuation} />
+                <MigrationActionSection
+                    startButtonText={startButtonText}
+                    continuation={continuation}
+                />
             )}
         </HomeContainer>
     );
