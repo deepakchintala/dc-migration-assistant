@@ -90,8 +90,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
             </Link>
         );
         ActionButton = NextButton;
-    }
-    if (started) {
+    } else if (started) {
         const RefreshButton = (
             <Button style={marginButtonStyle} isLoading={loading} onClick={updateTransferProgress}>
                 Refresh
