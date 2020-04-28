@@ -4,15 +4,7 @@ import { Link } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { overviewPath } from '../../utils/RoutePaths';
 
-/**
- * A component which renders the actions that can be taken at a given step of the migration.
- * The "Cancel" action is always available and cancels the current step. There are three other
- * possible actions which can be availabl depending on the props:
- *   **Start**: Will be available when the current transfer hasn't started
- *   **Refresh**: Will be available when the current transfer is in progress
- *   **Next**: Will be available when the current transfer is completed. It's text can be overriden
- */
-type MigrationTransferActionsProps = {
+export type MigrationTransferActionsProps = {
     /**
      * A function which will be called when the Refresh button is clicked
      */
@@ -43,6 +35,14 @@ type MigrationTransferActionsProps = {
     loading: boolean;
 };
 
+/**
+ * A component which renders the actions that can be taken at a given step of the migration.
+ * The "Cancel" action is always available and cancels the current step. There are three other
+ * possible actions which can be availabl depending on the props:
+ *   **Start**: Will be available when the current transfer hasn't started
+ *   **Refresh**: Will be available when the current transfer is in progress
+ *   **Next**: Will be available when the current transfer is completed. It's text can be overriden
+ */
 export const MigrationTransferActions: FunctionComponent<MigrationTransferActionsProps> = ({
     finished,
     nextText,

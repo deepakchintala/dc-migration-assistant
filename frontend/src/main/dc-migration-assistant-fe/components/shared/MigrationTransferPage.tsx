@@ -17,14 +17,10 @@
 import React, { FunctionComponent, useState, useEffect } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
-import { Button } from '@atlaskit/button/dist/cjs/components/Button';
-import { Link } from 'react-router-dom';
-import moment, { Moment } from 'moment';
+import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
-import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { MigrationTransferActions } from './MigrationTransferPageActions';
-import { overviewPath } from '../../utils/RoutePaths';
 import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
@@ -32,12 +28,38 @@ import { MigrationProgress } from './MigrationTransferProgress';
 const POLL_INTERVAL_MILLIS = 3000;
 
 export type MigrationTransferProps = {
+    /**
+     * The heading for the current migration transfer. Should follow pattern "Step X of Y: Z"
+     */
     heading: string;
+    /**
+     * A description for what the current transfer does. Will be rendered below the title
+     */
     description: string;
+    /**
+     * @see MigrationTransferActionsProps
+     */
     nextText: string;
+    /**
+     * @see MigrationTransferActionsProps
+     */
+    nextRoute: string;
+    /**
+     * @see MigrationProgressProps
+     */
     startMoment?: moment.Moment;
+    /**
+     * The MigrationStages where this transfer is "in progress"
+     * @see MigrationStage
+     */
     inProgressStages: Array<MigrationStage>;
+    /**
+     * A function which starts this migration transfer
+     */
     startMigrationPhase: () => Promise<void>;
+    /**
+     * A function which will be called to get the progress of the current transfer
+     */
     getProgress: ProgressCallback;
 };
 
@@ -70,6 +92,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     description,
     heading,
     nextText,
+    nextRoute,
     startMoment,
     getProgress,
     inProgressStages,
@@ -165,8 +188,9 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                         <MigrationTransferActions
                             finished={progress?.completeness === 1}
                             nextText={nextText}
+                            nextRoute={nextRoute}
                             startMigrationPhase={startMigration}
-                            updateTransferProgress={updateProgress}
+                            onRefresh={updateProgress}
                             started={started}
                             loading={loading}
                         />

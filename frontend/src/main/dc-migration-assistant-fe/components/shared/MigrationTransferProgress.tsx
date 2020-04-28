@@ -12,12 +12,22 @@ import {
     calculateStartedFromElapsedSeconds,
 } from './migration-timing';
 
-type MigrationProgressProps = {
+export type MigrationProgressProps = {
     progress: Progress;
+    /**
+     * Should be true when the progress is being fetched
+     */
     loading: boolean;
+    /**
+     * A moment representing the time that the transfer was started
+     */
     startedMoment: Moment;
 };
 
+/**
+ * A component which renders the progress of the current transfer. It renders
+ * a progress bar and elapsed time. It handles when the completeness is indeterminate.
+ */
 export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     progress,
     loading,
