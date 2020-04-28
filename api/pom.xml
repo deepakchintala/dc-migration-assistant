@@ -26,6 +26,7 @@
         <dependency>
             <groupId>com.atlassian.activeobjects</groupId>
             <artifactId>activeobjects-plugin</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
