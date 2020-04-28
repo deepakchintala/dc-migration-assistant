@@ -32,12 +32,17 @@ type GetMigrationResult = {
 
 export const migration = {
     getMigrationStage: (): Promise<MigrationStage> => {
-        return callAppRest('GET', RestApiPathConstants.migrationRestPath)
-            .then(res => res.json())
-            .then(res => {
-                const response = res as GetMigrationResult;
-                return response.stage;
-            });
+        return callAppRest('GET', RestApiPathConstants.migrationRestPath).then(res => {
+            if (res.ok) {
+                return res.json().then(json => {
+                    const response = json as GetMigrationResult;
+                    return response.stage;
+                });
+            }
+            if (res.status === 404) {
+                return MigrationStage.NOT_STARTED;
+            }
+        });
     },
     createMigration: (): Promise<void> => {
         return callAppRest('POST', RestApiPathConstants.migrationRestPath).then(res => {

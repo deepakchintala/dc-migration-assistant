@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-import React, { ReactElement, useState } from 'react';
+import React, { ReactElement, useState, useEffect, FunctionComponent } from 'react';
 import Button from '@atlaskit/button';
 import InlineMessage from '@atlaskit/inline-message';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import SectionMessage from '@atlaskit/section-message';
+import Spinner from '@atlaskit/spinner';
 
 import { startPath } from '../utils/RoutePaths';
 import { migration } from '../api/migration';
@@ -47,7 +49,15 @@ const InfoProps = {
     secondaryText: I18n.getText('atlassian.migration.datacenter.home.info.content'),
 };
 
-export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
+type ActionSectionProps = {
+    canStart: boolean;
+    startButtonText: string;
+};
+
+const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
+    startButtonText,
+    canStart,
+}) => {
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -66,24 +76,61 @@ export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElem
             });
     };
 
+    if (canStart) {
+        return (
+            <>
+                <ErrorFlag
+                    showError={error && error !== ''}
+                    dismissErrorFunc={(): void => setError('')}
+                    title={I18n.getText('atlassian.migration.datacenter.home.start.error')}
+                    description={error}
+                    id="migration-creation-error"
+                />
+                <InlineMessage {...InfoProps} />
+                <ButtonContainer>
+                    <Button isLoading={loading} appearance="primary" onClick={createMigration}>
+                        {startButtonText}
+                    </Button>
+                </ButtonContainer>
+            </>
+        );
+    }
+    return (
+        <SectionMessage appearance="warning">
+            {I18n.getText('atlassian.migration.datacenter.home.start.alreadyStarted')}
+        </SectionMessage>
+    );
+};
+
+export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
+    const [canStart, setCanStart] = useState<boolean>(false);
+    const [loadingCanStart, setLoadingCanStart] = useState<boolean>(true);
+
+    useEffect(() => {
+        setLoadingCanStart(true);
+        migration
+            .getMigrationStage()
+            .then(stage => {
+                if (stage === 'not_started') {
+                    setCanStart(true);
+                } else {
+                    setCanStart(false);
+                }
+            })
+            .finally(() => {
+                setLoadingCanStart(false);
+            });
+    }, []);
+
     return (
         <HomeContainer>
             <h2>{title}</h2>
             <p>{synopsis}</p>
-            <ErrorFlag
-                showError={error && error !== ''}
-                dismissErrorFunc={(): void => setError('')}
-                // FIXME: Internationalisation
-                title="Unable to create migration"
-                description={error}
-                id="migration-creation-error"
-            />
-            <InlineMessage {...InfoProps} />
-            <ButtonContainer>
-                <Button isLoading={loading} appearance="primary" onClick={createMigration}>
-                    {startButtonText}
-                </Button>
-            </ButtonContainer>
+            {loadingCanStart ? (
+                <Spinner />
+            ) : (
+                <MigrationActionSection startButtonText={startButtonText} canStart={canStart} />
+            )}
         </HomeContainer>
     );
 };

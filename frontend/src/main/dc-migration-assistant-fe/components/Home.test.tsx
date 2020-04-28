@@ -20,6 +20,15 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { Home } from './Home';
 
+const mockFetch = jest.fn();
+mockFetch.mockReturnValue(
+    Promise.resolve({
+        status: 200,
+    })
+);
+
+window.fetch = mockFetch;
+
 describe('Home', () => {
     it('Should render', () => {
         const { queryByText } = render(
@@ -30,6 +39,6 @@ describe('Home', () => {
 
         expect(queryByText('Test Title')).toBeTruthy();
         expect(queryByText('Test synopsis')).toBeTruthy();
-        expect(queryByText('Test button')).toBeTruthy();
+        expect(queryByText('Test button')).toBeFalsy();
     });
 });
