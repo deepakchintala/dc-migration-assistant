@@ -12,57 +12,6 @@ import {
     calculateStartedFromElapsedSeconds,
 } from './migration-timing';
 
-const renderContentIfLoading = (
-    loading: boolean,
-    progress: Progress,
-    started: Moment
-): ReactElement => {
-    if (loading) {
-        return (
-            <>
-                <Spinner />
-                <ProgressBar isIndeterminate />
-                <Spinner />
-            </>
-        );
-    }
-
-    const duration =
-        calculateDurationFromBeginning(started) ||
-        calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
-
-    return (
-        <>
-            <h4>
-                {progress.phase}
-                {progress.completeness === undefined &&
-                    ` (${I18n.getText('atlassian.migration.datacenter.common.estimating')}...)`}
-            </h4>
-            {progress.completeness ? (
-                <SuccessProgressBar value={progress.completeness} />
-            ) : (
-                <ProgressBar isIndeterminate />
-            )}
-            <p>
-                {I18n.getText(
-                    'atlassian.migration.datacenter.common.progress.started',
-                    (
-                        started || calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds)
-                    ).format('D/MMM/YY h:mm A')
-                )}
-            </p>
-            <p>
-                {duration &&
-                    I18n.getText(
-                        'atlassian.migration.datacenter.common.progress.mins_elapsed',
-                        `${duration.days * 24 + duration.hours}`,
-                        `${duration.minutes}`
-                    )}
-            </p>
-        </>
-    );
-};
-
 type MigrationProgressProps = {
     progress: Progress;
     loading: boolean;
@@ -74,6 +23,20 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     loading,
     startedMoment,
 }) => {
+    if (loading) {
+        return (
+            <>
+                <Spinner />
+                <ProgressBar isIndeterminate />
+                <Spinner />
+            </>
+        );
+    }
+
+    const duration =
+        calculateDurationFromBeginning(startedMoment) ||
+        calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
+
     return (
         <>
             {progress?.completeness === 1 && progress?.completeMessage && (
@@ -82,7 +45,36 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                     {progress.completeMessage.message}
                 </SectionMessage>
             )}
-            {renderContentIfLoading(loading, progress, startedMoment)}
+
+            <>
+                <h4>
+                    {progress.phase}
+                    {progress.completeness === undefined &&
+                        ` (${I18n.getText('atlassian.migration.datacenter.common.estimating')}...)`}
+                </h4>
+                {progress.completeness ? (
+                    <SuccessProgressBar value={progress.completeness} />
+                ) : (
+                    <ProgressBar isIndeterminate />
+                )}
+                <p>
+                    {I18n.getText(
+                        'atlassian.migration.datacenter.common.progress.started',
+                        (
+                            startedMoment ||
+                            calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds)
+                        ).format('D/MMM/YY h:mm A')
+                    )}
+                </p>
+                <p>
+                    {duration &&
+                        I18n.getText(
+                            'atlassian.migration.datacenter.common.progress.mins_elapsed',
+                            `${duration.days * 24 + duration.hours}`,
+                            `${duration.minutes}`
+                        )}
+                </p>
+            </>
         </>
     );
 };
