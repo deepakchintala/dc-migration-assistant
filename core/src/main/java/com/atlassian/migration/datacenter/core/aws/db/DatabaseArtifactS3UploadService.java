@@ -42,6 +42,7 @@ public class DatabaseArtifactS3UploadService {
     }
 
     public FileSystemMigrationReport upload(Path target, String targetBucketName, DatabaseUploadStageTransitionCallback callback) throws InvalidMigrationStageError, FilesystemUploader.FileUploadException {
+        s3AsyncClient = s3AsyncClientSupplier.get();
         callback.assertInStartingStage();
         FilesystemUploader filesystemUploader = buildFileSystemUploader(target, targetBucketName, fileSystemMigrationReport, s3AsyncClient);
 
