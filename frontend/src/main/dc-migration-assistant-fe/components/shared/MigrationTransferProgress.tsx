@@ -1,4 +1,4 @@
-import React, { ReactNode, ReactElement, FunctionComponent } from 'react';
+import React, { ReactElement, FunctionComponent } from 'react';
 import { Moment } from 'moment';
 import SectionMessage from '@atlaskit/section-message';
 import Spinner from '@atlaskit/spinner';
