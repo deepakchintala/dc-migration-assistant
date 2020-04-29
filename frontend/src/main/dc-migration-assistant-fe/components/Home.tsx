@@ -150,9 +150,9 @@ export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElem
             <h2>{title}</h2>
             <p>
                 {synopsis}{' '}
-                <Link to="www.confluence.atlassian.com">
+                <a target="_blank" rel="noreferrer noopener" href="www.confluence.atlassian.com">
                     {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
-                </Link>
+                </a>
             </p>
             {loadingCanStart ? (
                 <Spinner />
