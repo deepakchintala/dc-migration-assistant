@@ -143,32 +143,32 @@ Resources:
                 content: !Sub
                   - |
                     #!/bin/bash
-                     DATABASE_DOWNLOAD_DIR="/efs/downloads/db.dump"
-                     mkdir -p $DATABASE_DOWNLOAD_DIR
-                     DB_DUMP_LOG_FILE="/var/atlassian/dc-migration-assistant/pg_dump-log.txt"
-                     SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
-                     if [ $? != 0]; then
-                       echo "Error when fetching db password from secret manage"
-                       exit 1
-                     fi
-                     aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
-                     if [ $? != 0]; then
-                       echo "Error when synchronising with the S3 bucket"
-                       exit 1
-                     fi
-                     echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
-                     PGPASSWORD=$SECRET_PASSWORD pg_restore --no-owner --no-acl --clean --if-exists -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
-                     ERROR_OUTPUT=$(grep -iE 'error|warning' $DB_DUMP_LOG_FILE)
+                    DATABASE_DOWNLOAD_DIR="/efs/downloads/db.dump"
+                    mkdir -p $DATABASE_DOWNLOAD_DIR
+                    DB_DUMP_LOG_FILE="/var/atlassian/dc-migration-assistant/pg_dump-log.txt"
+                    SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
+                    if [ $? != 0]; then
+                      echo "Error when fetching DB password from secret manager"
+                      exit 1
+                    fi
+                    aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
+                    if [ ${PIPESTATUS[0]} != 0]; then
+                      echo "Error when synchronising with the S3 bucket"
+                      exit 1
+                    fi
+                    echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
+                    PGPASSWORD=$SECRET_PASSWORD pg_restore --no-owner --no-acl --clean --if-exists -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
+                    ERROR_OUTPUT=$(grep -iE 'error|warning' $DB_DUMP_LOG_FILE)
 
-                     if [ -z "$ERROR_OUTPUT" ]; then
-                             echo "SUCCESS: Database migration was successful"
-                             exit 0
-                     else
-                             echo "Errors:"
-                             echo "${ERROR_OUTPUT}"
-                             echo "ERROR: Database migration wasn't successful"
-                             exit 1
-                     fi
+                    if [ -z "$ERROR_OUTPUT" ]; then
+                            echo "SUCCESS: Database migration was successful"
+                            exit 0
+                    else
+                            echo "Errors:"
+                            echo "${ERROR_OUTPUT}"
+                            echo "ERROR: Database migration wasn't successful"
+                            exit 1
+                    fi
                   - {
                     SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password",
                     MigrationBucket: !Ref MigrationBucket,
