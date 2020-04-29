@@ -148,6 +148,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                             )}
                         </Field>
                         <Field
+                            isRequired
                             label={I18n.getText(
                                 'atlassian.migration.datacenter.authenticate.aws.region.label'
                             )}
@@ -158,11 +159,6 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                         >
                             {({ fieldProps, error }: any): ReactElement => (
                                 <>
-                                    <HelperMessage>
-                                        {I18n.getText(
-                                            'atlassian.migration.datacenter.authenticate.aws.region.helper'
-                                        )}
-                                    </HelperMessage>
                                     <RegionSelect getRegions={getRegions} {...fieldProps} />
                                     {error && (
                                         <ErrorMessage>
