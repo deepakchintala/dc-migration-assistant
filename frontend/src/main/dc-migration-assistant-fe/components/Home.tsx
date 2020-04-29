@@ -25,7 +25,7 @@ import Spinner from '@atlaskit/spinner';
 
 import { migration, MigrationStage, redirectForStage } from '../api/migration';
 import { ErrorFlag } from './shared/ErrorFlag';
-import { quickstartPath } from '../utils/RoutePaths';
+import { awsAuthPath } from '../utils/RoutePaths';
 
 type HomeProps = {
     title: string;
@@ -82,7 +82,7 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
     };
 
     if (readyForNextStep) {
-        return <Redirect to={quickstartPath} push />;
+        return <Redirect to={awsAuthPath} push />;
     }
 
     if (continuation.migrationInProgress) {
