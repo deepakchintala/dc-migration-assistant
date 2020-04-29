@@ -131,7 +131,6 @@ export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElem
         migration
             .getMigrationStage()
             .then((stage: string) => {
-                console.log(stage);
                 if (stage !== 'not_started') {
                     const currentStage = stage as MigrationStage;
                     setContinuation({
@@ -149,7 +148,12 @@ export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElem
     return (
         <HomeContainer>
             <h2>{title}</h2>
-            <p>{synopsis}</p>
+            <p>
+                {synopsis}{' '}
+                <Link to="www.confluence.atlassian.com">
+                    {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                </Link>
+            </p>
             {loadingCanStart ? (
                 <Spinner />
             ) : (
