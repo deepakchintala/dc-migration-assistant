@@ -108,8 +108,17 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
     return (
         <>
             {readyForNextStep && <Redirect to={quickstartPath} push />}
-            <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.phrase')}</h1>
-            <h1>{I18n.getText('atlassian.migration.datacenter.authenticate.aws.title')}</h1>
+            <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.title')}</h1>
+            <p>
+                {I18n.getText('atlassian.migration.datacenter.authenticate.aws.description')}{' '}
+                <a
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html"
+                >
+                    {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                </a>
+            </p>
             <ErrorFlag
                 showError={credentialPersistError}
                 dismissErrorFunc={(): void => {
@@ -148,6 +157,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                             )}
                         </Field>
                         <Field
+                            isRequired
                             label={I18n.getText(
                                 'atlassian.migration.datacenter.authenticate.aws.region.label'
                             )}
@@ -158,11 +168,6 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                         >
                             {({ fieldProps, error }: any): ReactElement => (
                                 <>
-                                    <HelperMessage>
-                                        {I18n.getText(
-                                            'atlassian.migration.datacenter.authenticate.aws.region.helper'
-                                        )}
-                                    </HelperMessage>
                                     <RegionSelect getRegions={getRegions} {...fieldProps} />
                                     {error && (
                                         <ErrorMessage>

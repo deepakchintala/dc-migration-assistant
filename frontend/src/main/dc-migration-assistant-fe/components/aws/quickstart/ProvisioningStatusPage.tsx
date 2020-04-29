@@ -74,7 +74,9 @@ const inProgressStages = [
 export const ProvisioningStatusPage: FunctionComponent = () => {
     return (
         <MigrationTransferPage
-            description={I18n.getText('atlassian.migration.datacenter.provision.aws.description')}
+            description={I18n.getText(
+                'atlassian.migration.datacenter.provision.aws.wait.description'
+            )}
             getProgress={getDeploymentProgress}
             inProgressStages={inProgressStages}
             heading={I18n.getText('atlassian.migration.datacenter.provision.aws.title')}

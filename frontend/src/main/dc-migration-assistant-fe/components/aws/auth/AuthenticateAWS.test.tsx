@@ -35,7 +35,7 @@ describe('AWS Authentication page', () => {
             wrapper: MemoryRouter,
         });
 
-        expect(getByText('atlassian.migration.datacenter.step.authenticate.phrase')).toBeTruthy();
+        expect(getByText('atlassian.migration.datacenter.step.authenticate.title')).toBeTruthy();
         expect(
             getByText('atlassian.migration.datacenter.authenticate.aws.accessKeyId.label')
         ).toBeTruthy();

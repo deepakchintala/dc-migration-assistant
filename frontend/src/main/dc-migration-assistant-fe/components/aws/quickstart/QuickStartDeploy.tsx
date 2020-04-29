@@ -16,7 +16,7 @@
 
 import React, { FunctionComponent, ReactElement, ReactFragment, useEffect, useState } from 'react';
 import yaml from 'yaml';
-import Form, { ErrorMessage, Field, FormHeader, FormSection } from '@atlaskit/form';
+import Form, { ErrorMessage, Field, HelperMessage, FormHeader, FormSection } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
 import Button, { ButtonGroup } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
@@ -87,6 +87,11 @@ const StackNameField = (): ReactElement => {
             {({ fieldProps, error }: any): ReactElement => (
                 <>
                     <TextField width="medium" {...fieldProps} />
+                    <HelperMessage>
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.provision.aws.form.stackName.helper'
+                        )}
+                    </HelperMessage>
                     {error && <ErrorMessage>{error}</ErrorMessage>}
                 </>
             )}
@@ -139,10 +144,11 @@ const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({ paramGroups, o
             {({ formProps }: any): ReactElement => (
                 <QuickstartFormContainer {...formProps}>
                     <FormHeader
-                        title={I18n.getText(
-                            'atlassian.migration.datacenter.provision.aws.form.title'
-                        )}
+                        title={I18n.getText('atlassian.migration.datacenter.provision.aws.title')}
                     />
+                    <p>
+                        {I18n.getText('atlassian.migration.datacenter.provision.aws.description')}
+                    </p>
                     <StackNameField />
                     {paramGroups.map(group => {
                         return renderFormSection(group);
