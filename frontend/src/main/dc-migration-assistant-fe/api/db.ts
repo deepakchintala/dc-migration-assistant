@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { I18n } from '@atlassian/wrm-react-i18n';
 import { MigrationDuration } from './common';
 
 const dbAPIBase = 'migration/db';
@@ -29,9 +30,20 @@ export enum DBMigrationStatus {
     FAILED,
 }
 
-export const toI18nProp = (status: DBMigrationStatus): string => {
+export const statusToI18nString = (status: DBMigrationStatus): string => {
     const name = status.toString().toLowerCase();
-    return `atlassian.migration.datacenter.db.status.${name}`;
+    switch (name) {
+        case 'failed':
+            return I18n.getText('atlassian.migration.datacenter.db.status.failed');
+        case 'exporting':
+            return I18n.getText('atlassian.migration.datacenter.db.status.exporting');
+        case 'uploading':
+            return I18n.getText('atlassian.migration.datacenter.db.status.uploading');
+        case 'done':
+            return I18n.getText('atlassian.migration.datacenter.db.status.done');
+        default:
+            return I18n.getText('atlassian.migration.datacenter.db.status.unknown');
+    }
 };
 
 // See DatabaseMigrationProgress.kt

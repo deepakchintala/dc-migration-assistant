@@ -24,7 +24,7 @@ import {
     dbStatusReportEndpoint,
     dbStartEndpoint,
     DatabaseMigrationStatus,
-    toI18nProp,
+    statusToI18nString,
 } from '../../api/db';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
@@ -40,7 +40,7 @@ const dbMigrationInProgressStages = [
 
 const toProgress = (status: DatabaseMigrationStatus): Progress => {
     return {
-        phase: I18n.getText(toI18nProp(status.status)),
+        phase: statusToI18nString(status.status),
         elapsedTimeSeconds: status.elapsedTime.seconds,
     };
 };
