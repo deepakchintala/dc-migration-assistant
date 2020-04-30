@@ -19,11 +19,13 @@ import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
+import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
+import { DatabaseWarningModal } from '../db/DatabaseWarningModal';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -129,6 +131,8 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             });
     };
 
+    const shouldShowWarning = heading === I18n.getText('atlassian.migration.datacenter.db.title');
+
     useEffect(() => {
         setLoading(true);
         migration
@@ -164,6 +168,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
 
     return (
         <TransferPageContainer>
+            {shouldShowWarning && <DatabaseWarningModal />}
             <TransferContentContainer>
                 <h1>{heading}</h1>
                 <p>{description}</p>
