@@ -5,15 +5,13 @@ import Button from '@atlaskit/button';
 import { Redirect } from 'react-router-dom';
 import { dbPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
+import { CancelButton, marginButtonStyle } from '../shared/CancelButton';
 
 export const WarningStagePage: FunctionComponent = () => {
     const [agreed, setAgreed] = useState<boolean>(false);
     const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
 
-    const heading = I18n.getText('atlassian.migration.datacenter.db.title');
-    const description = I18n.getText('atlassian.migration.datacenter.db.description');
-
-    const handleClick = (): void => {
+    const handleConfirmation = (): void => {
         if (agreed) {
             setShouldRedirect(true);
         }
@@ -27,25 +25,52 @@ export const WarningStagePage: FunctionComponent = () => {
         return <Redirect to={dbPath} push />;
     }
 
+    const NextButton = (
+        <Button
+            isDisabled={!agreed}
+            onClick={handleConfirmation}
+            appearance="primary"
+            css={marginButtonStyle}
+        >
+            {I18n.getText('atlassian.migration.datacenter.generic.next')}
+        </Button>
+    );
+
+    const checkboxSectionStyle = {
+        margin: '20px',
+    };
+
     return (
         <div>
-            <h1>{heading}</h1>
-            <p>{description}</p>
-            <SectionMessage appearance="info" title="To take your Jira instance offline:">
+            <h1>{I18n.getText('atlassian.migration.datacenter.warning.title')}</h1>
+            <p>{I18n.getText('atlassian.migration.datacenter.warning.description')}</p>
+            <SectionMessage
+                appearance="info"
+                title={I18n.getText('atlassian.migration.datacenter.warning.section.header')}
+            >
                 <ol>
-                    <li>Make sure that users are logged out</li>
-                    <li>Redirect the DNS to a maintenance page</li>
+                    <li>
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.warning.section.list.loggedOutUsers'
+                        )}
+                    </li>
+                    <li>
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.warning.section.list.dnsRedirection'
+                        )}
+                    </li>
                 </ol>
             </SectionMessage>
-            <Checkbox
-                value="agree"
-                label="I'm ready for the next step"
-                onChange={agreeOnClick}
-                name="agree"
-            />
-            <Button isDisabled={!agreed} onClick={handleClick}>
-                Continue
-            </Button>
+            <div style={checkboxSectionStyle}>
+                <Checkbox
+                    value="agree"
+                    label="I'm ready for the next step"
+                    onChange={agreeOnClick}
+                    name="agree"
+                />
+            </div>
+            {NextButton}
+            <CancelButton css={marginButtonStyle} />
         </div>
     );
 };
