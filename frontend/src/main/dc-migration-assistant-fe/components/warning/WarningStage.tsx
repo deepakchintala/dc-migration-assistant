@@ -2,24 +2,30 @@ import React, { FunctionComponent, useState } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import { Checkbox } from '@atlaskit/checkbox';
 import Button from '@atlaskit/button';
-import { useHistory } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 import { dbPath } from '../../utils/RoutePaths';
 
 export const WarningStagePage: FunctionComponent = () => {
-    const history = useHistory();
-
     const [agreed, setAgreed] = useState<boolean>(false);
+    const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
 
-    const handleClick = () => {
-        history.push(dbPath);
+    const handleClick = (): void => {
+        if (agreed) {
+            setShouldRedirect(true);
+        }
     };
 
-    const agreeOnClick = (event: any) => {
+    const agreeOnClick = (event: any): void => {
         setAgreed(event.target.checked);
     };
+
+    if (shouldRedirect) {
+        return <Redirect to={dbPath} push />;
+    }
+
     return (
         <div>
-            <h1>Step 5 of 7: Redirect users</h1>
+            <h1>Step 4 of 7: Redirect users</h1>
             <p>
                 Take your Jira instance offline to prevent users from accessing it. This will allow
                 us to sync your database properly. User access during this phase could prevent some
