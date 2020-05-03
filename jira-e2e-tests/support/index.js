@@ -26,4 +26,4 @@ Cypress.Commands.add('jira_setup', () => {
     cy.get("create-project-dialog-create-button").click();
     cy.get("#next").type("Test");
     cy.get("add-project-dialog-create-button").click();
-};
+});
