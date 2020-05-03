@@ -16,13 +16,13 @@ const Paragraph = styled.p`
     margin-bottom: '10px';
 `;
 
+const CheckboxContainer = styled.div`
+    margin: '20px';
+`;
+
 const nextButtonStyle = {
     padding: '5px',
     marginRight: '20px',
-};
-
-const checkboxSectionStyle = {
-    margin: '20px',
 };
 
 export const WarningStagePage: FunctionComponent = () => {
@@ -77,14 +77,14 @@ export const WarningStagePage: FunctionComponent = () => {
                     </li>
                 </ol>
             </SectionMessage>
-            <div style={checkboxSectionStyle}>
+            <CheckboxContainer>
                 <Checkbox
                     value="agree"
                     label="I'm ready for the next step"
                     onChange={agreeOnClick}
                     name="agree"
                 />
-            </div>
+            </CheckboxContainer>
             {NextButton}
             <CancelButton />
         </Container>
