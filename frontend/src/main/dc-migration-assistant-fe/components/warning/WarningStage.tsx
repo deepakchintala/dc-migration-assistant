@@ -3,9 +3,27 @@ import SectionMessage from '@atlaskit/section-message';
 import { Checkbox } from '@atlaskit/checkbox';
 import Button from '@atlaskit/button';
 import { Redirect } from 'react-router-dom';
+import styled from 'styled-components';
 import { dbPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
-import { CancelButton, marginButtonStyle } from '../shared/CancelButton';
+import { CancelButton } from '../shared/CancelButton';
+
+const Container = styled.div`
+    max-width: 920px;
+`;
+
+const Paragraph = styled.p`
+    margin-bottom: '10px';
+`;
+
+const nextButtonStyle = {
+    padding: '5px',
+    marginRight: '20px',
+};
+
+const checkboxSectionStyle = {
+    margin: '20px',
+};
 
 export const WarningStagePage: FunctionComponent = () => {
     const [agreed, setAgreed] = useState<boolean>(false);
@@ -30,20 +48,18 @@ export const WarningStagePage: FunctionComponent = () => {
             isDisabled={!agreed}
             onClick={handleConfirmation}
             appearance="primary"
-            css={marginButtonStyle}
+            style={nextButtonStyle}
         >
             {I18n.getText('atlassian.migration.datacenter.generic.next')}
         </Button>
     );
 
-    const checkboxSectionStyle = {
-        margin: '20px',
-    };
-
     return (
-        <div>
+        <Container>
             <h1>{I18n.getText('atlassian.migration.datacenter.warning.title')}</h1>
-            <p>{I18n.getText('atlassian.migration.datacenter.warning.description')}</p>
+            <Paragraph>
+                {I18n.getText('atlassian.migration.datacenter.warning.description')}
+            </Paragraph>
             <SectionMessage
                 appearance="info"
                 title={I18n.getText('atlassian.migration.datacenter.warning.section.header')}
@@ -70,7 +86,7 @@ export const WarningStagePage: FunctionComponent = () => {
                 />
             </div>
             {NextButton}
-            <CancelButton css={marginButtonStyle} />
-        </div>
+            <CancelButton />
+        </Container>
     );
 };
