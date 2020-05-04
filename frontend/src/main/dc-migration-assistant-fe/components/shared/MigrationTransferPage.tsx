@@ -26,6 +26,7 @@ import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
+import { migrationErrorPath } from '../../utils/RoutePaths';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -162,7 +163,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     }, [started]);
 
     if (progress?.failed) {
-        return <Redirect to="/migration-error" push />;
+        return <Redirect to={migrationErrorPath} push />;
     }
 
     const transferError = progress?.error || error;
