@@ -9,6 +9,13 @@ export type CompleteMessage = {
     message: string;
 };
 
+/**
+ * **phase**: Text describing the current phase of the transfer e.g. uploading, downloading, importing..
+ * **completeness**: A fraction representing the percentage complete the transfer is.
+ * **elapsedTimeSeconds**: The number of seconds the transfer has been going on for.
+ * **error**: Text describing a non-critical error that the user may want to verify
+ * **completeMessage**: Message to display when the transfer has completed
+ */
 export type Progress = {
     phase: string;
     completeness?: number;
