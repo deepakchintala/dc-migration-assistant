@@ -7,19 +7,43 @@ import styled from 'styled-components';
 import { dbPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../shared/CancelButton';
-import { migration } from '../../api/migration';
-
-const Container = styled.div`
-    max-width: 920px;
-`;
 
 const Paragraph = styled.p`
     margin-bottom: '20px';
 `;
 
+const WarningPageContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 920px;
+    margin-right: auto;
+    margin-bottom: auto;
+    padding-left: 15px;
+`;
+
+const WarningContentContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding-right: 30px;
+
+    padding-bottom: 5px;
+`;
+
+const WarningActionsContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+
+    margin-top: 20px;
+`;
+
 const CheckboxContainer = styled.div`
-    margin: '50px 0';
-    padding: '10px';
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-top: 10px;
+    padding: 10px;
 `;
 
 const nextButtonStyle = {
@@ -70,12 +94,14 @@ export const WarningStagePage: FunctionComponent = () => {
     );
 
     return (
-        <Container>
-            <h1>{I18n.getText('atlassian.migration.datacenter.warning.title')}</h1>
-            <Paragraph>
-                {I18n.getText('atlassian.migration.datacenter.warning.description')}
-            </Paragraph>
-            <LearnMore />
+        <WarningPageContainer>
+            <WarningContentContainer>
+                <h1>{I18n.getText('atlassian.migration.datacenter.warning.title')}</h1>
+                <Paragraph>
+                    {I18n.getText('atlassian.migration.datacenter.warning.description')}
+                </Paragraph>
+                <LearnMore />
+            </WarningContentContainer>
             <SectionMessage
                 appearance="info"
                 title={I18n.getText('atlassian.migration.datacenter.warning.section.header')}
@@ -101,8 +127,10 @@ export const WarningStagePage: FunctionComponent = () => {
                     name="agree"
                 />
             </CheckboxContainer>
-            {NextButton}
-            <CancelButton />
-        </Container>
+            <WarningActionsContainer>
+                {NextButton}
+                <CancelButton />
+            </WarningActionsContainer>
+        </WarningPageContainer>
     );
 };
