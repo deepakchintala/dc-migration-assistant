@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '@atlaskit/button';
-import { overviewPath } from '../../utils/RoutePaths';
+import { homePath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 
 export const cancelButtonStyle = {
@@ -10,7 +10,7 @@ export const cancelButtonStyle = {
 };
 
 export const CancelButton: FunctionComponent = () => (
-    <Link to={overviewPath}>
+    <Link to={homePath}>
         <Button style={cancelButtonStyle}>
             {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
         </Button>
