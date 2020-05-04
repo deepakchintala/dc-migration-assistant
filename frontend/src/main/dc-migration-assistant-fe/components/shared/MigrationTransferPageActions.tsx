@@ -59,6 +59,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
         ...defaultButtonStyle,
         marginRight: '20px',
     };
+
     const StartButton = (
         <Button
             style={marginButtonStyle}
