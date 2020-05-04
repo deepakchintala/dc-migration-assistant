@@ -122,8 +122,8 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         try {
             migrationService.transition(MigrationStage.FS_MIGRATION_COPY);
         } catch (InvalidMigrationStageError invalidMigrationStageError) {
-            logger.error("error transitioning to FS_MIGRATION_COPY stage after successful migration stack deployment");
-            migrationService.error();
+            logger.error("error transitioning to FS_MIGRATION_COPY stage after successful migration stack deployment", invalidMigrationStageError);
+            migrationService.error(invalidMigrationStageError.getMessage());
         }
     }
 

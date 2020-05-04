@@ -123,7 +123,7 @@ public class DatabaseMigrationService {
         boolean result = migrationRunner.runMigration(jobId, jobRunner);
 
         if (!result) {
-            migrationService.error();
+            migrationService.error("Unable to start database migration job.");
         }
         return result;
     }
@@ -138,7 +138,7 @@ public class DatabaseMigrationService {
 
         logger.warn("Aborting running filesystem migration");
 
-        migrationService.error();
+        migrationService.error("file system migration was aborted");
     }
 
     private JobId getScheduledJobId() {

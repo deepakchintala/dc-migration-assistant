@@ -109,7 +109,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         boolean result = migrationRunner.runMigration(jobId, jobRunner);
 
         if (!result) {
-            migrationService.error();
+            migrationService.error("Error starting filesystem migration job. Check application logs for details");
         }
         return result;
     }
@@ -154,7 +154,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         } catch (FileSystemMigrationFailure e) {
             logger.error("Encountered critical error during file system migration");
             report.setStatus(FAILED);
-            migrationService.error();
+            migrationService.error(e.getMessage());
         }
     }
 
@@ -171,7 +171,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         fsUploader.abort();
         report.setStatus(FAILED);
 
-        migrationService.error();
+        migrationService.error("file system migration was aborted");
     }
 
     private String getS3Bucket() {
