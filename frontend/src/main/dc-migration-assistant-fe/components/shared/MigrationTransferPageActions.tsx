@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from 'react';
 import Button from '@atlaskit/button';
 import { Link } from 'react-router-dom';
-import { CancelButton, marginButtonStyle, defaultButtonStyle } from './CancelButton';
+import { CancelButton } from './CancelButton';
 
 export type MigrationTransferActionsProps = {
     /**
@@ -51,6 +51,14 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
     started,
     loading,
 }) => {
+    const defaultButtonStyle = {
+        padding: '5px',
+    };
+
+    const marginButtonStyle = {
+        ...defaultButtonStyle,
+        marginRight: '20px',
+    };
     const StartButton = (
         <Button
             style={marginButtonStyle}

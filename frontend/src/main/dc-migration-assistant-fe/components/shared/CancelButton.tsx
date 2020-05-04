@@ -4,17 +4,14 @@ import Button from '@atlaskit/button';
 import { overviewPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 
-export const defaultButtonStyle = {
-    padding: '5px',
-};
-export const marginButtonStyle = {
-    ...defaultButtonStyle,
-    marginRight: '20px',
+export const cancelButtonStyle = {
+    paddingLeft: '5px',
+    marginLeft: '20px',
 };
 
 export const CancelButton: FunctionComponent = () => (
     <Link to={overviewPath}>
-        <Button style={marginButtonStyle}>
+        <Button style={cancelButtonStyle}>
             {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
         </Button>
     </Link>
