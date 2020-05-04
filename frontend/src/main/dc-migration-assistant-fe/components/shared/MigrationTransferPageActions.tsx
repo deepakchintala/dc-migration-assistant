@@ -1,8 +1,7 @@
 import React, { FunctionComponent } from 'react';
 import Button from '@atlaskit/button';
 import { Link } from 'react-router-dom';
-import { I18n } from '@atlassian/wrm-react-i18n';
-import { overviewPath } from '../../utils/RoutePaths';
+import { CancelButton } from './CancelButton';
 
 export type MigrationTransferActionsProps = {
     /**
@@ -55,19 +54,11 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
     const defaultButtonStyle = {
         padding: '5px',
     };
+
     const marginButtonStyle = {
         ...defaultButtonStyle,
         marginRight: '20px',
     };
-
-    const CancelButton = (
-        <Link to={overviewPath}>
-            <Button style={{ marginLeft: '20px', paddingLeft: '5px' }}>
-                {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
-            </Button>
-        </Link>
-    );
-
     const StartButton = (
         <Button
             style={marginButtonStyle}
@@ -102,7 +93,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
     return (
         <>
             {ActionButton}
-            {CancelButton}
+            <CancelButton />
         </>
     );
 };
