@@ -80,6 +80,7 @@ const StackNameField = (): ReactElement => {
                 'atlassian.migration.datacenter.provision.aws.form.stackName.label'
             )}
             name={STACK_NAME_FIELD_NAME}
+            data-test="stack-name"
         >
             {({ fieldProps, error }: any): ReactElement => (
                 <>
