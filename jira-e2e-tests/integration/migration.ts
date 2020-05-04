@@ -24,7 +24,7 @@ describe('Database Migration page', () => {
     it('Can provision a cloudformation template', () => {
         cy.visit(home);
 
-        cy.get('[data-test=start-button]')
+        cy.get('[data-test=start-migration]')
             .should('exist')
             .click();
 
