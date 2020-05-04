@@ -4,6 +4,8 @@
 export const baseURL = 'http://localhost:2990/jira';
 export const welcomeURL = baseURL+'/secure/WelcomeToJIRA.jspa'
 export const loginURL = baseURL+'/login.jsp';
+export const migrationBase = baseURL+'/plugins/servlet/dc-migration-assistant';
+export const migrationHome = migrationBase;
 
 Cypress.Commands.add('jira_login', (uname, passwd) => {
     cy.visit(loginURL);
@@ -26,4 +28,12 @@ Cypress.Commands.add('jira_setup', () => {
     cy.get("create-project-dialog-create-button").click();
     cy.get("#next").type("Test");
     cy.get("add-project-dialog-create-button").click();
+});
+
+
+Cypress.Commands.add('reset_migration', () => {
+    cy.visit(migrationHome);
+    cy.window().then((window: Window) => {
+        window.AtlassianMigration.resetMigration();
+    });
 });
