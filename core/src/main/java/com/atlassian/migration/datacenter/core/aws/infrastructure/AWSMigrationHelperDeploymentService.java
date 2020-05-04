@@ -128,8 +128,8 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     }
 
     @Override
-    protected void handleFailedDeployment() {
-        migrationService.error();
+    protected void handleFailedDeployment(String error) {
+        migrationService.error(error);
     }
 
     public String getFsRestoreDocument() {

@@ -41,7 +41,7 @@ public class DatabaseUploadStageTransitionCallback implements MigrationStageCall
     }
 
     @Override
-    public void transitionToServiceErrorStage() {
-        this.migrationService.error();
+    public void transitionToServiceErrorStage(String message) {
+        this.migrationService.error(message);
     }
 }

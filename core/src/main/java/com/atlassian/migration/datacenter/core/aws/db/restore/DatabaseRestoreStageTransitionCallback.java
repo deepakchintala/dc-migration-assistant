@@ -46,7 +46,7 @@ public class DatabaseRestoreStageTransitionCallback implements MigrationStageCal
     }
 
     @Override
-    public void transitionToServiceErrorStage() {
-        migrationService.error();
+    public void transitionToServiceErrorStage(String error) {
+        migrationService.error(error);
     }
 }

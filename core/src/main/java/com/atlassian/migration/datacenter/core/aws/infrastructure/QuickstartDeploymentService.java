@@ -84,9 +84,9 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     }
 
     @Override
-    protected void handleFailedDeployment() {
+    protected void handleFailedDeployment(String error) {
         logger.error("application stack deployment failed");
-        migrationService.error();
+        migrationService.error(error);
     }
 
     @Override

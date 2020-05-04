@@ -58,9 +58,9 @@ public class SsmPsqlDatabaseRestoreService {
             consumer.handleCommandOutput(maxCommandRetries);
             restoreStageTransitionCallback.transitionToServiceNextStage();
         } catch (SuccessfulSSMCommandConsumer.UnsuccessfulSSMCommandInvocationException | SuccessfulSSMCommandConsumer.SSMCommandInvocationProcessingError e) {
-            restoreStageTransitionCallback.transitionToServiceErrorStage();
-            throw new DatabaseMigrationFailure("Unable to invoke database download command", e);
+            final String errorMessage = "Unable to invoke database download command";
+            restoreStageTransitionCallback.transitionToServiceErrorStage(String.format("%s. %s", errorMessage, e.getMessage()));
+            throw new DatabaseMigrationFailure(errorMessage, e);
         }
     }
-
 }

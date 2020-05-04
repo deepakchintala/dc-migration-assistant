@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -82,7 +83,7 @@ class S3FilesystemMigrationServiceTest {
         fsService.startMigration();
 
         verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
-        verify(migrationService).error();
+        verify(migrationService).error(startsWith("Failed to traverse/upload filesystem"));
     }
 
     @Test
@@ -139,7 +140,7 @@ class S3FilesystemMigrationServiceTest {
         fsService.abortMigration();
 
         verify(uploader).abort();
-        verify(migrationService).error();
+        verify(migrationService).error("file system migration was aborted");
         assertEquals(fsService.getReport().getStatus(), FilesystemMigrationStatus.FAILED);
     }
 

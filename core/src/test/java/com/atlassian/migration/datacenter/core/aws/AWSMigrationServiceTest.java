@@ -135,7 +135,7 @@ public class AWSMigrationServiceTest {
     public void shouldSetCurrentStageToErrorOnError() {
         initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
 
-        sut.error();
+        sut.error("failure");
 
         assertEquals(ERROR, sut.getCurrentStage());
     }
