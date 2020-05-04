@@ -74,8 +74,7 @@ class S3FilesystemMigrationServiceTest {
     S3FilesystemMigrationService fsService;
 
     @Test
-    void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError
-    {
+    void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError {
         Path nonexistentDir = Paths.get(UUID.randomUUID().toString());
         when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
         when(jiraHome.getHome()).thenReturn(nonexistentDir.toFile());
@@ -129,7 +128,6 @@ class S3FilesystemMigrationServiceTest {
         assertTrue(isScheduled);
     }
 
-
     @Test
     void shouldAbortRunningMigration() throws Exception {
         mockJobDetailsAndMigration(MigrationStage.FS_MIGRATION_COPY_WAIT);
@@ -140,7 +138,7 @@ class S3FilesystemMigrationServiceTest {
         fsService.abortMigration();
 
         verify(uploader).abort();
-        verify(migrationService).error("file system migration was aborted");
+        verify(migrationService).error("File system migration was aborted");
         assertEquals(fsService.getReport().getStatus(), FilesystemMigrationStatus.FAILED);
     }
 
@@ -150,7 +148,6 @@ class S3FilesystemMigrationServiceTest {
 
         assertThrows(InvalidMigrationStageError.class, () -> fsService.abortMigration());
     }
-
 
     private Migration createStubMigration(MigrationStage migrationStage) {
         Migration mockMigration = mock(Migration.class);
