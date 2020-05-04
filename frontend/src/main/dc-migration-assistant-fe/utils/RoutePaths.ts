@@ -41,4 +41,3 @@ export const dbPath = `${routePrefix}/db`;
 export const warningPath = `${routePrefix}/warning`;
 
 export const validationPath = `${routePrefix}/validation`;
-export const startPath = `${awsAuthPath}`;
