@@ -7,17 +7,19 @@ import styled from 'styled-components';
 import { dbPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../shared/CancelButton';
+import { migration } from '../../api/migration';
 
 const Container = styled.div`
     max-width: 920px;
 `;
 
 const Paragraph = styled.p`
-    margin-bottom: '10px';
+    margin-bottom: '20px';
 `;
 
 const CheckboxContainer = styled.div`
-    margin: '20px';
+    margin: '50px 0';
+    padding: '10px';
 `;
 
 const nextButtonStyle = {
