@@ -32,6 +32,7 @@ import { Home } from './Home';
 import { AWSRoutes } from './aws/AwsRoutes';
 import { ValidateStagePage } from '../stage/Validation';
 import { WarningStagePage } from './warning/WarningStage';
+import { MigrationStageRenderer } from './MigrationStageRenderer';
 
 export const Routes: FunctionComponent = () => (
     <Router>
@@ -42,7 +43,7 @@ export const Routes: FunctionComponent = () => (
             <Route exact path={fsPath}>
                 <FileSystemTransferPage />
             </Route>
-            <Route exactpath={warningPath}>
+            <Route exact path={warningPath}>
                 <WarningStagePage />
             </Route>
             <Route exact path={dbPath}>
@@ -59,6 +60,9 @@ export const Routes: FunctionComponent = () => (
                         'atlassian.migration.datacenter.home.migration.start'
                     )}
                 />
+            </Route>
+            <Route default>
+                <MigrationStageRenderer />
             </Route>
         </Switch>
     </Router>

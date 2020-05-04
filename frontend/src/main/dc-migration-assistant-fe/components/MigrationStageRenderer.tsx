@@ -10,10 +10,16 @@ export const MigrationStageRenderer: FunctionComponent = () => {
 
     useEffect(() => {
         setLoading(true);
-        migration.getMigrationStage().then(stage => {
-            setStage(stage);
-            setLoading(false);
-        });
+        migration
+            .getMigrationStage()
+            .then(stage => {
+                setStage(stage);
+                console.log(stage);
+            })
+            .catch(() => {
+                setStage(MigrationStage.ERROR);
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     if (loading) {

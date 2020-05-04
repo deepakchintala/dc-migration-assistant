@@ -28,7 +28,7 @@ const routePrefix = ((): string => {
     return `${pathname}${awsMigrationServletPath}`;
 })();
 
-export const homePath = routePrefix;
+export const homePath = `${routePrefix}/home`;
 
 export const awsBasePath = `${routePrefix}/aws`;
 export const quickstartPath = `${awsBasePath}/provision`;
