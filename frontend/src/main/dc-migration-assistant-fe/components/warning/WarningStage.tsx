@@ -25,6 +25,19 @@ const nextButtonStyle = {
     marginRight: '20px',
 };
 
+const LearnMore: FunctionComponent = () => {
+    const LearnMoreLink =
+        'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-downtimepage';
+
+    return (
+        <Paragraph>
+            <a target="_blank" rel="noreferrer noopener" href={LearnMoreLink}>
+                {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+            </a>
+        </Paragraph>
+    );
+};
+
 export const WarningStagePage: FunctionComponent = () => {
     const [agreed, setAgreed] = useState<boolean>(false);
     const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
@@ -60,6 +73,7 @@ export const WarningStagePage: FunctionComponent = () => {
             <Paragraph>
                 {I18n.getText('atlassian.migration.datacenter.warning.description')}
             </Paragraph>
+            <LearnMore />
             <SectionMessage
                 appearance="info"
                 title={I18n.getText('atlassian.migration.datacenter.warning.section.header')}
