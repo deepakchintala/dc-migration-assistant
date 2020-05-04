@@ -111,6 +111,8 @@ export const migration = {
 
 // Convenience global for test automation.
 declare global {
-    interface Window { AtlassianMigration: any; }
+    interface Window {
+        AtlassianMigration: any;
+    }
 }
 window.AtlassianMigration = migration;
