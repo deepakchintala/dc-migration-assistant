@@ -39,16 +39,16 @@ export const Routes: FunctionComponent = () => (
             <Route path={awsBasePath}>
                 <AWSRoutes />
             </Route>
-            <Route path={fsPath}>
+            <Route exact path={fsPath}>
                 <FileSystemTransferPage />
             </Route>
-            <Route path={warningPath}>
+            <Route exactpath={warningPath}>
                 <WarningStagePage />
             </Route>
-            <Route path={dbPath}>
+            <Route exact path={dbPath}>
                 <DatabaseTransferPage />
             </Route>
-            <Route path={validationPath}>
+            <Route exact path={validationPath}>
                 <ValidateStagePage />
             </Route>
             <Route exact path={homePath}>
