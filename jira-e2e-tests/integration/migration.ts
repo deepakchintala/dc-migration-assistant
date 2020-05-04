@@ -8,20 +8,17 @@ const awsAuth = base+'/aws/auth';
 
 const reset = jira.baseURL+'/rest/dc-migration/1.0/develop/migration/reset';
 
+declare global {
+    interface Window { AtlassianMigration: any; }
+}
+
 describe('Database Migration page', () => {
     beforeEach(() => {
         cy.jira_login('admin', 'admin');
-        cy.clearCookies();
-        let authStr = Buffer.from("admin:admin").toString('base64');
-        cy.request({method: 'DELETE',
-                    url: reset,
-                    headers: {"Content-Type": "application/json",
-                              "X-Atlassian-Token": "no-check",
-                              "Authorization": authStr},
-                    body: {}});
-        // cy.window().then((win: Window) => {
-        //     win.
-        // });
+        cy.visit(base);
+        cy.window().then((window: Window) => {
+            window.AtlassianMigration.resetMigration();
+        });
     });
 
     it('Can provision a cloudformation template', () => {
