@@ -19,6 +19,8 @@ describe('Database Migration page', () => {
     });
 
     it('Can provision a cloudformation template', () => {
+        let testid =  Math.random().toString(36).substring(2, 8);
+
         // Home; should be no migration; start one
         cy.visit(jira.migrationHome);
         cy.get('[data-test=start-migration]')
@@ -40,11 +42,18 @@ describe('Database Migration page', () => {
 
         // Quickstart page; bare minimum config
         // Note: These names are generated from the QS yaml
-        cy.get('[name=stackName]').type('TestStack');
+        cy.get('[name=stackName]').type('TestStack-'+testid);
         cy.get('[name=DBMasterUserPassword]').type('LKJLKJLlkjlkjl7987987#');
         cy.get('[name=DBPassword]').type('LKJLKJLlkjlkjl7987987#');
         cy.get('[name=DBMultiAZ]').type('false', {force: true});
         cy.get('[name=AccessCIDR]').type('0.0.0.0/0');
+        cy.get('[name=KeyPairName]').type('taskcat-ci-key');
+        cy.get('#AvailabilityZones-uid28').click();
+        cy.get('#react-select-11-option-0').click();
+        cy.get('#AvailabilityZones-uid28').click();
+        cy.get('#react-select-11-option-1').click();
+        cy.get('[name=ExportPrefix]').type('TEST-VPC-'+testid+'-');
+        cy.get('[data-test=qs-submit]').click();
 
     });
 

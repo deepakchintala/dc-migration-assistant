@@ -13,6 +13,8 @@ Cypress.Commands.add('jira_login', (uname, passwd) => {
     cy.get('#login-form-username').type('admin');
     cy.get('#login-form-password').type('admin');
     cy.get('#login-form-submit').click();
+    // Force wait for dashboard to avoid flakiness.
+    cy.get('[class=g-intro]').should('exist');
 })
 
 
