@@ -23,7 +23,7 @@ export type Progress = {
     elapsedTimeSeconds?: number;
     error?: string;
     completeMessage?: CompleteMessage;
-    failed: boolean;
+    failed?: boolean;
 };
 
 /**
