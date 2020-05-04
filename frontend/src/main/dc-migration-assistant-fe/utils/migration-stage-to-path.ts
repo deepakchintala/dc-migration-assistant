@@ -34,11 +34,11 @@ export const getPathForStage = (stage: MigrationStage): string => {
         case 'data_migration_import_wait':
             return paths.dbPath;
         case 'validate':
-            throw new Error('page validate not implemented');
+            return paths.validationPath;
         case 'cutover':
-            throw new Error('page cutover not implemented');
+            return paths.validationPath;
         case 'finished':
-            throw new Error('page finished not implemented');
+            return paths.validationPath;
         case 'error':
             throw new Error('page error not implemented');
         default:
