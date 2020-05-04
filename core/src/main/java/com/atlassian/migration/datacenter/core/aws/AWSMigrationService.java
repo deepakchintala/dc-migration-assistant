@@ -106,7 +106,7 @@ public class AWSMigrationService implements MigrationService {
     }
 
     @Override
-    public void error() {
+    public void error(String message) {
         Migration migration = findFirstOrCreateMigration();
         setCurrentStage(migration, ERROR);
     }
@@ -114,7 +114,7 @@ public class AWSMigrationService implements MigrationService {
     @Override
     public void error(Throwable e)
     {
-        error();
+        error(e.getMessage());
         findFirstOrCreateMigration().getStage().setException(Optional.of(e));
     }
 
