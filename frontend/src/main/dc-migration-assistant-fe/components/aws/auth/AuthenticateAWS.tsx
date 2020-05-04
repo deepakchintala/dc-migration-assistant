@@ -141,7 +141,11 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                             defaultValue=""
                         >
                             {({ fieldProps }: any): ReactElement => (
-                                <TextField width="xlarge" data-test="aws-auth-key" {...fieldProps} />
+                                <TextField
+                                    width="xlarge"
+                                    data-test="aws-auth-key"
+                                    {...fieldProps}
+                                />
                             )}
                         </Field>
                         <Field
@@ -153,7 +157,11 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                             defaultValue=""
                         >
                             {({ fieldProps }: any): ReactElement => (
-                                <TextField width="xlarge" data-test="aws-auth-secret" {...fieldProps} />
+                                <TextField
+                                    width="xlarge"
+                                    data-test="aws-auth-secret"
+                                    {...fieldProps}
+                                />
                             )}
                         </Field>
                         <Field

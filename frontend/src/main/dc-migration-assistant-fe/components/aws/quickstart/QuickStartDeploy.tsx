@@ -153,7 +153,12 @@ const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({ paramGroups, o
                     })}
                     <ButtonRow>
                         <ButtonGroup>
-                            <Button isLoading={submitLoading} type="submit" appearance="primary" data-test="qs-submit">
+                            <Button
+                                isLoading={submitLoading}
+                                type="submit"
+                                appearance="primary"
+                                data-test="qs-submit"
+                            >
                                 {I18n.getText(
                                     'atlassian.migration.datacenter.provision.aws.form.deploy'
                                 )}
