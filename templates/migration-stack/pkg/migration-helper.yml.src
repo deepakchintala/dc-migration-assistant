@@ -147,16 +147,16 @@ Resources:
                     mkdir -p $DATABASE_DOWNLOAD_DIR
                     DB_DUMP_LOG_FILE="/var/atlassian/dc-migration-assistant/pg_dump-log.txt"
                     SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
-                    if [ $? != 0]; then
+                    if [ $? != 0 ]; then
                       echo "Error when fetching DB password from secret manager"
                       exit 1
                     fi
                     aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
-                    if [ ${pipestatus} != 0]; then
+                    if [ ${pipestatus} != 0 ]; then
                       echo "Error when synchronising with the S3 bucket"
                       exit 1
                     fi
-                    echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
+                    echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/${DBName}" | tee $DB_DUMP_LOG_FILE
                     PGPASSWORD=$SECRET_PASSWORD pg_restore --no-owner --no-acl --clean --if-exists -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
                     ERROR_OUTPUT=$(grep -iE 'error|warning' $DB_DUMP_LOG_FILE)
 
