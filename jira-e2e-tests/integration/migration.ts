@@ -20,6 +20,7 @@ describe('Database Migration page', () => {
 
     it('Can provision a cloudformation template', () => {
         let testid =  Math.random().toString(36).substring(2, 8);
+        let region = 'ap-southeast-2';
 
         // Home; should be no migration; start one
         cy.visit(jira.migrationHome);
@@ -37,7 +38,7 @@ describe('Database Migration page', () => {
         // FIXME: This may be flaky; the AtlasKit AsyncSelect
         // component is hard to instrument.
         cy.get('#region-uid3').click();
-        cy.get('[id^=react-select]:contains(ca-central-1)').click();
+        cy.get(`[id^=react-select]:contains(${region})`).click();
         cy.get('[data-test=aws-auth-submit]').click();
 
         // Quickstart page; bare minimum config
