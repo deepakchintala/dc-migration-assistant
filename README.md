@@ -98,6 +98,9 @@ following:
 
 * Run the full Jira/plugin stack using `mvn amps:run`; see above for details.
 * `cd` into `jira-e2e-tests` and run `yarn install`.
+* Set the AWS credential environment variables:
+  * `export CYPRESS_AWS_ACCESS_KEY_ID=xxxx`
+  * `export CYPRESS_AWS_SECRET_ACCESS_KEY='yyyyyy'`
 * Run `yarn cypress` to start the interactive runner and select an appropriate test.
 
 The tests themselves are written in Typescript under `integration`. Additional
