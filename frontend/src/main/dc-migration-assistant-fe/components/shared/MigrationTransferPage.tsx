@@ -19,8 +19,8 @@ import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
-import { I18n } from '@atlassian/wrm-react-i18n';
 
+import { I18n } from '@atlassian/wrm-react-i18n';
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
