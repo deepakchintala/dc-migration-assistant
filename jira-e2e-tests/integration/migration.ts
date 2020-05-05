@@ -37,7 +37,7 @@ describe('Database Migration page', () => {
         // FIXME: This may be flaky; the AtlasKit AsyncSelect
         // component is hard to instrument.
         cy.get('#region-uid3').click();
-        cy.get('#react-select-2-option-12').click();  // ap-southeast-2
+        cy.get('[id^=react-select]:contains(ca-central-1)').click();
         cy.get('[data-test=aws-auth-submit]').click();
 
         // Quickstart page; bare minimum config
