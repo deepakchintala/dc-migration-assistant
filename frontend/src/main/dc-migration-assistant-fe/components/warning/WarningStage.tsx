@@ -2,7 +2,6 @@ import React, { FunctionComponent, useState } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import { Checkbox } from '@atlaskit/checkbox';
 import Button from '@atlaskit/button';
-import { Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import { dbPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
@@ -66,29 +65,13 @@ const LearnMore: FunctionComponent = () => {
 
 export const WarningStagePage: FunctionComponent = () => {
     const [agreed, setAgreed] = useState<boolean>(false);
-    const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
-
-    const handleConfirmation = (): void => {
-        if (agreed) {
-            setShouldRedirect(true);
-        }
-    };
 
     const agreeOnClick = (event: any): void => {
         setAgreed(event.target.checked);
     };
 
-    if (shouldRedirect) {
-        return <Redirect to={dbPath} push />;
-    }
-
     const NextButton = (
-        <Button
-            isDisabled={!agreed}
-            onClick={handleConfirmation}
-            appearance="primary"
-            style={nextButtonStyle}
-        >
+        <Button href={dbPath} isDisabled={!agreed} appearance="primary" style={nextButtonStyle}>
             {I18n.getText('atlassian.migration.datacenter.generic.next')}
         </Button>
     );
