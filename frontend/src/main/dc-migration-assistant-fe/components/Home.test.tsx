@@ -39,6 +39,6 @@ describe('Home', () => {
 
         expect(queryByText('Test Title')).toBeTruthy();
         expect(queryByText('Test synopsis')).toBeTruthy();
-        expect(queryByText('Test button')).toBeFalsy();
+        expect(queryByText('Test button')).toBeTruthy();
     });
 });
