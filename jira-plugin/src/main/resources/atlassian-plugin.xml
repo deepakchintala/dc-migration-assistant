@@ -48,7 +48,7 @@
         <link linkId="dc-migration-assistant">/plugins/servlet/dc-migration-assistant</link>
     </web-item>
 
-    <web-item key="jira-menu-item" name="Jira DC Migration Plugin" section="advanced_menu_section/advanced_section"
+    <web-item key="migrationAssistantItem" name="Jira DC Migration Plugin" section="admin_system_menu/advanced_menu_section"
               weight="200"
               application="jira">
         <label key="atlassian.migration.datacenter.title"/>
