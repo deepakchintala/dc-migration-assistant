@@ -15,12 +15,12 @@
  */
 
 import { callAppRest } from '../utils/api';
-import { homePath, quickstartStatusPath, awsAuthPath } from '../utils/RoutePaths';
 
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
     migrationSummaryRestPath = `migration/summary`,
-    migrationResetPath = `develop/migration/reset`,
+    migrationResetRestPath = `migration/reset`,
+    migrationForceResetPath = `develop/migration/reset`,
 }
 
 export enum MigrationStage {
@@ -45,31 +45,13 @@ export enum MigrationStage {
     ERROR = 'error',
 }
 
-export const redirectForStage: Record<MigrationStage, string> = {
-    [MigrationStage.NOT_STARTED]: homePath,
-    [MigrationStage.AUTHENTICATION]: awsAuthPath,
-    // FIXME: To be filled out...
-    [MigrationStage.PROVISION_APPLICATION]: 'FIXME',
-    [MigrationStage.PROVISION_APPLICATION_WAIT]: 'FIXME',
-    [MigrationStage.PROVISION_MIGRATION_STACK]: 'FIXME',
-    [MigrationStage.PROVISION_MIGRATION_STACK_WAIT]: 'FIXME',
-    [MigrationStage.FS_MIGRATION_COPY]: 'FIXME',
-    [MigrationStage.FS_MIGRATION_COPY_WAIT]: 'FIXME',
-    [MigrationStage.OFFLINE_WARNING]: 'FIXME',
-    [MigrationStage.DB_MIGRATION_EXPORT]: 'FIXME',
-    [MigrationStage.DB_MIGRATION_EXPORT_WAIT]: 'FIXME',
-    [MigrationStage.DB_MIGRATION_UPLOAD]: 'FIXME',
-    [MigrationStage.DB_MIGRATION_UPLOAD_WAIT]: 'FIXME',
-    [MigrationStage.DATA_MIGRATION_IMPORT]: 'FIXME',
-    [MigrationStage.DATA_MIGRATION_IMPORT_WAIT]: 'FIXME',
-    [MigrationStage.VALIDATE]: 'FIXME',
-    [MigrationStage.CUTOVER]: 'FIXME',
-    [MigrationStage.FINISHED]: 'FIXME',
-    [MigrationStage.ERROR]: 'FIXME',
-};
-
 type GetMigrationResult = {
     stage: MigrationStage;
+};
+
+type GetMigrationSummaryResult = {
+    instanceUrl: string;
+    error: string;
 };
 
 export const migration = {
@@ -94,13 +76,18 @@ export const migration = {
             return res.json().then(json => Promise.reject(json.error));
         });
     },
-    getMigrationSummary: (): Promise<Record<string, string>> => {
+    resetMigration: (): Promise<void> => {
+        return callAppRest('DELETE', RestApiPathConstants.migrationResetRestPath).then(res => {
+            return res.ok ? Promise.resolve() : res.json().then(json => Promise.reject(json.error));
+        });
+    },
+    getMigrationSummary: (): Promise<GetMigrationSummaryResult> => {
         return callAppRest('GET', RestApiPathConstants.migrationSummaryRestPath).then(res =>
             res.json()
         );
     },
-    resetMigration: (): Promise<void> => {
-        return callAppRest('DELETE', RestApiPathConstants.migrationResetPath).then(res => {
+    forceResetMigration: (): Promise<void> => {
+        return callAppRest('DELETE', RestApiPathConstants.migrationForceResetPath).then(res => {
             if (res.ok) {
                 return Promise.resolve();
             }

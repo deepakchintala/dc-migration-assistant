@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-import React, { ReactElement, useState, useEffect, FunctionComponent } from 'react';
+import React, { ReactElement, useState, FunctionComponent } from 'react';
 import Button from '@atlaskit/button';
 import InlineMessage from '@atlaskit/inline-message';
 import styled from 'styled-components';
-import { Link, Redirect } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
-import SectionMessage from '@atlaskit/section-message';
-import Spinner from '@atlaskit/spinner';
 
-import { migration, MigrationStage, redirectForStage } from '../api/migration';
+import { migration } from '../api/migration';
 import { ErrorFlag } from './shared/ErrorFlag';
 import { awsAuthPath } from '../utils/RoutePaths';
 
@@ -31,12 +29,6 @@ type HomeProps = {
     title: string;
     synopsis: string;
     startButtonText: string;
-};
-
-type ContinuationState = {
-    migrationInProgress: boolean;
-    currentStage: MigrationStage | undefined;
-    continuationPage: string | undefined;
 };
 
 const HomeContainer = styled.div`
@@ -56,14 +48,10 @@ const InfoProps = {
 };
 
 type ActionSectionProps = {
-    continuation: ContinuationState;
     startButtonText: string;
 };
 
-const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
-    startButtonText,
-    continuation,
-}) => {
+const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startButtonText }) => {
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState<boolean>(false);
     const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
@@ -85,20 +73,6 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
         return <Redirect to={awsAuthPath} push />;
     }
 
-    if (continuation.migrationInProgress) {
-        return (
-            <SectionMessage appearance="warning">
-                {I18n.getText('atlassian.migration.datacenter.home.start.alreadyStarted')}
-                <ButtonContainer>
-                    <Link to={continuation.continuationPage}>
-                        <Button data-test="continue-migration">
-                            {I18n.getText('atlassian.migration.datacenter.home.continue.button')}
-                        </Button>
-                    </Link>
-                </ButtonContainer>
-            </SectionMessage>
-        );
-    }
     return (
         <>
             <ErrorFlag
@@ -124,32 +98,6 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
 };
 
 export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
-    const [loadingCanStart, setLoadingCanStart] = useState<boolean>(true);
-    const [continuation, setContinuation] = useState<ContinuationState>({
-        migrationInProgress: false,
-        currentStage: undefined,
-        continuationPage: undefined,
-    });
-
-    useEffect(() => {
-        setLoadingCanStart(true);
-        migration
-            .getMigrationStage()
-            .then((stage: string) => {
-                if (stage !== 'not_started') {
-                    const currentStage = stage as MigrationStage;
-                    setContinuation({
-                        currentStage,
-                        migrationInProgress: true,
-                        continuationPage: redirectForStage[currentStage],
-                    });
-                }
-            })
-            .finally(() => {
-                setLoadingCanStart(false);
-            });
-    }, []);
-
     return (
         <HomeContainer>
             <h2>{title}</h2>
@@ -163,14 +111,7 @@ export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElem
                     {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
                 </a>
             </p>
-            {loadingCanStart ? (
-                <Spinner />
-            ) : (
-                <MigrationActionSection
-                    startButtonText={startButtonText}
-                    continuation={continuation}
-                />
-            )}
+            <MigrationActionSection startButtonText={startButtonText} />
         </HomeContainer>
     );
 };
