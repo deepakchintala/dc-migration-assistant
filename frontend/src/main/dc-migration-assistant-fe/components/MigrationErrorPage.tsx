@@ -72,7 +72,12 @@ const MigrationError = ({ resetMigrationFunc }: ResetMigrationProps): ReactEleme
             <p>
                 {I18n.getText('atlassian.migration.datacenter.error.reason')}
                 {': '}
-                {loading ? <Spinner /> : errorReason}
+                {loading ? (
+                    <Spinner />
+                ) : (
+                    errorReason ||
+                    I18n.getText('atlassian.migration.datacenter.error.reason.unknown')
+                )}
             </p>
             <Button onClick={resetMigrationFunc} appearance="primary" style={buttonStyle}>
                 {I18n.getText('atlassian.migration.datacenter.error.reset.button')}
