@@ -27,6 +27,7 @@ import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { migrationErrorPath } from '../../utils/RoutePaths';
+import { CommandLogs } from '../../api/db';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -64,6 +65,8 @@ export type MigrationTransferProps = {
      * A function which will be called to get the progress of the current transfer
      */
     getProgress: ProgressCallback;
+
+    getLogs: Promise<CommandLogs>;
 };
 
 const TransferPageContainer = styled.div`

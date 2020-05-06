@@ -20,6 +20,7 @@ import { MigrationDuration } from './common';
 const dbAPIBase = 'migration/db';
 export const dbStatusReportEndpoint = `${dbAPIBase}/report`;
 export const dbStartEndpoint = `${dbAPIBase}/start`;
+export const dbLogsEndpoint = `${dbAPIBase}/logs`;
 
 export enum DBMigrationStatus {
     NOT_STARTED = 'NOT_STARTED',
@@ -50,4 +51,9 @@ export const statusToI18nString = (status: DBMigrationStatus): string => {
 export type DatabaseMigrationStatus = {
     status: DBMigrationStatus;
     elapsedTime: MigrationDuration;
+};
+
+export type CommandLogs = {
+    errorUrl: string;
+    outputUrl: string;
 };
