@@ -161,13 +161,6 @@ Resources:
                     echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/${DBName}" | tee $DB_DUMP_LOG_FILE
                     PGPASSWORD=$SECRET_PASSWORD pg_restore --no-owner --no-acl --clean --if-exists -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
 
-                    # pg_restore won't fail if there are SQL errors when restoring, it fails only if there is a fatal error (e.g. failed reading the file)
-                    PG_RESTORE_EXIT_CODE=${PIPESTATUS[0]}
-                    if [ $PG_RESTORE_EXIT_CODE != 0 ]; then
-                      echo "ERROR: Fatal error while running pg_restore, please review the logs"
-                      exit $PG_RESTORE_EXIT_CODE
-                    fi
-
                     ERROR_OUTPUT=$(grep -iE 'error|warning' $DB_DUMP_LOG_FILE)
 
                     if [[ -z "$ERROR_OUTPUT" ]]; then
