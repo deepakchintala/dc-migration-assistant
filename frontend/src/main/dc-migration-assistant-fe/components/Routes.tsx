@@ -31,10 +31,10 @@ import { FileSystemTransferPage } from './fs/FileSystemTransfer';
 import { DatabaseTransferPage } from './db/DatabaseMigration';
 import { Home } from './Home';
 import { AWSRoutes } from './aws/AwsRoutes';
-import { ValidateStagePage } from '../stage/Validation';
+import { ValidateStagePage } from './stage/Validation';
 import { WarningStagePage } from './warning/WarningStage';
 import { MigrationStageRenderer } from './MigrationStageRenderer';
-import { MigrationError } from './MigrationError';
+import { MigrationErrorPage } from './MigrationErrorPage';
 
 export const Routes: FunctionComponent = () => (
     <Router>
@@ -55,7 +55,7 @@ export const Routes: FunctionComponent = () => (
                 <ValidateStagePage />
             </Route>
             <Route exact path={migrationErrorPath}>
-                <MigrationError />
+                <MigrationErrorPage />
             </Route>
             <Route exact path={homePath}>
                 <Home

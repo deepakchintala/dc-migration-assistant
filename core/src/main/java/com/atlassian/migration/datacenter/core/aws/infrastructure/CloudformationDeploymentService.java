@@ -42,6 +42,7 @@ public abstract class CloudformationDeploymentService {
 
     private final CfnApi cfnApi;
     private int deployStatusPollIntervalSeconds;
+    private ScheduledFuture<?> deploymentWatcher;
 
     CloudformationDeploymentService(CfnApi cfnApi) {
         this(cfnApi, 30);
@@ -77,14 +78,22 @@ public abstract class CloudformationDeploymentService {
 
     protected InfrastructureDeploymentStatus getDeploymentStatus(String stackName) {
         requireNonNull(stackName);
-        return cfnApi.getStatus(stackName);
+        InfrastructureDeploymentStatus status = cfnApi.getStatus(stackName);
+
+        if (status.getState().equals(InfrastructureDeploymentState.CREATE_FAILED)) {
+            logger.error("discovered that cloudformation stack deployment failed when getting status. Reason is: {}", status.getReason());
+            handleFailedDeployment(status.getReason());
+            deploymentWatcher.cancel(true);
+        }
+
+        return status;
     }
 
     private void beginWatchingDeployment(String stackName) {
         CompletableFuture<String> stackCompleteFuture = new CompletableFuture<>();
 
         final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        ScheduledFuture<?> ticker = scheduledExecutorService.scheduleAtFixedRate(() -> {
+        deploymentWatcher = scheduledExecutorService.scheduleAtFixedRate(() -> {
             final InfrastructureDeploymentStatus status = cfnApi.getStatus(stackName);
             if (status.getState().equals(InfrastructureDeploymentState.CREATE_COMPLETE)) {
                 logger.info("stack {} creation succeeded", stackName);
@@ -92,22 +101,25 @@ public abstract class CloudformationDeploymentService {
                 stackCompleteFuture.complete("");
             }
             if (status.getState().equals(InfrastructureDeploymentState.CREATE_FAILED)) {
-                logger.error("stack {} creation failed", stackName);
+                logger.error("stack {} creation failed with reason {}", stackName, status.getReason());
                 handleFailedDeployment(status.getReason());
                 stackCompleteFuture.complete("");
             }
         }, 0, deployStatusPollIntervalSeconds, TimeUnit.SECONDS);
 
         ScheduledFuture<?> canceller = scheduledExecutorService.scheduleAtFixedRate(() -> {
+            if (deploymentWatcher.isCancelled()) {
+                return;
+            }
             String message = String.format("timed out while waiting for stack %s to deploy", stackName);
             logger.error(message);
             handleFailedDeployment(message);
-            ticker.cancel(true);
+            deploymentWatcher.cancel(true);
             // Need to have non-zero period otherwise we get illegal argument exception
         }, 1, 100, TimeUnit.HOURS);
 
         stackCompleteFuture.whenComplete((result, thrown) -> {
-            ticker.cancel(true);
+            deploymentWatcher.cancel(true);
             canceller.cancel(true);
         });
     }
