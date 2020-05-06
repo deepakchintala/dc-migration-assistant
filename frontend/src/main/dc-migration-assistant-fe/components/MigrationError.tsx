@@ -117,17 +117,18 @@ export const MigrationError: FunctionComponent = () => {
         });
     };
 
+    if (redirectToNewMigration) {
+        return <Redirect to={homePath} push />;
+    }
+
     return (
-        <>
-            {redirectToNewMigration && <Redirect to={homePath} push />}
-            <MigrationErrorContainer>
-                <StageAwareMigrationSection
-                    currentStage={currentStage}
-                    resetMigrationFunc={resetMigration}
-                    additionalErrorContext=""
-                    isAwaitingApiResponse={isAwaitingApiResponse}
-                />
-            </MigrationErrorContainer>
-        </>
+        <MigrationErrorContainer>
+            <StageAwareMigrationSection
+                currentStage={currentStage}
+                resetMigrationFunc={resetMigration}
+                additionalErrorContext=""
+                isAwaitingApiResponse={isAwaitingApiResponse}
+            />
+        </MigrationErrorContainer>
     );
 };
