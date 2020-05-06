@@ -20,8 +20,8 @@ import SectionMessage from '@atlaskit/section-message';
 import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
 import styled from 'styled-components';
-import { homePath } from '../utils/RoutePaths';
-import { migration, MigrationStage } from '../api/migration';
+import { homePath } from '../../utils/RoutePaths';
+import { migration, MigrationStage } from '../../api/migration';
 
 const MigrationSummaryContainer = styled.div`
     display: grid;
