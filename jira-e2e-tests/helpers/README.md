@@ -4,7 +4,7 @@ To use:
 
 From the project root:
 
-    docker-compose -f jira-e2e-tests/helpers/jira-psql-compose.yml up
+    docker-compose -f jira-e2e-tests/helpers/jira-psql-compose.yml up --no-recreate
 
 Then visit `http://localhost:2990/jira/` and perform setup. (Todo: Automate setup.)
 
