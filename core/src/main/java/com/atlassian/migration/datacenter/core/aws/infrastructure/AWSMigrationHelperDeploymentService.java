@@ -101,7 +101,8 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
     @Override
     protected void handleSuccessfulDeployment() {
-        Optional<Stack> maybeStack = cfnApi.getStack(migrationService.getCurrentContext().getHelperStackDeploymentId());
+        String stackId = System.getProperty("com.atlassian.migration.migrationStack.id", migrationService.getCurrentContext().getHelperStackDeploymentId());
+        Optional<Stack> maybeStack = cfnApi.getStack(stackId);
         if (!maybeStack.isPresent()) {
             throw new InfrastructureDeploymentError("stack was not found by DescribeStack even though it succeeded");
         }
