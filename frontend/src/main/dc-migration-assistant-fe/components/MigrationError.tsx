@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, { FunctionComponent, ReactElement, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
+import { Link, Redirect } from 'react-router-dom';
+import Button from '@atlaskit/button';
+import Spinner from '@atlaskit/spinner';
 import { migration, MigrationStage } from '../api/migration';
+import { homePath } from '../utils/RoutePaths';
+import { getPathForStage } from '../utils/migration-stage-to-path';
+import SectionMessage from '@atlaskit/section-message';
 
 const MigrationErrorContainer = styled.div`
     display: flex;
@@ -26,28 +32,102 @@ const MigrationErrorContainer = styled.div`
     align-items: center;
 `;
 
-export const MigrationError = (): ReactElement => {
-    useEffect(() => {
-        migration.getMigrationStage().then((stage: string) => {
-            if (stage !== MigrationStage.ERROR.valueOf()) {
-                console.log('Stage is not in error stage');
-            }
-        });
-    }, []);
+type ResetMigrationProps = {
+    currentStage: MigrationStage;
+    resetMigrationFunc: VoidFunction;
+    additionalErrorContext: string;
+    isAwaitingApiResponse: boolean;
+};
+
+const StageAwareMigrationSection = ({
+    resetMigrationFunc,
+    currentStage,
+    additionalErrorContext,
+    isAwaitingApiResponse,
+}: ResetMigrationProps): ReactElement => {
+    const buttonStyle = {
+        marginTop: '20px',
+    };
+
+    if (isAwaitingApiResponse) {
+        return <Spinner />;
+    }
+
+    if (currentStage === MigrationStage.ERROR) {
+        return (
+            <>
+                <h2>{I18n.getText('atlassian.migration.datacenter.generic.error')}</h2>
+                <SectionMessage appearance="error">
+                    <p>
+                        {I18n.getText('atlassian.migration.datacenter.error.section.message')}{' '}
+                        <a
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html?#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors"
+                        >
+                            {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                        </a>
+                    </p>
+                </SectionMessage>
+                <p>{additionalErrorContext}</p>
+                <Button onClick={resetMigrationFunc} appearance="primary" style={buttonStyle}>
+                    {I18n.getText('atlassian.migration.datacenter.error.reset.button')}
+                </Button>
+            </>
+        );
+    }
 
     return (
-        <MigrationErrorContainer>
-            <h2>Error</h2>
-            <p>
-                This is the skeleton error page for the migration plugin{' '}
-                <a
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html"
-                >
-                    {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
-                </a>
-            </p>
-        </MigrationErrorContainer>
+        <>
+            <h2>{I18n.getText('atlassian.migration.datacenter.generic.migration.in_progress')}</h2>
+            <SectionMessage appearance="warning">
+                <p>
+                    {I18n.getText('atlassian.migration.datacenter.error.section.warning.message')}
+                </p>
+            </SectionMessage>
+            <Link to={getPathForStage(currentStage)}>
+                <Button appearance="primary" style={buttonStyle}>
+                    {I18n.getText('atlassian.migration.datacenter.error.view.migration.button')}
+                </Button>
+            </Link>
+        </>
+    );
+};
+
+export const MigrationError: FunctionComponent = () => {
+    const [currentStage, setCurrentStage] = useState<MigrationStage>(MigrationStage.NOT_STARTED);
+    const [redirectToNewMigration, setRedirectToNewMigration] = useState<boolean>(false);
+    const [isAwaitingApiResponse, setIsAwaitingApiResponse] = useState<boolean>(true);
+
+    useEffect(() => {
+        migration
+            .getMigrationStage()
+            .then((stage: string) => {
+                setCurrentStage(stage as MigrationStage);
+            })
+            .finally(() => {
+                setIsAwaitingApiResponse(false);
+            });
+    }, []);
+
+    // TODO: We may need to handle error from this API in the future
+    const resetMigration = (): void => {
+        migration.resetMigration().then(() => {
+            setRedirectToNewMigration(true);
+        });
+    };
+
+    return (
+        <>
+            {redirectToNewMigration && <Redirect to={homePath} push />}
+            <MigrationErrorContainer>
+                <StageAwareMigrationSection
+                    currentStage={currentStage}
+                    resetMigrationFunc={resetMigration}
+                    additionalErrorContext=""
+                    isAwaitingApiResponse={isAwaitingApiResponse}
+                />
+            </MigrationErrorContainer>
+        </>
     );
 };
