@@ -15,7 +15,6 @@
  */
 
 import { callAppRest } from '../utils/api';
-import { homePath, awsAuthPath } from '../utils/RoutePaths';
 
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
@@ -45,29 +44,6 @@ export enum MigrationStage {
     FINISHED = 'finished',
     ERROR = 'error',
 }
-
-export const redirectForStage: Record<MigrationStage, string> = {
-    [MigrationStage.NOT_STARTED]: homePath,
-    [MigrationStage.AUTHENTICATION]: awsAuthPath,
-    // FIXME: To be filled out...
-    [MigrationStage.PROVISION_APPLICATION]: 'FIXME',
-    [MigrationStage.PROVISION_APPLICATION_WAIT]: 'FIXME',
-    [MigrationStage.PROVISION_MIGRATION_STACK]: 'FIXME',
-    [MigrationStage.PROVISION_MIGRATION_STACK_WAIT]: 'FIXME',
-    [MigrationStage.FS_MIGRATION_COPY]: 'FIXME',
-    [MigrationStage.FS_MIGRATION_COPY_WAIT]: 'FIXME',
-    [MigrationStage.OFFLINE_WARNING]: 'FIXME',
-    [MigrationStage.DB_MIGRATION_EXPORT]: 'FIXME',
-    [MigrationStage.DB_MIGRATION_EXPORT_WAIT]: 'FIXME',
-    [MigrationStage.DB_MIGRATION_UPLOAD]: 'FIXME',
-    [MigrationStage.DB_MIGRATION_UPLOAD_WAIT]: 'FIXME',
-    [MigrationStage.DATA_MIGRATION_IMPORT]: 'FIXME',
-    [MigrationStage.DATA_MIGRATION_IMPORT_WAIT]: 'FIXME',
-    [MigrationStage.VALIDATE]: 'FIXME',
-    [MigrationStage.CUTOVER]: 'FIXME',
-    [MigrationStage.FINISHED]: 'FIXME',
-    [MigrationStage.ERROR]: 'FIXME',
-};
 
 type GetMigrationResult = {
     stage: MigrationStage;
