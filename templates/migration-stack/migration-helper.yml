@@ -148,27 +148,37 @@ Resources:
                     DB_DUMP_LOG_FILE="/var/atlassian/dc-migration-assistant/pg_dump-log.txt"
                     SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
                     if [ $? != 0 ]; then
-                      echo "Error when fetching DB password from secret manager"
+                      echo "ERROR: cannot fetch DB password from secret manager"
                       exit 1
                     fi
+
                     aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
                     if [ ${pipestatus} != 0 ]; then
-                      echo "Error when synchronising with the S3 bucket"
+                      echo "ERROR: cannot load DB dump from the S3 bucket"
                       exit 1
                     fi
+
                     echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/${DBName}" | tee $DB_DUMP_LOG_FILE
                     PGPASSWORD=$SECRET_PASSWORD pg_restore --no-owner --no-acl --clean --if-exists -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
+
+                    # pg_restore won't fail if there are SQL errors when restoring, it fails only if there is a fatal error (e.g. failed reading the file)
+                    PG_RESTORE_EXIT_CODE=${PIPESTATUS[0]}
+                    if [ $PG_RESTORE_EXIT_CODE != 0 ]; then
+                      echo "ERROR: Fatal error while running pg_restore, please review the logs"
+                      exit $PG_RESTORE_EXIT_CODE
+                    fi
+
                     ERROR_OUTPUT=$(grep -iE 'error|warning' $DB_DUMP_LOG_FILE)
 
-                    if [ -z "$ERROR_OUTPUT" ]; then
-                            echo "SUCCESS: Database migration was successful"
-                            exit 0
+                    if [[ -z "$ERROR_OUTPUT" ]]; then
+                            echo "SUCCESS: Database migration was successful without errors"
                     else
-                            echo "Errors:"
+                            echo "SQL migration errors:"
                             echo "$ERROR_OUTPUT"
-                            echo "ERROR: Database migration wasn't successful"
-                            exit 1
+                            echo "WARNING: Database migration finished with some errors, please review the log"
                     fi
+
+                    exit 0
                   - SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password"
                     MigrationBucket: !Ref MigrationBucket
                     DBHost: !Ref RDSEndpoint
