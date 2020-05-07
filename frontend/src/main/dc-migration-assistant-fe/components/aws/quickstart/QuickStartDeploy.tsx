@@ -64,7 +64,9 @@ const ButtonRow = styled.div`
 
 const StackNameField = (): ReactElement => {
     const fieldNameValidator = (stackName: string): string => {
-        const regExpMatch = stackName.match('^[a-zA-Z][a-zA-Z0-9-.]{1,126}$');
+        // NOTE: This gets converted to an S3 bucket name (with '-migration'
+        // appended), so must also conform with bucket naming rules.
+        const regExpMatch = stackName.match('^[a-z][a-z0-9-.]{1,53}$');
         return regExpMatch != null
             ? undefined
             : I18n.getText(
