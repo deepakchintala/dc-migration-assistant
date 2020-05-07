@@ -4,6 +4,7 @@
 export const baseURL = 'http://localhost:2990/jira';
 export const welcomeURL = baseURL+'/secure/WelcomeToJIRA.jspa'
 export const loginURL = baseURL+'/login.jsp';
+export const sudoURL = baseURL+'/secure/admin/WebSudoAuthenticate!default.jspa';
 export const migrationBase = baseURL+'/plugins/servlet/dc-migration-assistant';
 export const migrationHome = migrationBase;
 
@@ -15,6 +16,11 @@ Cypress.Commands.add('jira_login', (uname, passwd) => {
     cy.get('#login-form-submit').click();
     // Force wait for dashboard to avoid flakiness.
     cy.get('[class=g-intro]').should('exist');
+
+    // Ensure we have full admin access before doing anything
+    cy.visit(sudoURL);
+    cy.get('#login-form-authenticatePassword').type('admin');
+    cy.get('#login-form-submit').click();
 })
 
 
