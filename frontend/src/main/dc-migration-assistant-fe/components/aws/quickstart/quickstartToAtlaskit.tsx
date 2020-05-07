@@ -247,6 +247,24 @@ const createSelectFromQuickstartParam: FormElementGenerator = (defaultFieldProps
     );
 };
 
+const createKeyPairNameField: FormElementGenerator = (defaultFieldProps, param) => {
+    const {
+        paramProperties: { Description },
+    } = param;
+
+    return (
+        <Field isRequired {...defaultFieldProps}>
+            {({ fieldProps, error }: any): ReactElement => (
+                <>
+                    <TextField width="xlarge" {...fieldProps} />
+                    <HelperMessage>{Description}</HelperMessage>
+                    {error && <ErrorMessage>{error}</ErrorMessage>}
+                </>
+            )}
+        </Field>
+    );
+};
+
 const quickstartParamToAtlaskitFormElement: FormElementGenerator = (defaultFieldProps, param) => {
     const { paramProperties } = param;
     if (paramProperties.AllowedValues) {
@@ -254,6 +272,9 @@ const quickstartParamToAtlaskitFormElement: FormElementGenerator = (defaultField
     }
     if (paramProperties.Type === 'List<AWS::EC2::AvailabilityZone::Name>') {
         return createAZSelection(defaultFieldProps, param);
+    }
+    if (paramProperties.Type === 'AWS::EC2::KeyPair::KeyName') {
+        return createKeyPairNameField(defaultFieldProps, param);
     }
     return createInputFromQuickstartParam(defaultFieldProps, param);
 };
