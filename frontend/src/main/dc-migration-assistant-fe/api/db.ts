@@ -22,12 +22,12 @@ export const dbStatusReportEndpoint = `${dbAPIBase}/report`;
 export const dbStartEndpoint = `${dbAPIBase}/start`;
 
 export enum DBMigrationStatus {
-    NOT_STARTED,
-    EXPORTING,
-    UPLOADING,
-    IMPORTING,
-    DONE,
-    FAILED,
+    NOT_STARTED = 'NOT_STARTED',
+    EXPORTING = 'EXPORTING',
+    UPLOADING = 'UPLOADING',
+    IMPORTING = 'IMPORTING',
+    DONE = 'DONE',
+    FAILED = 'FAILED',
 }
 
 export const statusToI18nString = (status: DBMigrationStatus): string => {

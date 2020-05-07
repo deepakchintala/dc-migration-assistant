@@ -18,7 +18,7 @@ import React, { FunctionComponent } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
-import { Progress } from '../shared/Progress';
+import { Progress, ProgressBuilder } from '../shared/Progress';
 import { callAppRest } from '../../utils/api';
 import {
     dbStatusReportEndpoint,
@@ -40,11 +40,21 @@ const dbMigrationInProgressStages = [
 ];
 
 const toProgress = (status: DatabaseMigrationStatus): Progress => {
-    return {
-        phase: statusToI18nString(status.status),
-        elapsedTimeSeconds: status.elapsedTime.seconds,
-        failed: status.status === DBMigrationStatus.FAILED,
-    };
+    const builder = new ProgressBuilder();
+
+    builder.setPhase(statusToI18nString(status.status));
+    builder.setElapsedSeconds(status.elapsedTime.seconds);
+    builder.setFailed(status.status === DBMigrationStatus.FAILED);
+
+    if (status.status === DBMigrationStatus.DONE) {
+        builder.setCompleteness(1);
+        builder.setCompleteMessage(
+            '',
+            I18n.getText('atlassian.migration.datacenter.db.completeMessage')
+        );
+    }
+
+    return builder.build();
 };
 
 const fetchDBMigrationStatus = (): Promise<DatabaseMigrationStatus> => {
