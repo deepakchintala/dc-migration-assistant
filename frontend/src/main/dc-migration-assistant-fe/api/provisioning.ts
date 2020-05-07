@@ -62,8 +62,11 @@ export const provisioning = {
                         case 'CREATE_IN_PROGRESS':
                             return phase === 'app_infra'
                                 ? ProvisioningStatus.ProvisioningApplicationStack
-                                : ProvisioningStatus.PreProvisionMigrationStack;
+                                : ProvisioningStatus.ProvisioningMigrationStack;
                         case 'CREATE_COMPLETE':
+                            if (phase === 'app_infra') {
+                                return ProvisioningStatus.PreProvisionMigrationStack;
+                            }
                             return ProvisioningStatus.Complete;
                         case 'CREATE_FAILED':
                             throw new Error(
