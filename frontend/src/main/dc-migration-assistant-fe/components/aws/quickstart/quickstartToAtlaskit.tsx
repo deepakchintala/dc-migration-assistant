@@ -25,10 +25,17 @@ import { QuickstartParameter } from './QuickStartTypes';
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 
 type FormElementGenerator = (
-    defaultProps: Record<string, string>,
+    defaultProps: DefaultFieldProps,
     param: QuickstartParameter
 ) => ReactElement;
 type InputProps = Record<string, boolean | number | string | Function>;
+
+type DefaultFieldProps = {
+    key: string;
+    label: string;
+    name: string;
+    defaultValue: string;
+};
 
 const availabilityZonesLoadOptions = (): Promise<Array<OptionType>> =>
     callAppRest('GET', RestApiPathConstants.awsAzListForRegion)
@@ -41,14 +48,19 @@ const createAZSelection: FormElementGenerator = (defaultFieldProps, param) => {
     } = param;
 
     const validate = (value: Array<OptionType>): string => {
-        if (value.length !== 2) {
+        if (value?.length !== 2) {
             return 'INCORRECT_NUM_AZ';
         }
         return undefined;
     };
 
     return (
-        <Field validate={validate} {...defaultFieldProps}>
+        <Field
+            validate={validate}
+            name={defaultFieldProps.name}
+            label={defaultFieldProps.label}
+            key={defaultFieldProps.key}
+        >
             {({ fieldProps, error }: any): ReactElement => (
                 <>
                     <AsyncSelect
