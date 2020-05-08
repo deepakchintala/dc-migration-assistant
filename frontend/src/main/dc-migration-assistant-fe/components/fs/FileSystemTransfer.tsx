@@ -37,8 +37,11 @@ const getErrorFromResult = (result: FileSystemMigrationStatusResponse): ReactNod
 
         return (
             <>
-                <strong>{failedFilesCount} files</strong> failed to upload.
+                <strong>{failedFilesCount} files</strong> failed to upload.{' '}
+                {failedFilesCount === 100 &&
+                    I18n.getText('atlassian.migration.datacenter.fs.error.maxFailedFiles')}
                 <Panel header={I18n.getText('atlassian.migration.datacenter.fs.error.failedFiles')}>
+                    {I18n.getText('atlassian.migration.datacenter.fs.error.resolutionAction')}
                     <ul>
                         {result.failedFiles.map(({ filePath, reason }) => (
                             <li key={filePath}>
