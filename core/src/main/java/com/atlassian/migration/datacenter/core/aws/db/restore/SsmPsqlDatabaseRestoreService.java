@@ -84,6 +84,11 @@ public class SsmPsqlDatabaseRestoreService {
         final SsmCommandLogs ssmCommandOutputs = new SsmCommandLogs();
         ssmCommandOutputs.outputUrl = response.standardOutputUrl();
         ssmCommandOutputs.errorUrl = response.standardErrorUrl();
+        ssmCommandOutputs.commandUrl = String.format(
+                "https://console.aws.amazon.com/s3/buckets/%s/trebuchet-ssm-document-logs/%s/%s/awsrunShellScript/restoreDatabaseBackupToRDS/",
+                migrationHelperDeploymentService.getMigrationS3BucketName(),
+                response.commandId(),
+                response.instanceId());
 
         return ssmCommandOutputs;
     }
@@ -95,6 +100,7 @@ public class SsmPsqlDatabaseRestoreService {
     public class SsmCommandLogs {
         public String errorUrl;
         public String outputUrl;
+        public String commandUrl;
     }
 
     public class SsmCommandNotInitialisedException extends Exception {

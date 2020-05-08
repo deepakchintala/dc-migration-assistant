@@ -23,14 +23,14 @@ import { Redirect } from 'react-router-dom';
 import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import Tooltip from '@atlaskit/tooltip';
+import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 
 import { MigrationTransferActions } from './MigrationTransferPageActions';
-import { ProgressCallback, Progress, ProgressBuilder } from './Progress';
+import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { migrationErrorPath } from '../../utils/RoutePaths';
-import { CommandDetails, DBMigrationStatus } from '../../api/db';
-import { Button } from '@atlaskit/button/dist/cjs/components/Button';
+import { CommandDetails } from '../../api/db';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -120,15 +120,8 @@ export const MigrationDetails: FunctionComponent<MigrationDetailsProps> = ({ det
                     </Cell>
                     <Cell width={400}>
                         <Tooltip content="You need to be logged into AWS console">
-                            <Button target="_blank" href={details.outputUrl}>
-                                Standard output
-                            </Button>
-                        </Tooltip>
-                    </Cell>
-                    <Cell width={400}>
-                        <Tooltip content="You need to be logged into AWS console">
-                            <Button target="_blank" href={details.errorUrl}>
-                                Error output
+                            <Button target="_blank" href={details.commandUrl}>
+                                Log files in S3
                             </Button>
                         </Tooltip>
                     </Cell>
