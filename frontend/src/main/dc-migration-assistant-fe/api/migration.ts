@@ -19,6 +19,7 @@ import { callAppRest } from '../utils/api';
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
     migrationSummaryRestPath = `migration/summary`,
+    migrationReadyRestPath = `migration/ready`,
     migrationResetRestPath = `migration/reset`,
 }
 
@@ -51,6 +52,12 @@ type GetMigrationResult = {
 type GetMigrationSummaryResult = {
     instanceUrl: string;
     error: string;
+};
+
+type MigrationReadyStatus = {
+    dbCompatible: bool;
+    osCompatible: bool;
+    fsSizeCompatible: bool;
 };
 
 export const migration = {
@@ -97,6 +104,11 @@ export const migration = {
     },
     getMigrationSummary: (): Promise<GetMigrationSummaryResult> => {
         return callAppRest('GET', RestApiPathConstants.migrationSummaryRestPath).then(res =>
+            res.json()
+        );
+    },
+    getReadyStatus: (): Promise<MigrationReadyStatus> => {
+        return callAppRest('GET', RestApiPathConstants.migrationReadyRestPath).then(res =>
             res.json()
         );
     },
