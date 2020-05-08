@@ -264,10 +264,11 @@ const createKeyPairNameField: FormElementGenerator = (defaultFieldProps, param) 
         paramProperties: { Description, ConstraintDescription },
     } = param;
 
-    const validateFun = (val: string): string | void => {
+    const validateFun = (val: string): string => {
         if (val.length === 0) {
             return 'TOO_SHORT';
         }
+        return undefined;
     };
 
     return (
