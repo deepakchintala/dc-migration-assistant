@@ -261,16 +261,22 @@ const createSelectFromQuickstartParam: FormElementGenerator = (defaultFieldProps
 
 const createKeyPairNameField: FormElementGenerator = (defaultFieldProps, param) => {
     const {
-        paramProperties: { Description },
+        paramProperties: { Description, ConstraintDescription },
     } = param;
 
+    const validateFun = (val: string): string | void => {
+        if (val.length === 0) {
+            return 'TOO_SHORT';
+        }
+    };
+
     return (
-        <Field isRequired {...defaultFieldProps}>
+        <Field validate={validateFun} {...defaultFieldProps}>
             {({ fieldProps, error }: any): ReactElement => (
                 <>
                     <TextField width="xlarge" {...fieldProps} />
                     <HelperMessage>{Description}</HelperMessage>
-                    {error && <ErrorMessage>{error}</ErrorMessage>}
+                    {error && <ErrorMessage>{ConstraintDescription}</ErrorMessage>}
                 </>
             )}
         </Field>
