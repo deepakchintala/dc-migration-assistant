@@ -24,6 +24,7 @@ import { AsyncSelect, OptionType } from '@atlaskit/select';
 
 import { quickstartPath } from '../../../utils/RoutePaths';
 import { ErrorFlag } from '../../shared/ErrorFlag';
+import { CancelModal } from '../../shared/CancelModal';
 
 export type AWSCreds = {
     accessKeyId: string;
@@ -77,6 +78,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
     const [credentialPersistError, setCredentialPersistError] = useState<boolean>(false);
     const [awaitResponseFromApi, setAwaitResponseFromApi] = useState<boolean>(false);
     const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
+    const [showCancelMigrationModal, setShowCancelMigrationModal] = useState<boolean>(false);
 
     const submitCreds = (formCreds: {
         accessKeyId: string;
@@ -107,6 +109,10 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
 
     return (
         <>
+            <CancelModal
+                modalState={showCancelMigrationModal}
+                toggleModalDisplay={setShowCancelMigrationModal}
+            />
             {readyForNextStep && <Redirect to={quickstartPath} push />}
             <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.title')}</h1>
             <p>
@@ -200,7 +206,12 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                                         'atlassian.migration.datacenter.authenticate.aws.submit'
                                     )}
                                 </Button>
-                                <Button appearance="default">
+                                <Button
+                                    appearance="default"
+                                    onClick={(): void => {
+                                        setShowCancelMigrationModal(true);
+                                    }}
+                                >
                                     {I18n.getText(
                                         'atlassian.migration.datacenter.authenticate.aws.cancel'
                                     )}
