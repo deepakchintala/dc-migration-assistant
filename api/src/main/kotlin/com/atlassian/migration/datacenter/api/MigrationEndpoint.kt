@@ -90,6 +90,16 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
         }
     }
 
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @GET
+    @Path("/ready")
+    fun getMigrationReadyStatus(): Response {
+        return Response
+                .ok(migrationService.readyStatus)
+                .build();
+    }
+
     @DELETE
     @Path("/reset")
     @Produces(MediaType.APPLICATION_JSON)

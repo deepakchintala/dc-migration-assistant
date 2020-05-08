@@ -21,4 +21,5 @@ import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadExcept
 
 public interface ApplicationConfiguration {
     DatabaseConfiguration getDatabaseConfiguration() throws ConfigurationReadException;
+
 }
