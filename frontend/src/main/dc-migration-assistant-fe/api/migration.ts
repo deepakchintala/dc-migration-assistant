@@ -21,7 +21,9 @@ enum RestApiPathConstants {
     migrationSummaryRestPath = `migration/summary`,
     migrationReadyRestPath = `migration/ready`,
     migrationResetRestPath = `migration/reset`,
+    migrationForceResetPath = `develop/migration/reset`,
 }
+
 
 export enum MigrationStage {
     NOT_STARTED = 'not_started',
@@ -55,9 +57,9 @@ type GetMigrationSummaryResult = {
 };
 
 type MigrationReadyStatus = {
-    dbCompatible: bool;
-    osCompatible: bool;
-    fsSizeCompatible: bool;
+    dbCompatible: boolean;
+    osCompatible: boolean;
+    fsSizeCompatible: boolean;
 };
 
 export const migration = {
