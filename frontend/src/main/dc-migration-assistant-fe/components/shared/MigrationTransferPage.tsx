@@ -20,14 +20,17 @@ import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
 import { Redirect } from 'react-router-dom';
-
+import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import Tooltip from '@atlaskit/tooltip';
+
 import { MigrationTransferActions } from './MigrationTransferPageActions';
-import { ProgressCallback, Progress } from './Progress';
+import { ProgressCallback, Progress, ProgressBuilder } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { migrationErrorPath } from '../../utils/RoutePaths';
-import { CommandLogs } from '../../api/db';
+import { CommandDetails, DBMigrationStatus } from '../../api/db';
+import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -66,7 +69,7 @@ export type MigrationTransferProps = {
      */
     getProgress: ProgressCallback;
 
-    getLogs: Promise<CommandLogs>;
+    getDetails?: () => Promise<CommandDetails>;
 };
 
 const TransferPageContainer = styled.div`
@@ -93,6 +96,47 @@ const TransferActionsContainer = styled.div`
 
     margin-top: 20px;
 `;
+type MigrationDetailsProps = { details: CommandDetails };
+export const MigrationDetails: FunctionComponent<MigrationDetailsProps> = ({ details }) => {
+    const MigrationDetailsSection = styled.div`
+        display: flex;
+        flex-direction: column;
+        padding-right: 30px;
+
+        padding-bottom: 5px;
+    `;
+    return (
+        <MigrationDetailsSection>
+            <div>
+                <h4>Migration details</h4>
+            </div>
+            <TableTree>
+                <Row key="migration-details-logs" hasChildren={false}>
+                    <Cell width={400} singleLine>
+                        Migration logs
+                        {/* {I18n.getText(
+                            'atlassian.migration.datacenter.validation.summary.phrase.instanceUrl'
+                        )} */}
+                    </Cell>
+                    <Cell width={400}>
+                        <Tooltip content="You need to be logged into AWS console">
+                            <Button target="_blank" href={details.outputUrl}>
+                                Standard output
+                            </Button>
+                        </Tooltip>
+                    </Cell>
+                    <Cell width={400}>
+                        <Tooltip content="You need to be logged into AWS console">
+                            <Button target="_blank" href={details.errorUrl}>
+                                Error output
+                            </Button>
+                        </Tooltip>
+                    </Cell>
+                </Row>
+            </TableTree>
+        </MigrationDetailsSection>
+    );
+};
 
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
@@ -103,17 +147,23 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     getProgress,
     inProgressStages,
     startMigrationPhase,
+    getDetails: getLogs,
 }) => {
     const [progress, setProgress] = useState<Progress>();
     const [loading, setLoading] = useState<boolean>(true);
     const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
+    const [finished, setFinished] = useState<boolean>(true);
+    const [details, setDetails] = useState<CommandDetails>();
 
     const updateProgress = (): Promise<void> => {
         return getProgress()
             .then(result => {
                 setProgress(result);
                 setLoading(false);
+                if (progress.completeness === 1) {
+                    setFinished(true);
+                }
             })
             .catch(err => {
                 setProgressFetchingError(err);
@@ -150,6 +200,18 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 setLoading(false);
             });
     }, []);
+
+    useEffect(() => {
+        if (getLogs && finished) {
+            getLogs()
+                .then(d => {
+                    setDetails(d);
+                })
+                .catch(e => {
+                    console.log(e);
+                });
+        }
+    }, [finished]);
 
     useEffect(() => {
         if (started) {
@@ -208,10 +270,11 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                 startedMoment={startMoment}
                             />
                         )}
+                        {details && <MigrationDetails details={details} />}
                     </TransferContentContainer>
                     <TransferActionsContainer>
                         <MigrationTransferActions
-                            finished={progress?.completeness === 1}
+                            finished={finished}
                             nextText={nextText}
                             nextRoute={nextRoute}
                             startMigrationPhase={startMigration}

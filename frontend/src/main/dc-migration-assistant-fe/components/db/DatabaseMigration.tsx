@@ -29,7 +29,7 @@ import {
 } from '../../api/db';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
-import { CommandLogs } from '../../api/db';
+import { CommandDetails } from '../../api/db';
 
 const dbMigrationInProgressStages = [
     MigrationStage.DATA_MIGRATION_IMPORT,
@@ -70,7 +70,7 @@ const getProgressFromStatus = (): Promise<Progress> => {
     return fetchDBMigrationStatus().then(toProgress);
 };
 
-const fetchDBMigrationLogs = (): Promise<CommandLogs> => {
+const fetchDBMigrationLogs = (): Promise<CommandDetails> => {
     return callAppRest('GET', dbLogsEndpoint).then(result => result.json());
 };
 
@@ -82,7 +82,7 @@ const props: MigrationTransferProps = {
     inProgressStages: dbMigrationInProgressStages,
     getProgress: getProgressFromStatus,
     nextRoute: validationPath,
-    getLogs: fetchDBMigrationLogs,
+    getDetails: fetchDBMigrationLogs,
 };
 
 export const DatabaseTransferPage: FunctionComponent = () => {

@@ -53,7 +53,7 @@ export type DatabaseMigrationStatus = {
     elapsedTime: MigrationDuration;
 };
 
-export type CommandLogs = {
-    errorUrl: string;
-    outputUrl: string;
+export type CommandDetails = {
+    errorUrl?: string;
+    outputUrl?: string;
 };
