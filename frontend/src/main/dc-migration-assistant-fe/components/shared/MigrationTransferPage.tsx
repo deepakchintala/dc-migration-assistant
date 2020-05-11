@@ -20,7 +20,6 @@ import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
 import { Redirect } from 'react-router-dom';
-import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import Tooltip from '@atlaskit/tooltip';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
@@ -98,36 +97,18 @@ const TransferActionsContainer = styled.div`
 `;
 type MigrationDetailsProps = { details: CommandDetails };
 export const MigrationDetails: FunctionComponent<MigrationDetailsProps> = ({ details }) => {
-    const MigrationDetailsSection = styled.div`
-        display: flex;
-        flex-direction: column;
-        padding-right: 30px;
-
-        padding-bottom: 5px;
-    `;
     return (
-        <MigrationDetailsSection>
-            <div>
-                <h4>Migration details</h4>
-            </div>
-            <TableTree>
-                <Row key="migration-details-logs" hasChildren={false}>
-                    <Cell width={400} singleLine>
-                        Migration logs
-                        {/* {I18n.getText(
-                            'atlassian.migration.datacenter.validation.summary.phrase.instanceUrl'
-                        )} */}
-                    </Cell>
-                    <Cell width={400}>
-                        <Tooltip content="You need to be logged into AWS console">
-                            <Button target="_blank" href={details.commandUrl}>
-                                Log files in S3
-                            </Button>
-                        </Tooltip>
-                    </Cell>
-                </Row>
-            </TableTree>
-        </MigrationDetailsSection>
+        <SectionMessage appearance="warning" title="Migration details">
+            <p>
+                While running the database migration we&apos;ve encountered some errors. Please take
+                a look on the log files.
+            </p>
+            <Tooltip content="You need to be logged into AWS console">
+                <a href={details.commandUrl} target="_blank">
+                    <Button>Log files in S3</Button>
+                </a>
+            </Tooltip>
+        </SectionMessage>
     );
 };
 
@@ -263,7 +244,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                 startedMoment={startMoment}
                             />
                         )}
-                        {details && <MigrationDetails details={details} />}
+                        {details?.errorUrl && <MigrationDetails details={details} />}
                     </TransferContentContainer>
                     <TransferActionsContainer>
                         <MigrationTransferActions

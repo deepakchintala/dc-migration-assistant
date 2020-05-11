@@ -25,11 +25,12 @@ import {
     dbStartEndpoint,
     DatabaseMigrationStatus,
     statusToI18nString,
-    dbLogsEndpoint, DBMigrationStatus,
+    dbLogsEndpoint,
+    DBMigrationStatus,
+    CommandDetails,
 } from '../../api/db';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
-import { CommandDetails } from '../../api/db';
 
 const dbMigrationInProgressStages = [
     MigrationStage.DATA_MIGRATION_IMPORT,
