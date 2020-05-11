@@ -48,6 +48,7 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
 
     @EventListener
     public void onIssueEvent(IssueEvent issueEvent) {
+        logger.trace("received jira event with type {}", issueEvent.getEventTypeId());
         if (issueEvent.getEventTypeId().equals(EventType.ISSUE_CREATED_ID)) {
             logger.trace("got issue created event");
             issueEvent.getIssue().getAttachments().forEach(
