@@ -62,7 +62,7 @@ class JiraIssueAttachmentListenerTest {
 
     @BeforeEach
     void setUp() {
-        sut = new JiraIssueAttachmentListener(mockPublisher, path -> capturedPaths.add(path));
+        sut = new JiraIssueAttachmentListener(mockPublisher, path -> capturedPaths.add(path), null);
     }
 
     @Test

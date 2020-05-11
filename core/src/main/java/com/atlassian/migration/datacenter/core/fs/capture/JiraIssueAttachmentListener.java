@@ -21,11 +21,13 @@ import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
+import com.atlassian.jira.issue.attachment.AttachmentStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
+import java.io.File;
 import java.nio.file.Paths;
 
 public class JiraIssueAttachmentListener implements InitializingBean, DisposableBean {
@@ -33,11 +35,15 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
 
     private final AttachmentCapturer attachmentCapturer;
+    private final AttachmentStore attachmentStore;
     private final EventPublisher eventPublisher;
 
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCapturer attachmentCapturer) {
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher,
+                                       AttachmentCapturer attachmentCapturer,
+                                       AttachmentStore attachmentStore) {
         this.eventPublisher = eventPublisher;
         this.attachmentCapturer = attachmentCapturer;
+        this.attachmentStore = attachmentStore;
     }
 
     @Override
@@ -51,8 +57,15 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
         logger.trace("received jira event with type {}", issueEvent.getEventTypeId());
         if (issueEvent.getEventTypeId().equals(EventType.ISSUE_CREATED_ID)) {
             logger.trace("got issue created event");
+
             issueEvent.getIssue().getAttachments().forEach(
-                    attachment -> attachmentCapturer.captureAttachment(Paths.get(attachment.getFilename()))
+                    attachment -> {
+                        File file = attachmentStore.getAttachmentFile(attachment);
+                        logger.trace("found file {} on issue event (deprecated api)", file.getAbsolutePath());
+                        File thumb = attachmentStore.getThumbnailFile(attachment);
+                        logger.trace("found thumbnail {} on issue event (deprecated api)", thumb.getAbsolutePath());
+//                        attachmentCapturer.captureAttachment(Paths.get(attachment.getFilename()));
+                    }
             );
         }
     }

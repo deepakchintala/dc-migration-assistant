@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.configuration;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AWSMigrationService;
@@ -267,7 +268,9 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCapturer attachmentCapturer) {
-        return new JiraIssueAttachmentListener(eventPublisher, attachmentCapturer);
+    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher,
+                                                                   AttachmentCapturer attachmentCapturer,
+                                                                   AttachmentStore attachmentStore) {
+        return new JiraIssueAttachmentListener(eventPublisher, attachmentCapturer, attachmentStore);
     }
 }
