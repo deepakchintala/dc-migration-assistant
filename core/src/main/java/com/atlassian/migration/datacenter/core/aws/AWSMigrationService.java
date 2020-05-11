@@ -118,10 +118,12 @@ public class AWSMigrationService implements MigrationService {
     @Override
     public MigrationReadyStatus getReadyStatus()
     {
+        long MAX_FS_SIZE = 1024L * 1024L * 1024L * 400L;
+        long size = FileUtils.sizeOfDirectory(jiraHome.getHome());
+
+        Boolean fs = size < MAX_FS_SIZE;
         Boolean db = applicationConfiguration.getDatabaseConfiguration().getType() == DatabaseConfiguration.DBType.POSTGRESQL;
         Boolean os = SystemUtils.IS_OS_LINUX;
-        long MAX_FS_SIZE = 1024 * 1024 * 1024 * 400;
-        Boolean fs = FileUtils.sizeOfDirectory(jiraHome.getHome()) < MAX_FS_SIZE;
         return new MigrationReadyStatus(db, os, fs);
     }
 
