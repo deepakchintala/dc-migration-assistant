@@ -20,10 +20,17 @@ package com.atlassian.migration.datacenter.core.fs.capture;
 import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
+import com.atlassian.jira.event.type.EventType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.file.Paths;
 
 public class JiraIssueAttachmentListener {
 
-    AttachmentCapturer attachmentCapturer;
+    private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
+
+    private final AttachmentCapturer attachmentCapturer;
 
     public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCapturer attachmentCapturer) {
         eventPublisher.register(this);
@@ -32,7 +39,12 @@ public class JiraIssueAttachmentListener {
 
     @EventListener
     public void onIssueEvent(IssueEvent issueEvent) {
-
+        if (issueEvent.getEventTypeId().equals(EventType.ISSUE_CREATED_ID)) {
+            logger.trace("got issue created event");
+            issueEvent.getIssue().getAttachments().forEach(
+                    attachment -> attachmentCapturer.captureAttachment(Paths.get(attachment.getFilename()))
+            );
+        }
     }
 
 }
