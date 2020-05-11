@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import React, { ReactElement, useState, FunctionComponent } from 'react';
+import React, { ReactElement, useEffect, useState, FunctionComponent } from 'react';
 import Button from '@atlaskit/button';
 import InlineMessage from '@atlaskit/inline-message';
 import styled from 'styled-components';
 import { Redirect } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
-import { migration } from '../api/migration';
+import { migration, MigrationReadyStatus } from '../api/migration';
 import { ErrorFlag } from './shared/ErrorFlag';
 import { awsAuthPath } from '../utils/RoutePaths';
 
@@ -44,7 +44,6 @@ const ButtonContainer = styled.div`
 
 const InfoProps = {
     title: I18n.getText('atlassian.migration.datacenter.home.info.title'),
-    secondaryText: I18n.getText('atlassian.migration.datacenter.home.info.content'),
 };
 
 type ActionSectionProps = {
@@ -82,7 +81,9 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
                 description={error}
                 id="migration-creation-error"
             />
-            <InlineMessage {...InfoProps} />
+            <p>
+                <ReadyStatus />
+            </p>
             <ButtonContainer>
                 <Button
                     isLoading={loading}
@@ -93,6 +94,32 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
                     {startButtonText}
                 </Button>
             </ButtonContainer>
+        </>
+    );
+};
+
+export const ReadyStatus: FunctionComponent = () => {
+
+    const [ready, setReady] = useState<MigrationReadyStatus>();
+    const readyString = (state: any) => {
+        return state === undefined ? '...' : (state ? "OK" : "Incompatible");
+    };
+
+    useEffect(() => {
+        migration.getReadyStatus()
+                 .then((status) => {
+                     setReady(status);
+                 });
+    }, []);
+
+    return (
+        <>
+            <InlineMessage {...InfoProps}/>
+            <ul>
+                <li>... is using PostgreSQL: {readyString(ready?.dbCompatible)}</li>
+                <li>... is on Linux:  {readyString(ready?.osCompatible)}</li>
+                <li>... has a home directory under 400GB: {readyString(ready?.fsSizeCompatible)}</li>
+            </ul>
         </>
     );
 };

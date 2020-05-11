@@ -56,7 +56,7 @@ type GetMigrationSummaryResult = {
     error: string;
 };
 
-type MigrationReadyStatus = {
+export type MigrationReadyStatus = {
     dbCompatible: boolean;
     osCompatible: boolean;
     fsSizeCompatible: boolean;
