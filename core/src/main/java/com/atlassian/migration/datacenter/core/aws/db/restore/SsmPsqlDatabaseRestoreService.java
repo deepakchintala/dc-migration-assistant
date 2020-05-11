@@ -33,6 +33,8 @@ public class SsmPsqlDatabaseRestoreService {
     private final SSMApi ssm;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
 
+    private final String restoreDocumentName = "restoreDatabaseBackupToRDS";
+
     private String commandId;
 
     SsmPsqlDatabaseRestoreService(SSMApi ssm, int maxCommandRetries,
@@ -73,7 +75,7 @@ public class SsmPsqlDatabaseRestoreService {
         }
     }
 
-    public SsmCommandLogs fetchCommandLogs() throws SsmCommandNotInitialisedException {
+    public SsmCommandResult fetchCommandResult() throws SsmCommandNotInitialisedException {
         if (getCommandId() == null) {
             throw new SsmCommandNotInitialisedException("SSM command was not executed");
         }
@@ -81,14 +83,15 @@ public class SsmPsqlDatabaseRestoreService {
 
         final GetCommandInvocationResponse response = ssm.getSSMCommand(getCommandId(), migrationInstanceId);
 
-        final SsmCommandLogs ssmCommandOutputs = new SsmCommandLogs();
-        ssmCommandOutputs.outputUrl = response.standardOutputUrl();
-        ssmCommandOutputs.errorUrl = response.standardErrorUrl();
-        ssmCommandOutputs.commandUrl = String.format(
-                "https://console.aws.amazon.com/s3/buckets/%s/trebuchet-ssm-document-logs/%s/%s/awsrunShellScript/restoreDatabaseBackupToRDS/",
+        final SsmCommandResult ssmCommandOutputs = new SsmCommandResult();
+        ssmCommandOutputs.errorMessage = response.standardErrorContent();
+        ssmCommandOutputs.consoleUrl = String.format(
+                "https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
                 migrationHelperDeploymentService.getMigrationS3BucketName(),
+                ssm.getSsmS3KeyPrefix(),
                 response.commandId(),
-                response.instanceId());
+                response.instanceId(),
+                restoreDocumentName);
 
         return ssmCommandOutputs;
     }
@@ -97,13 +100,16 @@ public class SsmPsqlDatabaseRestoreService {
         return commandId;
     }
 
-    public class SsmCommandLogs {
-        public String errorUrl;
-        public String outputUrl;
-        public String commandUrl;
+    public String getRestoreDocumentName() {
+        return restoreDocumentName;
     }
 
-    public class SsmCommandNotInitialisedException extends Exception {
+    public static class SsmCommandResult {
+        public String consoleUrl;
+        public String errorMessage;
+    }
+
+    public static class SsmCommandNotInitialisedException extends Exception {
         public SsmCommandNotInitialisedException(String message) {
             super(message);
         }

@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState, useEffect } from 'react';
+import React, { FunctionComponent, useState, useEffect, DOMAttributes } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
 import { Redirect } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
-import Tooltip from '@atlaskit/tooltip';
-import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { migrationErrorPath } from '../../utils/RoutePaths';
-import { CommandDetails } from '../../api/db';
+import { CommandDetails as CommandResult } from '../../api/db';
+import { MigrationErrorSection } from './MigrationDetailsProps';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -68,7 +67,7 @@ export type MigrationTransferProps = {
      */
     getProgress: ProgressCallback;
 
-    getDetails?: () => Promise<CommandDetails>;
+    getDetails?: () => Promise<CommandResult>;
 };
 
 const TransferPageContainer = styled.div`
@@ -78,6 +77,7 @@ const TransferPageContainer = styled.div`
     margin-right: auto;
     margin-bottom: auto;
     padding-left: 15px;
+    max-width: 920px;
 `;
 
 const TransferContentContainer = styled.div`
@@ -95,23 +95,6 @@ const TransferActionsContainer = styled.div`
 
     margin-top: 20px;
 `;
-type MigrationDetailsProps = { details: CommandDetails };
-export const MigrationDetails: FunctionComponent<MigrationDetailsProps> = ({ details }) => {
-    return (
-        <SectionMessage appearance="warning" title="Migration details">
-            <p>
-                While running the database migration we&apos;ve encountered some errors. Please take
-                a look on the log files.
-            </p>
-            <Tooltip content="You need to be logged into AWS console">
-                <a href={details.commandUrl} target="_blank">
-                    <Button>Log files in S3</Button>
-                </a>
-            </Tooltip>
-        </SectionMessage>
-    );
-};
-
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
     heading,
@@ -121,14 +104,14 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     getProgress,
     inProgressStages,
     startMigrationPhase,
-    getDetails: getLogs,
+    getDetails: getCommandresult,
 }) => {
     const [progress, setProgress] = useState<Progress>();
     const [loading, setLoading] = useState<boolean>(true);
     const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
     const [finished, setFinished] = useState<boolean>(true);
-    const [details, setDetails] = useState<CommandDetails>();
+    const [commandResult, setCommandResult] = useState<CommandResult>();
 
     const updateProgress = (): Promise<void> => {
         return getProgress()
@@ -176,10 +159,10 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     }, []);
 
     useEffect(() => {
-        if (getLogs && finished) {
-            getLogs()
+        if (getCommandresult && finished) {
+            getCommandresult()
                 .then(d => {
-                    setDetails(d);
+                    setCommandResult(d);
                 })
                 .catch(e => {
                     console.log(e);
@@ -244,7 +227,9 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                 startedMoment={startMoment}
                             />
                         )}
-                        {details?.errorUrl && <MigrationDetails details={details} />}
+                        {commandResult?.errorMessage && (
+                            <MigrationErrorSection result={commandResult} />
+                        )}
                     </TransferContentContainer>
                     <TransferActionsContainer>
                         <MigrationTransferActions

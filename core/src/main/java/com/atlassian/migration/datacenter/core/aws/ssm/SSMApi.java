@@ -36,6 +36,8 @@ public class SSMApi {
     private Supplier<SsmClient> clientFactory;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
 
+    private final String ssmS3KeyPrefix = "trebuchet-ssm-document-logs";
+
     public SSMApi(Supplier<SsmClient> clientFactory, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.clientFactory = clientFactory;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
@@ -62,7 +64,7 @@ public class SSMApi {
                 .timeoutSeconds(600)
                 .comment("command run by Jira DC Migration Assistant")
                 .outputS3BucketName(migrationHelperDeploymentService.getMigrationS3BucketName())
-                .outputS3KeyPrefix("trebuchet-ssm-document-logs")
+                .outputS3KeyPrefix(ssmS3KeyPrefix)
                 .build();
 
         SendCommandResponse response = client.sendCommand(request);
@@ -94,5 +96,9 @@ public class SSMApi {
         GetCommandInvocationResponse response = client.getCommandInvocation(request);
 
         return response;
+    }
+
+    public String getSsmS3KeyPrefix() {
+        return ssmS3KeyPrefix;
     }
 }

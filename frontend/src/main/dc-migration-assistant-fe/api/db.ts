@@ -54,7 +54,6 @@ export type DatabaseMigrationStatus = {
 };
 
 export type CommandDetails = {
-    errorUrl?: string;
-    outputUrl?: string;
-    commandUrl?: string;
+    errorMessage?: string;
+    consoleUrl?: string;
 };

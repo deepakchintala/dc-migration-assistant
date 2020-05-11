@@ -115,7 +115,7 @@ class DatabaseMigrationEndpoint(
     @Path("/logs")
     fun getCommandOutputs(): Response {
         return try {
-            Response.ok(ssmPsqlDatabaseRestoreService.fetchCommandLogs()).build()
+            Response.ok(ssmPsqlDatabaseRestoreService.fetchCommandResult()).build()
         } catch (e: SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException) {
             return Response.status(Response.Status.CONFLICT).entity(mapOf("error" to "SSM command wasn't executed"))
                 .build()

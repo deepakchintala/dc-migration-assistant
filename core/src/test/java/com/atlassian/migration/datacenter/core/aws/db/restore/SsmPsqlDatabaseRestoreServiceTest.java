@@ -73,24 +73,29 @@ class SsmPsqlDatabaseRestoreServiceTest {
     void shouldReturnOutputAndErrorUrls() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InvalidMigrationStageError {
         final String mockCommandId = "fake-command";
         final String mockInstance = "i-0353cc9a8ad7dafc2";
-        final String outputUrl = "output-url";
-        final String errorUrl = "error-url";
+        final String errorMessage = "error-message";
+        final String s3bucket = "s3bucket";
+        final String s3prefix = "s3prefix";
 
         final SsmPsqlDatabaseRestoreService spy = spy(sut);
         when(spy.getCommandId()).thenReturn(mockCommandId);
 
         when(migrationHelperDeploymentService.getMigrationHostInstanceId()).thenReturn(mockInstance);
+        when(migrationHelperDeploymentService.getMigrationS3BucketName()).thenReturn(s3bucket);
+        when(ssmApi.getSsmS3KeyPrefix()).thenReturn(s3prefix);
         when(ssmApi.getSSMCommand(mockCommandId, mockInstance)).thenReturn(
                 GetCommandInvocationResponse.builder()
-                        .standardOutputUrl(outputUrl)
-                        .standardErrorUrl(errorUrl)
+                        .instanceId(mockInstance)
+                        .commandId(mockCommandId)
+                        .standardErrorContent(errorMessage)
                         .build()
         );
 
-        final SsmPsqlDatabaseRestoreService.SsmCommandLogs commandOutputs = spy.fetchCommandLogs();
+        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
 
-        assertEquals("output-url", commandOutputs.outputUrl);
-        assertEquals("error-url", commandOutputs.errorUrl);
+        assertEquals("error-message", commandOutputs.errorMessage);
+        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
+                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
     }
 
     private void givenCommandCompletesWithStatus(CommandInvocationStatus status) {
