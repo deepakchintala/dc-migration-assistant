@@ -24,6 +24,7 @@ const mockFetch = jest.fn();
 mockFetch.mockReturnValue(
     Promise.resolve({
         status: 200,
+        json: () => {}
     })
 );
 
