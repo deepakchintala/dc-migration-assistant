@@ -24,7 +24,6 @@ enum RestApiPathConstants {
     migrationForceResetPath = `develop/migration/reset`,
 }
 
-
 export enum MigrationStage {
     NOT_STARTED = 'not_started',
     AUTHENTICATION = 'authentication',

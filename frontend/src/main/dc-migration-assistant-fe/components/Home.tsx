@@ -99,26 +99,26 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
 };
 
 export const ReadyStatus: FunctionComponent = () => {
-
     const [ready, setReady] = useState<MigrationReadyStatus>();
     const readyString = (state: boolean | undefined) => {
-        return state === undefined ? '...' : (state ? "OK" : "Incompatible");
+        return state === undefined ? '...' : state ? 'OK' : 'Incompatible';
     };
 
     useEffect(() => {
-        migration.getReadyStatus()
-                 .then((status) => {
-                     setReady(status);
-                 });
+        migration.getReadyStatus().then(status => {
+            setReady(status);
+        });
     }, []);
 
     return (
         <>
-            <InlineMessage {...InfoProps}/>
+            <InlineMessage {...InfoProps} />
             <ul>
                 <li>... is using PostgreSQL: {readyString(ready?.dbCompatible)}</li>
-                <li>... is on Linux:  {readyString(ready?.osCompatible)}</li>
-                <li>... has a home directory under 400GB: {readyString(ready?.fsSizeCompatible)}</li>
+                <li>... is on Linux: {readyString(ready?.osCompatible)}</li>
+                <li>
+                    ... has a home directory under 400GB: {readyString(ready?.fsSizeCompatible)}
+                </li>
             </ul>
         </>
     );
