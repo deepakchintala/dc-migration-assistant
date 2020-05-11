@@ -24,6 +24,7 @@ import { AsyncSelect, OptionType } from '@atlaskit/select';
 
 import { quickstartPath } from '../../../utils/RoutePaths';
 import { ErrorFlag } from '../../shared/ErrorFlag';
+import { CancelButton } from '../../shared/CancelButton';
 
 export type AWSCreds = {
     accessKeyId: string;
@@ -200,11 +201,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                                         'atlassian.migration.datacenter.authenticate.aws.submit'
                                     )}
                                 </Button>
-                                <Button appearance="default">
-                                    {I18n.getText(
-                                        'atlassian.migration.datacenter.authenticate.aws.cancel'
-                                    )}
-                                </Button>
+                                <CancelButton />
                             </ButtonGroup>
                         </FormFooter>
                     </form>
