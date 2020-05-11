@@ -101,7 +101,7 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
 export const ReadyStatus: FunctionComponent = () => {
 
     const [ready, setReady] = useState<MigrationReadyStatus>();
-    const readyString = (state: any) => {
+    const readyString = (state: boolean | undefined) => {
         return state === undefined ? '...' : (state ? "OK" : "Incompatible");
     };
 
