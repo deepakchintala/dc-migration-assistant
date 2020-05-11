@@ -23,6 +23,7 @@ import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsE
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 
 /**
  * REST API Endpoint for managing in-product DC migrations.
@@ -88,6 +89,17 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
                     .ok(migrationContextResponseEntity())
                     .build()
         }
+    }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @GET
+    @Path("/ready")
+    fun getMigrationReadyStatus(): Response {
+        val status = migrationService.readyStatus;
+        return Response
+                .ok(jacksonObjectMapper().writeValueAsString(status))
+                .build();
     }
 
     @DELETE
