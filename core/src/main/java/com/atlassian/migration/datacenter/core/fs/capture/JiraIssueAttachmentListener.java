@@ -23,18 +23,27 @@ import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.nio.file.Paths;
 
-public class JiraIssueAttachmentListener {
+public class JiraIssueAttachmentListener implements InitializingBean, DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
 
     private final AttachmentCapturer attachmentCapturer;
+    private final EventPublisher eventPublisher;
 
     public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCapturer attachmentCapturer) {
-        eventPublisher.register(this);
+        this.eventPublisher = eventPublisher;
         this.attachmentCapturer = attachmentCapturer;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        logger.info("registering with event publisher");
+        eventPublisher.register(this);
     }
 
     @EventListener
@@ -47,4 +56,9 @@ public class JiraIssueAttachmentListener {
         }
     }
 
+    @Override
+    public void destroy() throws Exception {
+        logger.info("Destroying migration assistant plugin. De-registering with event publisher");
+        eventPublisher.unregister(this);
+    }
 }
