@@ -21,6 +21,7 @@ import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AWSMigrationService;
+import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
@@ -193,8 +194,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationService migrationService(ActiveObjects ao) {
-        return new AWSMigrationService(ao);
+    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome) {
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, jiraHome);
     }
 
     @Bean
