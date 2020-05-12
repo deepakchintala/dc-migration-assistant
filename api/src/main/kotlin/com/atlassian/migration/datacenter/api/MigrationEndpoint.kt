@@ -34,9 +34,8 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     /**
      * @return A response with the status of the current migration
      */
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     fun getMigrationStatus(): Response {
         return if (migrationService.currentStage == MigrationStage.NOT_STARTED) {
             Response
@@ -75,10 +74,9 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
         }
     }
 
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     @GET
     @Path("/summary")
+    @Produces(MediaType.APPLICATION_JSON)
     fun getMigrationSummary(): Response {
         return if (migrationService.currentStage == MigrationStage.NOT_STARTED) {
             Response

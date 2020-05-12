@@ -25,7 +25,9 @@ import {
     dbStartEndpoint,
     DatabaseMigrationStatus,
     statusToI18nString,
+    dbLogsEndpoint,
     DBMigrationStatus,
+    CommandDetails,
 } from '../../api/db';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
@@ -69,6 +71,10 @@ const getProgressFromStatus = (): Promise<Progress> => {
     return fetchDBMigrationStatus().then(toProgress);
 };
 
+const fetchDBMigrationLogs = (): Promise<CommandDetails> => {
+    return callAppRest('GET', dbLogsEndpoint).then(result => result.json());
+};
+
 const props: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.db.title'),
     description: I18n.getText('atlassian.migration.datacenter.db.description'),
@@ -77,6 +83,7 @@ const props: MigrationTransferProps = {
     inProgressStages: dbMigrationInProgressStages,
     getProgress: getProgressFromStatus,
     nextRoute: validationPath,
+    getDetails: fetchDBMigrationLogs,
 };
 
 export const DatabaseTransferPage: FunctionComponent = () => {

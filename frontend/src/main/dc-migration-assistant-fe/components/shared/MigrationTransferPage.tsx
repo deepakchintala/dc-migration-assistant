@@ -20,13 +20,15 @@ import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
 import { Redirect } from 'react-router-dom';
-
 import { I18n } from '@atlassian/wrm-react-i18n';
+
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { migrationErrorPath } from '../../utils/RoutePaths';
+import { CommandDetails as CommandResult } from '../../api/db';
+import { MigrationErrorSection } from './MigrationErrorSection';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -64,6 +66,8 @@ export type MigrationTransferProps = {
      * A function which will be called to get the progress of the current transfer
      */
     getProgress: ProgressCallback;
+
+    getDetails?: () => Promise<CommandResult>;
 };
 
 const TransferPageContainer = styled.div`
@@ -73,6 +77,7 @@ const TransferPageContainer = styled.div`
     margin-right: auto;
     margin-bottom: auto;
     padding-left: 15px;
+    max-width: 920px;
 `;
 
 const TransferContentContainer = styled.div`
@@ -90,7 +95,6 @@ const TransferActionsContainer = styled.div`
 
     margin-top: 20px;
 `;
-
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
     heading,
@@ -100,17 +104,23 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     getProgress,
     inProgressStages,
     startMigrationPhase,
+    getDetails: getCommandresult,
 }) => {
     const [progress, setProgress] = useState<Progress>();
     const [loading, setLoading] = useState<boolean>(true);
     const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
+    const [finished, setFinished] = useState<boolean>(true);
+    const [commandResult, setCommandResult] = useState<CommandResult>();
 
     const updateProgress = (): Promise<void> => {
         return getProgress()
             .then(result => {
                 setProgress(result);
                 setLoading(false);
+                if (progress.completeness === 1) {
+                    setFinished(true);
+                }
             })
             .catch(err => {
                 setProgressFetchingError(err);
@@ -147,6 +157,18 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 setLoading(false);
             });
     }, []);
+
+    useEffect(() => {
+        if (getCommandresult && finished) {
+            getCommandresult()
+                .then(d => {
+                    setCommandResult(d);
+                })
+                .catch(e => {
+                    console.log(e);
+                });
+        }
+    }, [finished]);
 
     useEffect(() => {
         if (started) {
@@ -205,10 +227,13 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                 startedMoment={startMoment}
                             />
                         )}
+                        {commandResult?.errorMessage && (
+                            <MigrationErrorSection result={commandResult} />
+                        )}
                     </TransferContentContainer>
                     <TransferActionsContainer>
                         <MigrationTransferActions
-                            finished={progress?.completeness === 1}
+                            finished={finished}
                             nextText={nextText}
                             nextRoute={nextRoute}
                             startMigrationPhase={startMigration}

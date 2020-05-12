@@ -16,6 +16,7 @@
 package com.atlassian.migration.datacenter.api.db
 
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
+import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.fasterxml.jackson.annotation.JsonAutoDetect
@@ -36,7 +37,8 @@ import javax.ws.rs.core.Response
 @Path("/migration/db")
 class DatabaseMigrationEndpoint(
     private val databaseMigrationService: DatabaseMigrationService,
-    private val migrationService: MigrationService
+    private val migrationService: MigrationService,
+    private val ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService
 ) {
     private val mapper: ObjectMapper = ObjectMapper()
 
@@ -73,16 +75,16 @@ class DatabaseMigrationEndpoint(
     @GET
     fun getMigrationStatus(): Response {
         val elapsed = databaseMigrationService.elapsedTime
-                .orElse(Duration.ZERO)
+            .orElse(Duration.ZERO)
         val dto = DatabaseMigrationStatus(
-                stageToStatus(migrationService.currentStage),
-                elapsed)
+            stageToStatus(migrationService.currentStage),
+            elapsed
+        )
 
         return try {
             Response
                 .ok(mapper.writeValueAsString(dto))
                 .build()
-
         } catch (e: JsonProcessingException) {
             Response
                 .serverError()
@@ -104,6 +106,18 @@ class DatabaseMigrationEndpoint(
             Response
                 .status(Response.Status.CONFLICT)
                 .entity(mapOf("error" to "db migration is not in progress"))
+                .build()
+        }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/logs")
+    fun getCommandOutputs(): Response {
+        return try {
+            Response.ok(ssmPsqlDatabaseRestoreService.fetchCommandResult()).build()
+        } catch (e: SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException) {
+            return Response.status(Response.Status.CONFLICT).entity(mapOf("error" to "SSM command wasn't executed"))
                 .build()
         }
     }
