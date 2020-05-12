@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.configuration;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.sal.api.permission.PermissionEnforcer;
@@ -65,6 +66,11 @@ public class MigrationAssistantOsgiImportConfiguration {
     @Bean
     public SchedulerService schedulerService() {
         return importOsgiService(SchedulerService.class);
+    }
+
+    @Bean
+    public EventPublisher eventPublisher() {
+        return importOsgiService(EventPublisher.class);
     }
 
     @Bean
