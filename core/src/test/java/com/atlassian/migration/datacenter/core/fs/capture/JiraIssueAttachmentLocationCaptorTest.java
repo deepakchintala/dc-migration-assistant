@@ -40,16 +40,13 @@ import static org.hamcrest.Matchers.contains;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class JiraIssueAttachmentCaptorTest {
+class JiraIssueAttachmentLocationCaptorTest {
 
     public static final String A_MOCK_ATTACHMENT_PATH = "a/mock/attachment";
     public static final String ANOTHER_MOCK_ATTACHMENT_PATH = "another/mock/attachment";
 
     @Mock
     EventPublisher mockPublisher;
-
-    @Mock
-    AttachmentStore attachmentStore;
 
     @InjectMocks
     JiraIssueAttachmentListener sut;
@@ -67,7 +64,7 @@ class JiraIssueAttachmentCaptorTest {
 
     @BeforeEach
     void setUp() {
-        sut = new JiraIssueAttachmentListener(mockPublisher, path -> capturedPaths.add(path), attachmentStore);
+        sut = new JiraIssueAttachmentListener(mockPublisher, path -> capturedPaths.add(path));
     }
 
     @Test

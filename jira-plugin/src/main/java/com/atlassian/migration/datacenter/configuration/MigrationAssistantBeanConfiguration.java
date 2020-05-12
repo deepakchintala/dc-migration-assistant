@@ -47,7 +47,7 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
-import com.atlassian.migration.datacenter.core.fs.capture.AttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.capture.AttachmentLocationCaptor;
 import com.atlassian.migration.datacenter.core.fs.capture.DefaultAttachmentCaptor;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
@@ -260,7 +260,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AttachmentCaptor attachmentCaptor() {
+    public AttachmentLocationCaptor attachmentCaptor() {
         return new DefaultAttachmentCaptor();
     }
 }

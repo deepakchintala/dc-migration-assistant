@@ -18,7 +18,7 @@ import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
-import com.atlassian.migration.datacenter.core.fs.capture.AttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.capture.AttachmentLocationCaptor;
 import com.atlassian.migration.datacenter.core.fs.capture.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import org.springframework.context.annotation.Bean;
@@ -37,8 +37,8 @@ public class MigrationAssistantProfileSpecificConfiguration {
 
     @Bean
     @Profile("gaFeature")
-    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor, AttachmentStore attachmentStore) {
-        return new JiraIssueAttachmentListener(eventPublisher, attachmentCaptor, attachmentStore);
+    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentLocationCaptor attachmentLocationCaptor, AttachmentStore attachmentStore) {
+        return new JiraIssueAttachmentListener(eventPublisher, attachmentLocationCaptor, attachmentStore);
     }
 
 }

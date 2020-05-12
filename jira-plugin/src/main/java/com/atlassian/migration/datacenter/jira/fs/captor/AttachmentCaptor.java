@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.capture;
+package com.atlassian.migration.datacenter.jira.fs.captor;
 
-import java.nio.file.Path;
+import com.atlassian.jira.issue.attachment.Attachment;
 
 @FunctionalInterface
 public interface AttachmentCaptor {
-
-    void captureAttachment(Path attachmentPath);
-
+    void recordAttachment(Attachment attachment);
 }

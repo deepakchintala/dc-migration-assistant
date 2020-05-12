@@ -14,39 +14,31 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.capture;
+package com.atlassian.migration.datacenter.jira.fs.captor;
 
 
 import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
-import com.atlassian.jira.issue.attachment.AttachmentStore;
+import com.atlassian.jira.issue.AttachmentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.io.File;
-import java.nio.file.Paths;
+public class JiraIssueAttachmentManagerListener implements InitializingBean, DisposableBean {
 
-public class JiraIssueAttachmentListener implements InitializingBean, DisposableBean {
+    private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentManagerListener.class);
 
-    private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
-
-    private AttachmentStore attachmentStore;
-    private final AttachmentLocationCaptor attachmentLocationCaptor;
+    private final AttachmentCaptor attachmentCaptor;
     private final EventPublisher eventPublisher;
+    private final AttachmentManager attachmentManager;
 
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentLocationCaptor attachmentLocationCaptor, AttachmentStore attachmentStore) {
+    public JiraIssueAttachmentManagerListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor, AttachmentManager attachmentManager) {
         this.eventPublisher = eventPublisher;
-        this.attachmentLocationCaptor = attachmentLocationCaptor;
-        this.attachmentStore = attachmentStore;
-    }
-
-    JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentLocationCaptor attachmentLocationCaptor) {
-        this.eventPublisher = eventPublisher;
-        this.attachmentLocationCaptor = attachmentLocationCaptor;
+        this.attachmentCaptor = attachmentCaptor;
+        this.attachmentManager = attachmentManager;
     }
 
     @Override
@@ -60,17 +52,10 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
         logger.trace("received jira event with type {}", issueEvent.getEventTypeId());
         if (issueEvent.getEventTypeId().equals(EventType.ISSUE_CREATED_ID)) {
             logger.trace("got issue created event");
-            issueEvent.getIssue().getAttachments().forEach(
-                    attachment -> {
-                        if (attachmentStore != null) {
-                            File file = attachmentStore.getAttachmentFile(attachment);
-                            logger.trace("found file {} on issue event (deprecated api)", file.getAbsolutePath());
-                            File thumb = attachmentStore.getThumbnailFile(attachment);
-                            logger.trace("found thumbnail {} on issue event (deprecated api)", thumb.getAbsolutePath());
-                        }
-                        attachmentLocationCaptor.captureAttachment(Paths.get(attachment.getFilename()));
-                    }
-            );
+            issueEvent
+                    .getIssue()
+                    .getAttachments()
+                    .forEach(attachmentCaptor::recordAttachment);
         }
     }
 
