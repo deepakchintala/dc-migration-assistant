@@ -74,6 +74,13 @@ public interface MigrationService {
     void transition(MigrationStage to) throws InvalidMigrationStageError;
 
     /**
+     * Check whether migration prerequisites met.
+     *
+     * @return whether migration prerequisites met
+     */
+    MigrationReadyStatus getReadyStatus();
+
+    /**
      * Moves the migration into an error stage
      *
      * @param message a message describing the error
