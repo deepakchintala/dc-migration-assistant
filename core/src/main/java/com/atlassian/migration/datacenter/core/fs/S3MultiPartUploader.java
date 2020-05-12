@@ -30,7 +30,9 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,16 +68,24 @@ public class S3MultiPartUploader {
     }
 
     public void upload() throws ExecutionException, InterruptedException {
+        try (FileInputStream fileInputStream = new FileInputStream(file)){
+            upload(fileInputStream);
+        } catch (IOException e) {
+            logger.error("Cannot open file to upload. The file {} has not been uploaded",file,  e);
+        }
+    }
+
+    public void upload(InputStream inputStream) throws ExecutionException, InterruptedException {
         // lazily loaded to save memory
         buffer = ByteBuffer.allocate(getSizeToUpload());
 
         String uploadId = initiateUpload();
 
-        try (FileInputStream fileInputStream = new FileInputStream(file);
-             BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream)) {
+        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
 
             int readBytes;
             while ((readBytes = bufferedInputStream.read(buffer.array())) > 0) {
+                //TODO: Remove file invocation from trace
                 logger.trace("Read {} bytes from file {}", readBytes, file);
 
                 String etag = uploadChunk(uploadId, uploadPartNumber, readBytes);

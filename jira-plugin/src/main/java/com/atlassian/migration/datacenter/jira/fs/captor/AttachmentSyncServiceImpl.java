@@ -4,6 +4,8 @@ package com.atlassian.migration.datacenter.jira.fs.captor;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.jira.issue.AttachmentManager;
 import com.atlassian.jira.issue.attachment.Attachment;
+import com.atlassian.migration.datacenter.core.fs.S3MultiPartUploader;
+import com.atlassian.migration.datacenter.core.fs.S3UploadConfig;
 import com.atlassian.migration.datacenter.dto.AttachmentSyncRecord;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -12,6 +14,7 @@ import net.java.ao.Query;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.ExecutionException;
 
 public class AttachmentSyncServiceImpl implements AttachmentSyncService {
 
@@ -55,7 +58,17 @@ public class AttachmentSyncServiceImpl implements AttachmentSyncService {
     }
 
     private boolean uploadToS3(InputStream is) {
-        throw new UnsupportedOperationException("Not implemented");
+        //TODO: S3uploadConfig contains the root path, s3Client and the bucketName
+        S3UploadConfig config = null;
+        //TODO: We need to form the key to pass in - the path is used to form the S3 object key
+        //This bucket key is relative to jira home - i.e. data/attachments/issue-key/...
+        String key = "";
+        try {
+            new S3MultiPartUploader(config, null, key).upload(is);
+        } catch (ExecutionException | InterruptedException e) {
+            return false;
+        }
+        return true;
     }
 
     private Attachment loadAttachment(AttachmentSyncRecord record) {
