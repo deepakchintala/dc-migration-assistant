@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState, useEffect, DOMAttributes } from 'react';
+import React, { FunctionComponent, useState, useEffect } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
@@ -28,7 +28,7 @@ import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { migrationErrorPath } from '../../utils/RoutePaths';
 import { CommandDetails as CommandResult } from '../../api/db';
-import { MigrationErrorSection } from './MigrationDetailsProps';
+import { MigrationErrorSection } from './MigrationErrorSection';
 
 const POLL_INTERVAL_MILLIS = 3000;
 

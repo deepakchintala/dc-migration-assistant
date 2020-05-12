@@ -16,31 +16,36 @@
 
 import React, { FunctionComponent } from 'react';
 import SectionMessage from '@atlaskit/section-message';
-import Tooltip from '@atlaskit/tooltip';
-import { Button } from '@atlaskit/button/dist/cjs/components/Button';
+import styled from 'styled-components';
+
 import { CommandDetails as CommandResult } from '../../api/db';
+
+const ErrorFragment = styled.div`
+    margin-top: 20px;
+`;
 
 type CommandResultProps = {
     result: CommandResult;
 };
+
 export const MigrationErrorSection: FunctionComponent<CommandResultProps> = ({
     result: commandResult,
 }) => {
     return (
-        <SectionMessage appearance="warning" title="Database migration error">
-            <p>
-                When running the database migration we have encountered error(s). Some of the errors
-                are not necessary fatal and you can continue with migration. We recommend reviewing
-                the errors and continue at your discretion. The error message is truncated to 8000
-                characters
-            </p>
-            <pre>{commandResult.errorMessage.replace(/\n/g, '\n')}</pre>
+        <ErrorFragment>
+            <SectionMessage appearance="warning" title="Database sync warning">
+                <p>
+                    We encountered some errors during the database sync. Some of these errors
+                    aren&apos;t necessarily fatal, and you can continue with the migration if you
+                    want. Before doing so, we recommend you review the errors first.
+                </p>
 
-            <Tooltip content="You need to be logged into AWS console">
-                <Button href={commandResult.consoleUrl} target="_blank">
-                    View logs in S3
-                </Button>
-            </Tooltip>
-        </SectionMessage>
+                <p>
+                    <a href={commandResult.consoleUrl} target="_blank" rel="noopener noreferrer">
+                        View the errors in S3
+                    </a>
+                </p>
+            </SectionMessage>
+        </ErrorFragment>
     );
 };
