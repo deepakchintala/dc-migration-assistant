@@ -21,6 +21,7 @@ import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
 import com.atlassian.jira.issue.Issue;
 import com.atlassian.jira.issue.attachment.Attachment;
+import com.atlassian.jira.issue.attachment.AttachmentStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,8 +44,12 @@ class JiraIssueAttachmentCaptorTest {
 
     public static final String A_MOCK_ATTACHMENT_PATH = "a/mock/attachment";
     public static final String ANOTHER_MOCK_ATTACHMENT_PATH = "another/mock/attachment";
+
     @Mock
     EventPublisher mockPublisher;
+
+    @Mock
+    AttachmentStore attachmentStore;
 
     @InjectMocks
     JiraIssueAttachmentListener sut;
@@ -62,7 +67,7 @@ class JiraIssueAttachmentCaptorTest {
 
     @BeforeEach
     void setUp() {
-        sut = new JiraIssueAttachmentListener(mockPublisher, path -> capturedPaths.add(path), null);
+        sut = new JiraIssueAttachmentListener(mockPublisher, path -> capturedPaths.add(path), attachmentStore);
     }
 
     @Test

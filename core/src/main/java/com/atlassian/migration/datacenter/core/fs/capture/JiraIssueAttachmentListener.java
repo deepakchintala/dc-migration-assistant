@@ -34,11 +34,11 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
 
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
 
-    private final AttachmentStore attachmentStore;
+    private AttachmentStore attachmentStore;
     private final AttachmentCaptor attachmentCaptor;
     private final EventPublisher eventPublisher;
 
-    public JiraIssueAttachmentListener(AttachmentCaptor attachmentCaptor, EventPublisher eventPublisher, AttachmentStore attachmentStore) {
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor, AttachmentStore attachmentStore) {
         this.eventPublisher = eventPublisher;
         this.attachmentCaptor = attachmentCaptor;
         this.attachmentStore = attachmentStore;
@@ -55,13 +55,6 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
         logger.trace("received jira event with type {}", issueEvent.getEventTypeId());
         if (issueEvent.getEventTypeId().equals(EventType.ISSUE_CREATED_ID)) {
             logger.trace("got issue created event");
-            issueEvent
-                .getIssue()
-                .getAttachments()
-                .stream()
-                .map(x -> Paths.get(x.getFilename()))
-                .forEach(attachmentCaptor::captureAttachment);
-
             issueEvent.getIssue().getAttachments().forEach(
                     attachment -> {
                         File file = attachmentStore.getAttachmentFile(attachment);
