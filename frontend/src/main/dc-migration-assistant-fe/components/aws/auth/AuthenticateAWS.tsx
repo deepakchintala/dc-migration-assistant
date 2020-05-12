@@ -25,6 +25,7 @@ import { AsyncSelect, OptionType } from '@atlaskit/select';
 import { quickstartPath } from '../../../utils/RoutePaths';
 import { ErrorFlag } from '../../shared/ErrorFlag';
 import { CancelButton } from '../../shared/CancelButton';
+import styled from 'styled-components';
 
 export type AWSCreds = {
     accessKeyId: string;
@@ -48,6 +49,16 @@ export type AuthenticateAWSProps = {
     onSubmitCreds: CredSubmitFun;
     getRegions: QueryRegionFun;
 };
+
+const AuthenticationContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-right: auto;
+    margin-bottom: auto;
+    padding-left: 15px;
+    max-width: 920px;
+`;
 
 const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props): ReactElement => {
     const { getRegions } = props;
@@ -107,7 +118,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
     };
 
     return (
-        <>
+        <AuthenticationContainer>
             {readyForNextStep && <Redirect to={quickstartPath} push />}
             <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.title')}</h1>
             <p>
@@ -207,6 +218,6 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                     </form>
                 )}
             </Form>
-        </>
+        </AuthenticationContainer>
     );
 };

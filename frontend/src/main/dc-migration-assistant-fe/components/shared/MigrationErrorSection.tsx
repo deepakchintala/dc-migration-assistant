@@ -34,7 +34,10 @@ export const MigrationErrorSection: FunctionComponent<CommandResultProps> = ({
 }) => {
     return (
         <ErrorFragment>
-            <SectionMessage appearance="warning" title="Database sync warning">
+            <SectionMessage
+                appearance="warning"
+                title={I18n.getText('atlassian.migration.datacenter.db.error.title')}
+            >
                 <p>{I18n.getText('atlassian.migration.datacenter.db.error.warning')}</p>
 
                 <p>

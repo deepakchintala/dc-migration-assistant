@@ -158,6 +158,15 @@
     "@atlaskit/theme" "^9.5.1"
     tslib "^1.9.3"
 
+"@atlaskit/lozenge@^9.1.7":
+  version "9.1.7"
+  resolved "https://registry.yarnpkg.com/@atlaskit/lozenge/-/lozenge-9.1.7.tgz#2123278b52162c775c46c37fdeb427ed51e2e833"
+  integrity sha512-442QZXBvPxIT5OjmsYhN7RkZTQNoN6JmSBiu/AHKeZiqZsIIcmKoWai7KD4qiEPDDXXHZOTRxC/Mm2zeaI29Gw==
+  dependencies:
+    "@atlaskit/theme" "^9.5.1"
+    "@emotion/core" "^10.0.9"
+    tslib "^1.9.3"
+
 "@atlaskit/modal-dialog@^10.5.8":
   version "10.5.8"
   resolved "https://registry.yarnpkg.com/@atlaskit/modal-dialog/-/modal-dialog-10.5.8.tgz#2513daa4e9150f0ed2e56ecb770dd82329b93efe"
