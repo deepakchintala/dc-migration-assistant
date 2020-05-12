@@ -16,17 +16,11 @@
 
 package com.atlassian.migration.datacenter.core.fs.capture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.file.Path;
 
-public class DefaultAttachmentCapturer implements AttachmentCapturer {
+@FunctionalInterface
+public interface AttachmentCaptor {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultAttachmentCapturer.class);
+    void captureAttachment(Path attachmentPath);
 
-    @Override
-    public void captureAttachment(Path attachmentPath) {
-        logger.debug("captured attachment for final sync: {}", attachmentPath.toString());
-    }
 }
