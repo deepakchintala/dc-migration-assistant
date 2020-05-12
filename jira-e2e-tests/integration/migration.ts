@@ -14,6 +14,8 @@ const getAwsTokens = (): [string, string] => {
 
 describe('Database Migration page', () => {
     beforeEach(() => {
+        cy.on('uncaught:exception', (err, runnable) => false);
+
         cy.jira_login('admin', 'admin');
         cy.reset_migration();
     });

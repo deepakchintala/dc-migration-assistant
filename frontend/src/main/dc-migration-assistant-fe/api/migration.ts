@@ -19,6 +19,7 @@ import { callAppRest } from '../utils/api';
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
     migrationSummaryRestPath = `migration/summary`,
+    migrationReadyRestPath = `migration/ready`,
     migrationResetRestPath = `migration/reset`,
     migrationForceResetPath = `develop/migration/reset`,
 }
@@ -52,6 +53,12 @@ type GetMigrationResult = {
 type GetMigrationSummaryResult = {
     instanceUrl: string;
     error: string;
+};
+
+export type MigrationReadyStatus = {
+    dbCompatible: boolean;
+    osCompatible: boolean;
+    fsSizeCompatible: boolean;
 };
 
 export const migration = {
@@ -101,13 +108,10 @@ export const migration = {
             res.json()
         );
     },
-    forceResetMigration: (): Promise<void> => {
-        return callAppRest('DELETE', RestApiPathConstants.migrationForceResetPath).then(res => {
-            if (res.ok) {
-                return Promise.resolve();
-            }
-            return res.json().then(json => Promise.reject(json.error));
-        });
+    getReadyStatus: (): Promise<MigrationReadyStatus> => {
+        return callAppRest('GET', RestApiPathConstants.migrationReadyRestPath).then(res =>
+            res.json()
+        );
     },
 };
 
