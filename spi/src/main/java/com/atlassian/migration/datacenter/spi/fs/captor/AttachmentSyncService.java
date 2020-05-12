@@ -9,4 +9,6 @@ public interface AttachmentSyncService {
      * @return a <code>Boolean</code> value that denotes if the record has been persisted
      */
     boolean recordAttachment(Long attachmentId, Long entityId);
+
+    void processAttachments();
 }
