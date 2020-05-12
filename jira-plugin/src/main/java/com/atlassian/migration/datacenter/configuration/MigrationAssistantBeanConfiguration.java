@@ -263,7 +263,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AttachmentCaptor attachmentCapturer() {
+    public AttachmentCaptor attachmentCaptor() {
         return new DefaultAttachmentCaptor();
     }
 
