@@ -19,9 +19,10 @@ import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 
 import { CommandDetails as CommandResult } from '../../api/db';
+import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 
 const ErrorFragment = styled.div`
-    margin-top: 20px;
+    margin-top: 0px;
 `;
 
 type CommandResultProps = {
@@ -34,15 +35,11 @@ export const MigrationErrorSection: FunctionComponent<CommandResultProps> = ({
     return (
         <ErrorFragment>
             <SectionMessage appearance="warning" title="Database sync warning">
-                <p>
-                    We encountered some errors during the database sync. Some of these errors
-                    aren&apos;t necessarily fatal, and you can continue with the migration if you
-                    want. Before doing so, we recommend you review the errors first.
-                </p>
+                <p>{I18n.getText('atlassian.migration.datacenter.db.error.warning')}</p>
 
                 <p>
                     <a href={commandResult.consoleUrl} target="_blank" rel="noopener noreferrer">
-                        View the errors in S3
+                        {I18n.getText('atlassian.migration.datacenter.db.error.s3link')}
                     </a>
                 </p>
             </SectionMessage>
