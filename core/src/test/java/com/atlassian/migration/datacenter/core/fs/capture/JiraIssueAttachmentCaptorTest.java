@@ -39,7 +39,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class JiraIssueAttachmentListenerTest {
+class JiraIssueAttachmentCaptorTest {
 
     public static final String A_MOCK_ATTACHMENT_PATH = "a/mock/attachment";
     public static final String ANOTHER_MOCK_ATTACHMENT_PATH = "another/mock/attachment";

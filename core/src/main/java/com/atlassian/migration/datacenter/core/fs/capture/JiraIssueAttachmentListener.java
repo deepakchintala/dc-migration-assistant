@@ -34,15 +34,13 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
 
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
 
-    private final AttachmentCapturer attachmentCapturer;
     private final AttachmentStore attachmentStore;
+    private final AttachmentCaptor attachmentCaptor;
     private final EventPublisher eventPublisher;
 
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher,
-                                       AttachmentCapturer attachmentCapturer,
-                                       AttachmentStore attachmentStore) {
+    public JiraIssueAttachmentListener(AttachmentCaptor attachmentCaptor, EventPublisher eventPublisher, AttachmentStore attachmentStore) {
         this.eventPublisher = eventPublisher;
-        this.attachmentCapturer = attachmentCapturer;
+        this.attachmentCaptor = attachmentCaptor;
         this.attachmentStore = attachmentStore;
     }
 
@@ -57,6 +55,12 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
         logger.trace("received jira event with type {}", issueEvent.getEventTypeId());
         if (issueEvent.getEventTypeId().equals(EventType.ISSUE_CREATED_ID)) {
             logger.trace("got issue created event");
+            issueEvent
+                .getIssue()
+                .getAttachments()
+                .stream()
+                .map(x -> Paths.get(x.getFilename()))
+                .forEach(attachmentCaptor::captureAttachment);
 
             issueEvent.getIssue().getAttachments().forEach(
                     attachment -> {
@@ -64,7 +68,7 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
                         logger.trace("found file {} on issue event (deprecated api)", file.getAbsolutePath());
                         File thumb = attachmentStore.getThumbnailFile(attachment);
                         logger.trace("found thumbnail {} on issue event (deprecated api)", thumb.getAbsolutePath());
-//                        attachmentCapturer.captureAttachment(Paths.get(attachment.getFilename()));
+                        attachmentCaptor.captureAttachment(Paths.get(attachment.getFilename()));
                     }
             );
         }
