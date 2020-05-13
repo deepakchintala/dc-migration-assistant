@@ -58,10 +58,12 @@ public class JiraIssueAttachmentListener implements DisposableBean {
     public void destroy() throws Exception {
         logger.info("Destroying migration assistant plugin. De-registering with event publisher");
         eventPublisher.unregister(this);
+        started = false;
     }
 
     public void start() {
         started = true;
+        eventPublisher.register(this);
     }
 
     public boolean isStarted() {
