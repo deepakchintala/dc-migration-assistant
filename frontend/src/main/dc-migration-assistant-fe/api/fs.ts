@@ -45,14 +45,14 @@ type FileSystemMigrationStartResponse = {
 };
 
 export const fs = {
-    getFsMigrationStatus: (): Promise<FileSystemMigrationStatusResponse> => {
+    getFsMigrationStatus: async (): Promise<FileSystemMigrationStatusResponse> => {
         return callAppRest('GET', RestApiPathConstants.fsStatusRestPath).then(result =>
             result.json()
         );
     },
 
-    startFsMigration: (): Promise<void> => {
-        return callAppRest('PUT', RestApiPathConstants.fsStartRestPath).then(result => {
+    startFsMigration: async (): Promise<void> => {
+        return callAppRest('PUT', RestApiPathConstants.fsStartRestPath).then(async result => {
             if (result.ok) {
                 return Promise.resolve();
             }
@@ -72,5 +72,9 @@ export const fs = {
                 return Promise.reject(JSON.stringify(result));
             });
         });
+    },
+
+    getCapturedFiles: async (): Promise<Array<string>> => {
+        return Promise.resolve(['/home/benpar/test', '/home/benpar/fake']);
     },
 };
