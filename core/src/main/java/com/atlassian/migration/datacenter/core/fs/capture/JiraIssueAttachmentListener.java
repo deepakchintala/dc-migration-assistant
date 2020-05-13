@@ -24,11 +24,10 @@ import com.atlassian.jira.event.type.EventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.nio.file.Paths;
 
-public class JiraIssueAttachmentListener implements InitializingBean, DisposableBean {
+public class JiraIssueAttachmentListener implements DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
 
@@ -39,12 +38,6 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
     public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
         this.eventPublisher = eventPublisher;
         this.attachmentCaptor = attachmentCaptor;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        logger.info("registering with event publisher");
-        eventPublisher.register(this);
     }
 
     @EventListener

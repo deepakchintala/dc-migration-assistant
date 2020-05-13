@@ -36,10 +36,12 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class JiraIssueAttachmentCaptorTest {
+class JiraIssueAttachmentListenerTest {
 
     public static final String A_MOCK_ATTACHMENT_PATH = "a/mock/attachment";
     public static final String ANOTHER_MOCK_ATTACHMENT_PATH = "another/mock/attachment";
@@ -73,12 +75,25 @@ class JiraIssueAttachmentCaptorTest {
             add(aMockAttachment);
             add(anotherMockAttachment);
         }});
-        IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_CREATED_ID);
+
+        IssueEvent mockEvent = new IssueEvent(
+                mockIssue,
+                null,
+                null,
+                null,
+                null,
+                null,
+                EventType.ISSUE_CREATED_ID);
         sut.onIssueEvent(mockEvent);
 
         assertThat(capturedPaths, contains(
                 Paths.get(A_MOCK_ATTACHMENT_PATH),
                 Paths.get(ANOTHER_MOCK_ATTACHMENT_PATH)
         ));
+    }
+
+    @Test
+    void shouldNotRegisterWithListenerIfNotStarted() {
+        verify(mockPublisher, never()).register(sut);
     }
 }
