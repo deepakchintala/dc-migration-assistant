@@ -62,8 +62,10 @@ public class JiraIssueAttachmentListener implements DisposableBean {
     }
 
     public void start() {
-        started = true;
-        eventPublisher.register(this);
+        if (!started) {
+            started = true;
+            eventPublisher.register(this);
+        }
     }
 
     public boolean isStarted() {

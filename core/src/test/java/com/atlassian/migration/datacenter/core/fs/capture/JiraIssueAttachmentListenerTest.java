@@ -36,7 +36,6 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.eventFrom;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -105,6 +104,13 @@ class JiraIssueAttachmentListenerTest {
         sut.start();
 
         assertTrue(sut.isStarted(), "expected listener to be started after starting");
+    }
+
+    @Test
+    void shouldRegisterOnce() {
+        sut.start();
+        sut.start();
+
         verify(mockPublisher, times(1)).register(sut);
     }
 }
