@@ -30,6 +30,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -86,6 +87,22 @@ class JiraIssueAttachmentListenerTest {
         assertThat(capturedPaths, contains(
                 Paths.get(A_MOCK_ATTACHMENT_PATH),
                 Paths.get(ANOTHER_MOCK_ATTACHMENT_PATH)
+        ));
+    }
+
+    @Test
+    @Disabled("Until the attachment store dependency on the promise from atlassian.concurrent is sorted")
+    void shouldCaptureThumbnailsOfAttachment() {
+        when(mockIssue.getAttachments()).thenReturn(new ArrayList<Attachment>() {{
+            add(aMockAttachment);
+        }});
+        final Path thumbnailPath = Paths.get("fake-thumbnail");
+        when(attachmentStore.getThumbnailFile(aMockAttachment)).thenReturn(thumbnailPath.toFile());
+        IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_CREATED_ID);
+        sut.onIssueEvent(mockEvent);
+
+        assertThat(capturedPaths, contains(
+                thumbnailPath
         ));
     }
 
