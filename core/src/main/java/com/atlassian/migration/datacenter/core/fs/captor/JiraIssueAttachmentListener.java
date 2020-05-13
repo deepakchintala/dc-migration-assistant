@@ -14,30 +14,33 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.capture;
+package com.atlassian.migration.datacenter.core.fs.captor;
 
 
 import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
+import com.atlassian.jira.issue.attachment.AttachmentStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 
-import java.nio.file.Paths;
+import java.io.File;
 
 public class JiraIssueAttachmentListener implements DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
 
-    private final AttachmentCaptor attachmentCaptor;
+    private AttachmentStore attachmentStore;
+    private final AttachmentPathCaptor attachmentPathCaptor;
     private final EventPublisher eventPublisher;
     private boolean started = false;
 
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentPathCaptor attachmentPathCaptor, AttachmentStore attachmentStore) {
         this.eventPublisher = eventPublisher;
-        this.attachmentCaptor = attachmentCaptor;
+        this.attachmentPathCaptor = attachmentPathCaptor;
+        this.attachmentStore = attachmentStore;
     }
 
     @EventListener
@@ -46,11 +49,12 @@ public class JiraIssueAttachmentListener implements DisposableBean {
         if (issueEvent.getEventTypeId().equals(EventType.ISSUE_CREATED_ID)) {
             logger.trace("got issue created event");
             issueEvent
-                    .getIssue()
-                    .getAttachments()
-                    .stream()
-                    .map(x -> Paths.get(x.getFilename()))
-                    .forEach(attachmentCaptor::captureAttachment);
+                .getIssue()
+                .getAttachments()
+                .stream()
+                .map(this.attachmentStore::getAttachmentFile)
+                .map(File::toPath)
+                .forEach(this.attachmentPathCaptor::captureAttachmentPath);
         }
     }
 

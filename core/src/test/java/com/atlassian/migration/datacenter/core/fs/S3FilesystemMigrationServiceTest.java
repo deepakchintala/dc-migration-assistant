@@ -17,10 +17,9 @@
 package com.atlassian.migration.datacenter.core.fs;
 
 import com.atlassian.event.api.EventPublisher;
-import com.atlassian.jira.config.util.JiraHome;
-import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
-import com.atlassian.migration.datacenter.core.fs.capture.AttachmentCaptor;
-import com.atlassian.migration.datacenter.core.fs.capture.JiraIssueAttachmentListener;
+import com.atlassian.jira.issue.attachment.AttachmentStore;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
+import com.atlassian.migration.datacenter.core.fs.captor.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
@@ -29,29 +28,18 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus;
-import com.atlassian.scheduler.config.JobId;
-import com.atlassian.util.concurrent.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -79,7 +67,7 @@ class S3FilesystemMigrationServiceTest {
 
     @BeforeEach
     void setUp() {
-        attachmentListener = new JiraIssueAttachmentListener(mock(EventPublisher.class), mock(AttachmentCaptor.class));
+        attachmentListener = new JiraIssueAttachmentListener(mock(EventPublisher.class), mock(AttachmentPathCaptor.class), null);
         fsService = new S3FilesystemMigrationService(downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy);
     }
 
