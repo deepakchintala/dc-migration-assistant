@@ -158,6 +158,15 @@
     "@atlaskit/theme" "^9.5.1"
     tslib "^1.9.3"
 
+"@atlaskit/lozenge@^9.1.7":
+  version "9.1.7"
+  resolved "https://registry.yarnpkg.com/@atlaskit/lozenge/-/lozenge-9.1.7.tgz#2123278b52162c775c46c37fdeb427ed51e2e833"
+  integrity sha512-442QZXBvPxIT5OjmsYhN7RkZTQNoN6JmSBiu/AHKeZiqZsIIcmKoWai7KD4qiEPDDXXHZOTRxC/Mm2zeaI29Gw==
+  dependencies:
+    "@atlaskit/theme" "^9.5.1"
+    "@emotion/core" "^10.0.9"
+    tslib "^1.9.3"
+
 "@atlaskit/modal-dialog@^10.5.8":
   version "10.5.8"
   resolved "https://registry.yarnpkg.com/@atlaskit/modal-dialog/-/modal-dialog-10.5.8.tgz#2513daa4e9150f0ed2e56ecb770dd82329b93efe"
@@ -319,6 +328,20 @@
     "@atlaskit/analytics-next" "^6.3.5"
     "@atlaskit/theme" "^9.5.1"
     react-uid "^2.2.0"
+    tslib "^1.9.3"
+
+"@atlaskit/tooltip@^15.2.6":
+  version "15.2.6"
+  resolved "https://registry.yarnpkg.com/@atlaskit/tooltip/-/tooltip-15.2.6.tgz#e5bdd0b75b355b628da08449ec23f8af4307e4e1"
+  integrity sha512-tMwXw2WfI5GYjNo5JI67pfYElA9Kor/T90h9iC/Z1vM9velC+eSvnGdML2A5WS6zyeS9dkJVTNd6D7qLOvlEBw==
+  dependencies:
+    "@atlaskit/analytics-next" "^6.3.5"
+    "@atlaskit/popper" "^3.1.12"
+    "@atlaskit/portal" "^3.1.6"
+    "@atlaskit/theme" "^9.5.1"
+    flushable "^1.0.0"
+    react-node-resolver "^1.0.1"
+    react-transition-group "^2.2.1"
     tslib "^1.9.3"
 
 "@atlaskit/type-helpers@^4.2.3":
@@ -6118,6 +6141,11 @@ focus-lock@^0.6.3:
   version "0.6.8"
   resolved "https://registry.yarnpkg.com/focus-lock/-/focus-lock-0.6.8.tgz#61985fadfa92f02f2ee1d90bc738efaf7f3c9f46"
   integrity sha512-vkHTluRCoq9FcsrldC0ulQHiyBYgVJB2CX53I8r0nTC6KnEij7Of0jpBspjt3/CuNb6fyoj3aOh9J2HgQUM0og==
+
+flushable@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/flushable/-/flushable-1.0.0.tgz#2fc16837ec85f8d7ec1bd777087b8448e1ca8216"
+  integrity sha512-WQr7DsBZfdmXwqWk7yyk9H2R60iHiUpLMvkov6KivafC9d1SzDTjSBsKMa8skT4laaSxus+F4v7WLO6J0zxPkw==
 
 focus-trap@^2.4.5:
   version "2.4.6"

@@ -16,11 +16,11 @@
 
 package com.atlassian.migration.datacenter.core.fs.capture;
 
+import com.atlassian.jira.issue.attachment.Attachment;
+
 import java.nio.file.Path;
 
 @FunctionalInterface
 public interface AttachmentCaptor {
-
-    void captureAttachment(Path attachmentPath);
-
+    void captureAttachment(Path path);
 }

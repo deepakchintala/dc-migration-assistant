@@ -16,10 +16,12 @@
 
 import React, { ReactElement, useEffect, useState, FunctionComponent } from 'react';
 import Button from '@atlaskit/button';
-import InlineMessage from '@atlaskit/inline-message';
 import styled from 'styled-components';
 import { Redirect } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import Lozenge from '@atlaskit/lozenge';
+import SectionMessage from '@atlaskit/section-message';
+import Spinner from '@atlaskit/spinner';
 
 import { migration, MigrationReadyStatus } from '../api/migration';
 import { ErrorFlag } from './shared/ErrorFlag';
@@ -34,12 +36,15 @@ type HomeProps = {
 const HomeContainer = styled.div`
     display: flex;
     flex-direction: column;
-    align-items: center;
+    width: 100%;
+    margin-right: auto;
+    margin-bottom: auto;
+    padding-left: 15px;
+    max-width: 920px;
 `;
 
-const ButtonContainer = styled.div`
-    margin-top: 250px;
-    align-self: flex-end;
+const MigrationsContainer = styled.div`
+    margin-top: 20px;
 `;
 
 const InfoProps = {
@@ -84,7 +89,7 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
             <p>
                 <ReadyStatus />
             </p>
-            <ButtonContainer>
+            <MigrationsContainer>
                 <Button
                     isLoading={loading}
                     appearance="primary"
@@ -93,7 +98,7 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
                 >
                     {startButtonText}
                 </Button>
-            </ButtonContainer>
+            </MigrationsContainer>
         </>
     );
 };
@@ -101,7 +106,13 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
 export const ReadyStatus: FunctionComponent = () => {
     const [ready, setReady] = useState<MigrationReadyStatus>();
     const readyString = (state: boolean | undefined) => {
-        return state === undefined ? '...' : state ? 'OK' : 'Incompatible';
+        return state === undefined ? (
+            <Spinner size="small" />
+        ) : state ? (
+            <Lozenge appearance="success">OK</Lozenge>
+        ) : (
+            <Lozenge appearance="removed">Incompatible</Lozenge>
+        );
     };
 
     useEffect(() => {
@@ -111,23 +122,27 @@ export const ReadyStatus: FunctionComponent = () => {
     }, []);
 
     return (
-        <>
-            <InlineMessage {...InfoProps} />
+        <SectionMessage appearance="info" {...InfoProps}>
             <ul>
-                <li>... is using PostgreSQL: {readyString(ready?.dbCompatible)}</li>
-                <li>... is on Linux: {readyString(ready?.osCompatible)}</li>
                 <li>
-                    ... has a home directory under 400GB: {readyString(ready?.fsSizeCompatible)}
+                    uses <strong>PostgreSQL</strong> database &nbsp;{' '}
+                    {readyString(ready?.dbCompatible)}
+                </li>
+                <li>
+                    is running on <strong>Linux</strong> &nbsp; {readyString(ready?.osCompatible)}
+                </li>
+                <li>
+                    has a home directory under 400GB &nbsp; {readyString(ready?.fsSizeCompatible)}
                 </li>
             </ul>
-        </>
+        </SectionMessage>
     );
 };
 
 export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
     return (
         <HomeContainer>
-            <h2>{title}</h2>
+            <h1>{title}</h1>
             <p>
                 {synopsis}{' '}
                 <a

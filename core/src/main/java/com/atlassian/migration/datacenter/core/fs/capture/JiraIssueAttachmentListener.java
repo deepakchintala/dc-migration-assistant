@@ -28,20 +28,24 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.File;
-import java.nio.file.Paths;
 
 public class JiraIssueAttachmentListener implements InitializingBean, DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
 
-    private final AttachmentStore attachmentStore;
+    private AttachmentStore attachmentStore;
     private final AttachmentCaptor attachmentCaptor;
     private final EventPublisher eventPublisher;
 
-    public JiraIssueAttachmentListener(AttachmentCaptor attachmentCaptor, EventPublisher eventPublisher, AttachmentStore attachmentStore) {
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor, AttachmentStore attachmentStore) {
         this.eventPublisher = eventPublisher;
         this.attachmentCaptor = attachmentCaptor;
         this.attachmentStore = attachmentStore;
+    }
+
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
+        this.eventPublisher = eventPublisher;
+        this.attachmentCaptor = attachmentCaptor;
     }
 
     @Override
@@ -59,18 +63,9 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
                 .getIssue()
                 .getAttachments()
                 .stream()
-                .map(x -> Paths.get(x.getFilename()))
+                .map(this.attachmentStore::getAttachmentFile)
+                .map(File::toPath)
                 .forEach(attachmentCaptor::captureAttachment);
-
-            issueEvent.getIssue().getAttachments().forEach(
-                    attachment -> {
-                        File file = attachmentStore.getAttachmentFile(attachment);
-                        logger.trace("found file {} on issue event (deprecated api)", file.getAbsolutePath());
-                        File thumb = attachmentStore.getThumbnailFile(attachment);
-                        logger.trace("found thumbnail {} on issue event (deprecated api)", thumb.getAbsolutePath());
-                        attachmentCaptor.captureAttachment(Paths.get(attachment.getFilename()));
-                    }
-            );
         }
     }
 

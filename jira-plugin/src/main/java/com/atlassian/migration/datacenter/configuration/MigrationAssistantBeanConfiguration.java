@@ -266,10 +266,4 @@ public class MigrationAssistantBeanConfiguration {
     public AttachmentCaptor attachmentCaptor() {
         return new DefaultAttachmentCaptor();
     }
-
-    @Bean
-
-    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor, AttachmentStore attachmentStore) {
-        return new JiraIssueAttachmentListener(attachmentCaptor, eventPublisher, attachmentStore);
-    }
 }

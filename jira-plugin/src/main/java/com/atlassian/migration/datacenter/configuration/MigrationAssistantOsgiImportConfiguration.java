@@ -17,7 +17,6 @@
 package com.atlassian.migration.datacenter.configuration;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
-import com.atlassian.core.util.thumbnail.Thumbnail;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.jira.issue.attachment.AttachmentStore;
