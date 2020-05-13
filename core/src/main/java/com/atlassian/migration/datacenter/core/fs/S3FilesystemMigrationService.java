@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.fs;
 
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.fs.capture.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
@@ -57,19 +58,25 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     private final S3SyncFileSystemDownloadManager fileSystemDownloadManager;
     private final Supplier<S3AsyncClient> s3AsyncClientSupplier;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    private final JiraIssueAttachmentListener attachmentListener;
 
     private FileSystemMigrationReport report;
     private FilesystemUploader fsUploader;
 
-    public S3FilesystemMigrationService(Supplier<S3AsyncClient> s3AsyncClientSupplier, JiraHome jiraHome,
-            S3SyncFileSystemDownloadManager fileSystemDownloadManager, MigrationService migrationService,
-            MigrationRunner migrationRunner, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+    public S3FilesystemMigrationService(Supplier<S3AsyncClient> s3AsyncClientSupplier,
+                                        JiraHome jiraHome,
+                                        S3SyncFileSystemDownloadManager fileSystemDownloadManager,
+                                        MigrationService migrationService,
+                                        MigrationRunner migrationRunner,
+                                        AWSMigrationHelperDeploymentService migrationHelperDeploymentService,
+                                        JiraIssueAttachmentListener attachmentListener) {
         this.s3AsyncClientSupplier = s3AsyncClientSupplier;
         this.jiraHome = jiraHome;
         this.migrationService = migrationService;
         this.migrationRunner = migrationRunner;
         this.fileSystemDownloadManager = fileSystemDownloadManager;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
+        this.attachmentListener = attachmentListener;
 
         this.report = new DefaultFileSystemMigrationReport();
     }

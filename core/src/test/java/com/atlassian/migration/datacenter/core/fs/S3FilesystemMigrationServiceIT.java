@@ -20,6 +20,7 @@ import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
+import com.atlassian.migration.datacenter.core.fs.capture.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -74,6 +75,8 @@ class S3FilesystemMigrationServiceIT {
     MigrationRunner migrationRunner;
     @Mock
     S3SyncFileSystemDownloadManager fileSystemDownloader;
+    @Mock
+    JiraIssueAttachmentListener attachmentListener;
 
     private S3AsyncClient s3AsyncClient;
     private String bucket = "trebuchet-testing";
@@ -115,7 +118,7 @@ class S3FilesystemMigrationServiceIT {
 
         Path file = genRandFile();
 
-        S3FilesystemMigrationService fsService = new S3FilesystemMigrationService(() -> s3AsyncClient, jiraHome, fileSystemDownloader, migrationService, migrationRunner, migrationHelperDeploymentService);
+        S3FilesystemMigrationService fsService = new S3FilesystemMigrationService(() -> s3AsyncClient, jiraHome, fileSystemDownloader, migrationService, migrationRunner, migrationHelperDeploymentService, attachmentListener);
         fsService.postConstruct();
 
         fsService.startMigration();
