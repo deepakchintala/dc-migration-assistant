@@ -22,7 +22,6 @@ import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
 import com.atlassian.jira.issue.attachment.AttachmentStore;
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -35,18 +34,13 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
 
     private AttachmentStore attachmentStore;
-    private final AttachmentCaptor attachmentCaptor;
+    private final AttachmentPathCaptor attachmentPathCaptor;
     private final EventPublisher eventPublisher;
 
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor, AttachmentStore attachmentStore) {
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentPathCaptor attachmentPathCaptor, AttachmentStore attachmentStore) {
         this.eventPublisher = eventPublisher;
-        this.attachmentCaptor = attachmentCaptor;
+        this.attachmentPathCaptor = attachmentPathCaptor;
         this.attachmentStore = attachmentStore;
-    }
-
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
-        this.eventPublisher = eventPublisher;
-        this.attachmentCaptor = attachmentCaptor;
     }
 
     @Override
@@ -66,7 +60,7 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
                 .stream()
                 .map(this.attachmentStore::getAttachmentFile)
                 .map(File::toPath)
-                .forEach(attachmentCaptor::captureAttachment);
+                .forEach(this.attachmentPathCaptor::captureAttachmentPath);
         }
     }
 
