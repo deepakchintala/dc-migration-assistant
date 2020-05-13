@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.capture;
+package com.atlassian.migration.datacenter.core.fs.captor;
 
 import com.atlassian.jira.issue.attachment.Attachment;
 

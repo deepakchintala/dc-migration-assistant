@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.capture;
+package com.atlassian.migration.datacenter.core.fs.captor;
 
 
 import com.atlassian.event.api.EventListener;
@@ -22,6 +22,7 @@ import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
 import com.atlassian.jira.issue.attachment.AttachmentStore;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
