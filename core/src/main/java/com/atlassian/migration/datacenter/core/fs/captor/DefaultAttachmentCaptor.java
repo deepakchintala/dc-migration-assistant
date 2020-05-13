@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor;
 
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
