@@ -34,6 +34,7 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
 
     private final AttachmentCaptor attachmentCaptor;
     private final EventPublisher eventPublisher;
+    private boolean started = false;
 
     public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
         this.eventPublisher = eventPublisher;
@@ -67,10 +68,10 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
     }
 
     public void start() {
-
+        started = true;
     }
 
     public boolean isStarted() {
-        return false;
+        return started;
     }
 }
