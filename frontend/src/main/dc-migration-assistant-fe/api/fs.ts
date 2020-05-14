@@ -46,35 +46,33 @@ type FileSystemMigrationStartResponse = {
 
 export const fs = {
     getFsMigrationStatus: async (): Promise<FileSystemMigrationStatusResponse> => {
-        return callAppRest('GET', RestApiPathConstants.fsStatusRestPath).then(result =>
-            result.json()
-        );
+        const result = await callAppRest('GET', RestApiPathConstants.fsStatusRestPath);
+        return result.json();
     },
 
     startFsMigration: async (): Promise<void> => {
-        return callAppRest('PUT', RestApiPathConstants.fsStartRestPath).then(async result => {
-            if (result.ok) {
-                return Promise.resolve();
-            }
-            return result.json().then(json => {
-                const errorJson = json as FileSystemMigrationStartResponse;
-                if (errorJson.error) {
-                    // Probably invalid migration stage
-                    return Promise.reject(new Error(errorJson.error));
-                }
-                if (errorJson.status) {
-                    // FS migration is already in progress
-                    return Promise.resolve();
-                }
-                if (errorJson.migrationScheduled === false) {
-                    return Promise.reject(new Error('Unable to start file system migration'));
-                }
-                return Promise.reject(JSON.stringify(result));
-            });
-        });
+        const result = await callAppRest('PUT', RestApiPathConstants.fsStartRestPath);
+        if (result.ok) {
+            return Promise.resolve();
+        }
+
+        const jsonResult = await result.json();
+        const errorJson = jsonResult as FileSystemMigrationStartResponse;
+        if (errorJson.error) {
+            // Probably invalid migration stage
+            return Promise.reject(new Error(errorJson.error));
+        }
+        if (errorJson.status) {
+            // FS migration is already in progress
+            return Promise.resolve();
+        }
+        if (errorJson.migrationScheduled === false) {
+            return Promise.reject(new Error('Unable to start file system migration'));
+        }
+        return Promise.reject(JSON.stringify(result));
     },
 
-    getCapturedFiles: async (): Promise<Array<string>> => {
+    getCapturedFiles: (): Promise<Array<string>> => {
         return Promise.resolve(['/home/benpar/test', '/home/benpar/fake']);
     },
 };
