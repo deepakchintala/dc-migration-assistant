@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.captor;
+package com.atlassian.migration.datacenter.core.fs.listener;
 
 
 import com.atlassian.event.api.EventListener;
@@ -23,21 +23,25 @@ import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
 import com.atlassian.jira.issue.attachment.Attachment;
 import com.atlassian.jira.issue.attachment.AttachmentStore;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public class JiraIssueAttachmentListener implements InitializingBean, DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
+    private static final List<Long> ISSUE_EVENT_TYPES_TO_LISTEN = Arrays.asList(EventType.ISSUE_CREATED_ID, EventType.ISSUE_UPDATED_ID);
 
-    private AttachmentStore attachmentStore;
-    private final AttachmentPathCaptor attachmentPathCaptor;
     private final EventPublisher eventPublisher;
+    private final AttachmentPathCaptor attachmentPathCaptor;
+    private final AttachmentStore attachmentStore;
 
     public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentPathCaptor attachmentPathCaptor, AttachmentStore attachmentStore) {
         this.eventPublisher = eventPublisher;
@@ -53,8 +57,9 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
 
     @EventListener
     public void onIssueEvent(IssueEvent issueEvent) {
-        if (issueEvent.getEventTypeId().equals(EventType.ISSUE_CREATED_ID)) {
-            logger.trace("got issue created event");
+        logger.trace("received jira event with type {}", issueEvent.getEventTypeId());
+        if (ISSUE_EVENT_TYPES_TO_LISTEN.contains(issueEvent.getEventTypeId())) {
+
             Collection<Attachment> attachments = issueEvent
                     .getIssue()
                     .getAttachments();
@@ -64,12 +69,13 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
                     .map(this.attachmentStore::getAttachmentFile)
                     .map(File::toPath)
                     .forEach(this.attachmentPathCaptor::captureAttachmentPath);
+
             attachments
                     .stream()
-                    .map(attachment -> attachmentStore.getThumbnailFile(attachment))
+                    .filter(Attachment::isThumbnailable)
+                    .map(attachmentStore::getThumbnailFile)
                     .map(File::toPath)
                     .forEach(this.attachmentPathCaptor::captureAttachmentPath);
-
         }
     }
 

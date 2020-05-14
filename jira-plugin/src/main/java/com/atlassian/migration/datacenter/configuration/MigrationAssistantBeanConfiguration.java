@@ -47,13 +47,10 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
-import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentPathCaptor;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
-import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
@@ -258,10 +255,5 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public AWSMigrationHelperDeploymentService awsMigrationHelperDeploymentService(CfnApi cfnApi, MigrationService migrationService, Supplier<AutoScalingClient> autoScalingClientFactory) {
         return new AWSMigrationHelperDeploymentService(cfnApi, autoScalingClientFactory, migrationService);
-    }
-
-    @Bean
-    public AttachmentPathCaptor attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService) {
-        return new DefaultAttachmentPathCaptor(activeObjects, migrationService);
     }
 }
