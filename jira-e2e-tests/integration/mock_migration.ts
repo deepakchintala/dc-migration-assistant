@@ -12,7 +12,6 @@ describe('Database Migration page', () => {
         cy.server();
 
         cy.jira_login('admin', 'admin');
-        cy.reset_migration();
     });
 
     it('End to end mocked', () => {
