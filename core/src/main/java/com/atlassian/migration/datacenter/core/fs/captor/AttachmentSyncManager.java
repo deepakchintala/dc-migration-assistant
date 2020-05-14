@@ -16,6 +16,8 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor;
 
+import com.atlassian.migration.datacenter.dto.FileSyncRecord;
+
 import java.util.Set;
 
 public interface AttachmentSyncManager extends AttachmentPathCaptor {

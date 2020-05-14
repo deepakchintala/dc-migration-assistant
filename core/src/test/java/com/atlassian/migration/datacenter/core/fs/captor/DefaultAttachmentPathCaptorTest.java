@@ -18,10 +18,12 @@ package com.atlassian.migration.datacenter.core.fs.captor;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
+import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import net.java.ao.EntityManager;
 import net.java.ao.test.junit.ActiveObjectsJUnitRunner;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,6 +64,7 @@ public class DefaultAttachmentPathCaptorTest {
     }
 
     private void setupEntities() {
+        ao.migrate(Migration.class);
         ao.migrate(FileSyncRecord.class);
     }
 
@@ -77,10 +80,7 @@ public class DefaultAttachmentPathCaptorTest {
 
     @Test
     public void shouldStoreRecordAgainstCurrentMigration() {
-        Migration migration = ao.create(Migration.class);
-        migration.save();
-
-        when(migrationService.getCurrentMigration()).thenReturn(migration);
+        Migration migration = givenMigrationExists();
 
         sut.captureAttachmentPath(Paths.get("test"));
 
@@ -91,15 +91,10 @@ public class DefaultAttachmentPathCaptorTest {
 
     @Test
     public void shouldRetrieveAllCapturedFilePaths() {
-        FileSyncRecord record = ao.create(FileSyncRecord.class);
-        final String pathOne = "pathOne";
-        record.setFilePath(pathOne);
-        record.save();
+        Migration migration  = givenMigrationExists();
+        FileSyncRecord record = givenFileSyncRecordIsInDB("pathOne", migration);
 
-        FileSyncRecord anotherRecord = ao.create(FileSyncRecord.class);
-        final String pathTwo = "pathTwo";
-        anotherRecord.setFilePath(pathTwo);
-        anotherRecord.save();
+        FileSyncRecord anotherRecord = givenFileSyncRecordIsInDB("pathTwo", migration);
 
         Set<FileSyncRecord> records = sut.getCapturedAttachments();
 
@@ -107,5 +102,47 @@ public class DefaultAttachmentPathCaptorTest {
                 record,
                 anotherRecord
         ));
+    }
+
+    @Test
+    public void shouldOnlyRetrieveCapturedFilePathsInCurrentMigration() {
+        Migration migration = givenMigrationExists();
+
+        Migration otherMigration = ao.create(Migration.class);
+        otherMigration.save();
+
+        FileSyncRecord record = givenFileSyncRecordIsInDB("happyPath", migration);
+        givenFileSyncRecordIsInDB("sadPath", otherMigration);
+
+        Set<FileSyncRecord> records = sut.getCapturedAttachments();
+        assertThat(records, contains(
+                record
+        ));
+    }
+
+    @Test
+    public void shouldReturnEmptySetWhenNoMigrationInProgress() {
+        givenFileSyncRecordIsInDB("test", null);
+
+        assertEquals(0, sut.getCapturedAttachments().size());
+    }
+
+    @NotNull
+    private FileSyncRecord givenFileSyncRecordIsInDB(String path, Migration migration) {
+        FileSyncRecord record = ao.create(FileSyncRecord.class);
+        final String pathOne = path;
+        record.setFilePath(pathOne);
+        record.setMigration(migration);
+        record.save();
+        return record;
+    }
+
+    @NotNull
+    private Migration givenMigrationExists() {
+        Migration migration = ao.create(Migration.class);
+        migration.save();
+
+        when(migrationService.getCurrentMigration()).thenReturn(migration);
+        return migration;
     }
 }

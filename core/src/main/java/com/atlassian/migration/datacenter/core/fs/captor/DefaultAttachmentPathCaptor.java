@@ -17,7 +17,10 @@
 package com.atlassian.migration.datacenter.core.fs.captor;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.migration.datacenter.dto.FileSyncRecord;
+import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
+import net.java.ao.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +56,17 @@ public class DefaultAttachmentPathCaptor implements AttachmentSyncManager {
     @Override
     public Set<FileSyncRecord> getCapturedAttachments() {
         Set<FileSyncRecord> records = new HashSet<>();
-        Collections.addAll(records, ao.find(FileSyncRecord.class));
+        Migration migration = migrationService.getCurrentMigration();
+
+        if (migration == null) {
+            return Collections.emptySet();
+        }
+
+        final FileSyncRecord[] recordsForCurrentMigration = ao.find(
+                FileSyncRecord.class,
+                Query.select().where("migration_id = ?", migration.getID()));
+
+        Collections.addAll(records, recordsForCurrentMigration);
 
         return records;
     }

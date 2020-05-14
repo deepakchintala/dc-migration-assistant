@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.captor;
+package com.atlassian.migration.datacenter.dto;
 
-import com.atlassian.migration.datacenter.dto.Migration;
 import net.java.ao.Entity;
 
 public interface FileSyncRecord extends Entity {
