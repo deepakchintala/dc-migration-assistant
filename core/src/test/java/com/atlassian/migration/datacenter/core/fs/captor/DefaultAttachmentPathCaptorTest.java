@@ -31,7 +31,10 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.nio.file.Paths;
+import java.util.Set;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -86,4 +89,23 @@ public class DefaultAttachmentPathCaptorTest {
         assertEquals(migration, record.getMigration());
     }
 
+    @Test
+    public void shouldRetrieveAllCapturedFilePaths() {
+        FileSyncRecord record = ao.create(FileSyncRecord.class);
+        final String pathOne = "pathOne";
+        record.setFilePath(pathOne);
+        record.save();
+
+        FileSyncRecord anotherRecord = ao.create(FileSyncRecord.class);
+        final String pathTwo = "pathTwo";
+        anotherRecord.setFilePath(pathTwo);
+        anotherRecord.save();
+
+        Set<FileSyncRecord> records = sut.getCapturedAttachments();
+
+        assertThat(records, contains(
+                record,
+                anotherRecord
+        ));
+    }
 }

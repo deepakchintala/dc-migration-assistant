@@ -22,8 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
-public class DefaultAttachmentPathCaptor implements AttachmentPathCaptor {
+public class DefaultAttachmentPathCaptor implements AttachmentSyncManager {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultAttachmentPathCaptor.class);
     private final ActiveObjects ao;
@@ -45,5 +48,13 @@ public class DefaultAttachmentPathCaptor implements AttachmentPathCaptor {
         record.setMigration(migrationService.getCurrentMigration());
 
         record.save();
+    }
+
+    @Override
+    public Set<FileSyncRecord> getCapturedAttachments() {
+        Set<FileSyncRecord> records = new HashSet<>();
+        Collections.addAll(records, ao.find(FileSyncRecord.class));
+
+        return records;
     }
 }
