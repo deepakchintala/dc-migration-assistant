@@ -46,7 +46,7 @@ public interface MigrationService {
     void assertCurrentStage(MigrationStage expected) throws InvalidMigrationStageError;
 
     /**
-     * Gets the Migration Object that can only be read. Setter invocation must to happen through the {@link MigrationService} interface
+     * Gets the Migration Object that can only be read. Setter invocation must happen through the {@link MigrationService} interface
      *
      * @return a read-only migration object.
      */
@@ -61,7 +61,7 @@ public interface MigrationService {
     MigrationContext getCurrentContext();
 
     /**
-     * Deletes all migrations and associated contexts. It should be used only in developer testing.
+     * Deletes all migrations and associated contexts.
      */
     void deleteMigrations();
 
@@ -74,11 +74,20 @@ public interface MigrationService {
     void transition(MigrationStage to) throws InvalidMigrationStageError;
 
     /**
+     * Check whether migration prerequisites met.
+     *
+     * @return whether migration prerequisites met
+     */
+    MigrationReadyStatus getReadyStatus();
+
+    /**
      * Moves the migration into an error stage
+     *
+     * @param message a message describing the error
      *
      * @see MigrationStage#ERROR
      */
-    void error();
+    void error(String message);
 
     /**
      * Moves the migration into an error stage, storing the cause.

@@ -20,15 +20,23 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { Home } from './Home';
 
+const mockFetch = jest.fn();
+mockFetch.mockReturnValue(
+    Promise.resolve({
+        status: 200,
+        json: () => {
+            return {};
+        },
+    })
+);
+
+window.fetch = mockFetch;
+
 describe('Home', () => {
     it('Should render', () => {
         const { queryByText } = render(
             <MemoryRouter>
-                <Home
-                    title="Test Title"
-                    synopsis="Test synopsis"
-                    exploreMigrationButtonText="Test button"
-                />
+                <Home title="Test Title" synopsis="Test synopsis" startButtonText="Test button" />
             </MemoryRouter>
         );
 

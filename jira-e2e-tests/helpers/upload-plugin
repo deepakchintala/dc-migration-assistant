@@ -1,0 +1,18 @@
+#!/bin/bash -x
+
+cat <<EOF > /tmp/setup.sh
+    if [[ ! -e /usr/bin/unzip ]]; then
+       apt-get update && apt-get install -y unzip
+    fi
+    cd /var/atlassian/application-data/jira/plugins/installed-plugins
+    unzip -o /tmp/jira-plugin-1.0.0.obr jira-plugin-1.0.0.jar
+EOF
+
+docker cp /tmp/setup.sh helpers_jira_1:/tmp/
+
+docker cp jira-plugin/target/jira-plugin-1.0.0.obr \
+       helpers_jira_1:/tmp/
+
+docker exec -t helpers_jira_1 /bin/bash -x /tmp/setup.sh
+
+docker restart helpers_jira_1

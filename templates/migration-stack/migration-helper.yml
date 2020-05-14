@@ -125,7 +125,7 @@ Resources:
                     fi
 
                     echo 'EFS mount complete.'
-                  - { EFSID: !Ref EFSFileSystemId }
+                  - EFSID: !Ref EFSFileSystemId
                 mode: "000755"
           mount_efs:
             commands:
@@ -136,7 +136,7 @@ Resources:
               01_install_psql:
                 command: !Sub
                   - "amazon-linux-extras install -y postgresql${PSQLClientVersion}"
-                  - { PSQLClientVersion: !Ref PSQLVersion }
+                  - PSQLClientVersion: !Ref PSQLVersion
           create_rds_restore_script:
             files:
               /opt/atlassian/dc-migration-assistant/restore-db-to-rds.sh:
@@ -147,21 +147,38 @@ Resources:
                     mkdir -p $DATABASE_DOWNLOAD_DIR
                     DB_DUMP_LOG_FILE="/var/atlassian/dc-migration-assistant/pg_dump-log.txt"
                     SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
+                    if [ $? != 0 ]; then
+                      echo "ERROR: cannot fetch DB password from secret manager"
+                      exit 1
+                    fi
+
                     aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
-                    echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
-                    PGPASSWORD=$SECRET_PASSWORD pg_restore -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
-                    PG_RESTORE_EXIT_CODE=$?
-                    ERRORS_EXIST=`grep -qiE 'error|warning' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
-                    RESTORE_COMPLETE=`grep -qiE 'pg_restore: finished main parallel loop' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
-                    echo -e "{\"is_restore_complete\":\""$RESTORE_COMPLETE"\",\"is_error_present\":\""$ERRORS_EXIST"\", "return_code":\""$PG_RESTORE_EXIT_CODE"\"}"
-                  - {
-                    SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password",
-                    MigrationBucket: !Ref MigrationBucket,
-                    DBHost: !Ref RDSEndpoint,
-                    DBPort: !Ref RDSPort,
-                    DBName: !Ref RDSDbName,
+                    if [ ${pipestatus} != 0 ]; then
+                      echo "ERROR: cannot load DB dump from the S3 bucket"
+                      exit 1
+                    fi
+
+                    echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/${DBName}" | tee $DB_DUMP_LOG_FILE
+                    PGPASSWORD=$SECRET_PASSWORD pg_restore --no-owner --no-acl --clean --if-exists -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
+
+                    ERROR_OUTPUT=$(grep -iE 'error|warning' $DB_DUMP_LOG_FILE)
+
+                    if [[ -z "$ERROR_OUTPUT" ]]; then
+                            echo "SUCCESS: Database migration was successful without errors"
+                    else
+                            echo "SQL migration errors:"
+                            echo "$ERROR_OUTPUT"
+                            echo "WARNING: Database migration finished with some errors, please review the log"
+                    fi
+
+                    exit 0
+                  - SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password"
+                    MigrationBucket: !Ref MigrationBucket
+                    DBHost: !Ref RDSEndpoint
+                    DBPort: !Ref RDSPort
+                    DBName: !Ref RDSDbName
                     DBUser: "atljira"
-                  }
+                    pipestatus: ${PIPESTATUS[0]}
                 mode: "000755"
           prepare_efs_sync_script:
             packages:
@@ -176,7 +193,7 @@ Resources:
                     echo "beginning s3 sync with shared home" >> $SYNC_LOG_FILE
                     aws s3 sync s3://${MigrationBucket} /efs/jira/shared >> $SYNC_LOG_FILE 2>/var/atlassian/dc-migration-assistant/sync-error.txt
                     echo "s3 sync with shared home complete with exit code $?" >> $SYNC_LOG_FILE
-                  - { MigrationBucket: !Ref MigrationBucket }
+                  - MigrationBucket: !Ref MigrationBucket
                 mode: "000755"
               /opt/atlassian/dc-migration-assistant/home-copy-status.py:
                 content: | 
@@ -348,14 +365,12 @@ Resources:
             Statement:
               - Action: 's3:*'
                 Effect: Allow
-                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}/*', { MigrationBucket: !Ref MigrationBucket
-                }]
+                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}/*', { MigrationBucket: !Ref MigrationBucket }]
               - Action:
                   - 's3:ListBucket'
                   - 's3:HeadBucket'
                 Effect: Allow
-                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}', { MigrationBucket: !Ref MigrationBucket
-                }]
+                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}', { MigrationBucket: !Ref MigrationBucket }]
         - PolicyName: MigrationInstanceSecretReadAccess
           PolicyDocument:
             Version: 2012-10-17

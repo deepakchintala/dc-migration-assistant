@@ -18,6 +18,8 @@ package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
+import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -61,12 +63,16 @@ public class AWSMigrationServiceTest {
     private FilesystemMigrationService filesystemMigrationService;
     @Mock
     private SchedulerService schedulerService;
+    @Mock
+    private ApplicationConfiguration applicationConfiguration;
+    @Mock
+    private JiraHome jiraHome;
 
     @Before
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao);
+        sut = new AWSMigrationService(ao, applicationConfiguration, jiraHome);
         setupEntities();
     }
 
@@ -135,9 +141,13 @@ public class AWSMigrationServiceTest {
     public void shouldSetCurrentStageToErrorOnError() {
         initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
 
-        sut.error();
+        final String errorMessage = "failure";
+        sut.error(errorMessage);
 
         assertEquals(ERROR, sut.getCurrentStage());
+
+        MigrationContext context = sut.getCurrentContext();
+        assertEquals(errorMessage, context.getErrorMessage());
     }
 
     @Test

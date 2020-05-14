@@ -21,9 +21,8 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 
 import java.util.Map;
 
-public interface ApplicationDeploymentService {
+public interface ApplicationDeploymentService extends DeploymentService {
 
     void deployApplication(String deploymentId, Map<String, String> params) throws InvalidMigrationStageError;
 
-    InfrastructureDeploymentStatus getDeploymentStatus();
 }

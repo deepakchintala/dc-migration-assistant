@@ -31,7 +31,9 @@ import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
 
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,8 +56,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
     }
 
     @Test
-    void shouldBeSuccessfulWhenCommandStatusIsSuccessful() throws InvalidMigrationStageError
-    {
+    void shouldBeSuccessfulWhenCommandStatusIsSuccessful() throws InvalidMigrationStageError {
         givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS);
 
         sut.restoreDatabase(callback);
@@ -68,10 +69,42 @@ class SsmPsqlDatabaseRestoreServiceTest {
         assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase(callback));
     }
 
+    @Test
+    void shouldReturnOutputAndErrorUrls() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InvalidMigrationStageError {
+        final String mockCommandId = "fake-command";
+        final String mockInstance = "i-0353cc9a8ad7dafc2";
+        final String errorMessage = "error-message";
+        final String s3bucket = "s3bucket";
+        final String s3prefix = "s3prefix";
+
+        final SsmPsqlDatabaseRestoreService spy = spy(sut);
+        when(spy.getCommandId()).thenReturn(mockCommandId);
+
+        when(migrationHelperDeploymentService.getMigrationHostInstanceId()).thenReturn(mockInstance);
+        when(migrationHelperDeploymentService.getMigrationS3BucketName()).thenReturn(s3bucket);
+        when(ssmApi.getSsmS3KeyPrefix()).thenReturn(s3prefix);
+        when(ssmApi.getSSMCommand(mockCommandId, mockInstance)).thenReturn(
+                GetCommandInvocationResponse.builder()
+                        .instanceId(mockInstance)
+                        .commandId(mockCommandId)
+                        .standardErrorContent(errorMessage)
+                        .build()
+        );
+
+        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
+
+        assertEquals("error-message", commandOutputs.errorMessage);
+        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
+                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
+    }
+
     private void givenCommandCompletesWithStatus(CommandInvocationStatus status) {
         final String mockCommandId = "fake-command";
         final String mockInstance = "i-0353cc9a8ad7dafc2";
         final String mocument = "ssm-document";
+        final String outputUrl = "output-url";
+        final String errorUrl = "error-url";
+
         when(migrationHelperDeploymentService.getDbRestoreDocument()).thenReturn(mocument);
         when(migrationHelperDeploymentService.getMigrationHostInstanceId()).thenReturn(mockInstance);
 
@@ -80,6 +113,8 @@ class SsmPsqlDatabaseRestoreServiceTest {
         when(ssmApi.getSSMCommand(mockCommandId, mockInstance)).thenReturn(
                 (GetCommandInvocationResponse) GetCommandInvocationResponse.builder()
                         .status(status)
+                        .standardOutputUrl(outputUrl)
+                        .standardErrorUrl(errorUrl)
                         .sdkHttpResponse(SdkHttpResponse.builder().statusText("it failed").build())
                         .build()
         );

@@ -17,13 +17,19 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
+import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
+import com.atlassian.migration.datacenter.spi.MigrationReadyStatus;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,12 +46,16 @@ import static java.util.Objects.requireNonNull;
 public class AWSMigrationService implements MigrationService {
     private static final Logger log = LoggerFactory.getLogger(AWSMigrationService.class);
     private ActiveObjects ao;
+    private ApplicationConfiguration applicationConfiguration;
+    private JiraHome jiraHome;
 
     /**
      * Creates a new, unstarted AWS Migration
      */
-    public AWSMigrationService(ActiveObjects ao) {
+    public AWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome) {
         this.ao = requireNonNull(ao);
+        this.applicationConfiguration = applicationConfiguration;
+        this.jiraHome = jiraHome;
     }
 
     @Override
@@ -106,15 +116,30 @@ public class AWSMigrationService implements MigrationService {
     }
 
     @Override
-    public void error() {
+    public MigrationReadyStatus getReadyStatus()
+    {
+        long MAX_FS_SIZE = 1024L * 1024L * 1024L * 400L;
+        long size = FileUtils.sizeOfDirectory(jiraHome.getHome());
+
+        Boolean fs = size < MAX_FS_SIZE;
+        Boolean db = applicationConfiguration.getDatabaseConfiguration().getType() == DatabaseConfiguration.DBType.POSTGRESQL;
+        Boolean os = SystemUtils.IS_OS_LINUX;
+        return new MigrationReadyStatus(db, os, fs);
+    }
+
+    @Override
+    public void error(String message) {
         Migration migration = findFirstOrCreateMigration();
         setCurrentStage(migration, ERROR);
+        MigrationContext context = getCurrentContext();
+        context.setErrorMessage(message);
+        context.save();
     }
 
     @Override
     public void error(Throwable e)
     {
-        error();
+        error(e.getMessage());
         findFirstOrCreateMigration().getStage().setException(Optional.of(e));
     }
 

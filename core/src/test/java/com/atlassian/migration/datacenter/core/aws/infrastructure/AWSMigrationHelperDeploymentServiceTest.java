@@ -21,6 +21,7 @@ import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     static final String MIGRATION_ASG = "migration-asg";
     static final String MIGRATION_BUCKET = "migration-bucket";
     static final String MIGRATION_HOST_INSTANCE_ID = "i-12345";
+    public static final String DEPLOYMENT_FAILURE_MESSAGE = "it broke";
 
     @Mock
     CfnApi mockCfn;
@@ -106,7 +108,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     void shouldProvisionCloudformationStack() {
         givenMigrationStackHasStartedDeploying();
 
-        verify(mockCfn).provisionStack("https://trebuchet-aws-resources.s3.amazonaws.com/migration-helper.yml", DEPLOYMENT_ID, Collections.emptyMap());
+        verify(mockCfn).provisionStack("https://trebuchet-public-resources.s3.amazonaws.com/migration-helper.yml", DEPLOYMENT_ID, Collections.emptyMap());
     }
 
     @Test
@@ -115,7 +117,7 @@ class AWSMigrationHelperDeploymentServiceTest {
         givenMigrationStackHasStartedDeploying();
         givenMigrationStackNameHasBeenStoredInContext();
 
-        assertEquals(InfrastructureDeploymentStatus.CREATE_IN_PROGRESS, sut.getDeploymentStatus());
+        assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, sut.getDeploymentStatus().getState());
     }
 
     @Test
@@ -126,7 +128,7 @@ class AWSMigrationHelperDeploymentServiceTest {
 
         Thread.sleep(100);
 
-        assertEquals(InfrastructureDeploymentStatus.CREATE_COMPLETE, sut.getDeploymentStatus());
+        assertEquals(InfrastructureDeploymentState.CREATE_COMPLETE, sut.getDeploymentStatus().getState());
     }
 
     @Test
@@ -137,7 +139,9 @@ class AWSMigrationHelperDeploymentServiceTest {
 
         Thread.sleep(100);
 
-        assertEquals(InfrastructureDeploymentStatus.CREATE_FAILED, sut.getDeploymentStatus());
+        InfrastructureDeploymentStatus status = sut.getDeploymentStatus();
+        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, status.getState());
+        assertEquals(DEPLOYMENT_FAILURE_MESSAGE, status.getReason());
     }
 
     @Test
@@ -196,12 +200,12 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     private void givenMigrationStackDeploymentWillBeInProgress() {
         givenContextContainsMigrationHelperStackId();
-        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(StackStatus.CREATE_IN_PROGRESS);
+        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_IN_PROGRESS, ""));
     }
 
     private void givenMigrationStackDeploymentWillCompleteSuccessfully() {
         givenContextContainsMigrationHelperStackId();
-        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(StackStatus.CREATE_COMPLETE);
+        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_COMPLETE, ""));
 
         Stack completedStack = Stack.builder()
                 .outputs(Output.builder().outputKey("DownloadSSMDocument").outputValue(FS_DOWNLOAD_DOC).build(),
@@ -230,7 +234,7 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     private void givenMigrationStackDeploymentWillFail() {
         givenContextContainsMigrationHelperStackId();
-        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(StackStatus.CREATE_FAILED);
+        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_FAILED, DEPLOYMENT_FAILURE_MESSAGE));
     }
 
     private void givenContextContainsMigrationHelperStackId() {

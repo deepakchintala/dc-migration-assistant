@@ -17,24 +17,29 @@
 package com.atlassian.migration.api
 
 import com.atlassian.migration.test.BaseRestTest
-import io.restassured.builder.RequestSpecBuilder
-import io.restassured.filter.log.LogDetail
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
+import org.hamcrest.CoreMatchers.anyOf
+import org.hamcrest.CoreMatchers.equalTo
 import org.junit.jupiter.api.Test
 import javax.ws.rs.core.Response
 
 class MigrationEndpointRestTest : BaseRestTest() {
 
     @Test
-    fun `Migration endpoint should return 404 if not initialised`() {
+    fun `Migration endpoint should return 404 if not initialised or 200 when it was created`() {
         Given {
             spec(requestSpec)
         } When {
             get("/migration")
         } Then {
-            statusCode(Response.Status.NOT_FOUND.statusCode)
+            statusCode(
+                anyOf(
+                    equalTo(Response.Status.NOT_FOUND.statusCode),
+                    equalTo(Response.Status.OK.statusCode)
+                )
+            )
         }
     }
 }

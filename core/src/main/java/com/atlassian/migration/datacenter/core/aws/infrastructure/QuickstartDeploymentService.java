@@ -37,8 +37,14 @@ import java.util.Optional;
 
 public class QuickstartDeploymentService extends CloudformationDeploymentService implements ApplicationDeploymentService {
 
+    static final String SERVICE_URL_STACK_OUTPUT_KEY = "ServiceURL";
+    static final String DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY = "DBEndpointAddress";
+    static final String SECURITY_GROUP_NAME_STACK_OUTPUT_KEY = "SGname";
+
     private final Logger logger = LoggerFactory.getLogger(QuickstartDeploymentService.class);
-    private static final String QUICKSTART_TEMPLATE_URL = "https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc-with-vpc.template.yaml";
+    private static final String QUICKSTART_TEMPLATE_URL = "https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.yaml";
+
+    private static final String templateUrl = System.getProperty("quickstart.template.url", QUICKSTART_TEMPLATE_URL);
 
     private final MigrationService migrationService;
     private final TargetDbCredentialsStorageService dbCredentialsStorageService;
@@ -70,7 +76,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         migrationService.transition(MigrationStage.PROVISION_APPLICATION_WAIT);
 
         logger.info("deploying application stack");
-        super.deployCloudformationStack(QUICKSTART_TEMPLATE_URL, deploymentId, params);
+        super.deployCloudformationStack(templateUrl, deploymentId, params);
 
         addDeploymentIdToMigrationContext(deploymentId);
 
@@ -78,9 +84,9 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     }
 
     @Override
-    protected void handleFailedDeployment() {
+    protected void handleFailedDeployment(String error) {
         logger.error("application stack deployment failed");
-        migrationService.error();
+        migrationService.error(error);
     }
 
     @Override
@@ -98,6 +104,8 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
             Stack applicationStack = maybeStack.get();
             Map<String, String> applicationStackOutputsMap = new HashMap<>();
             applicationStack.outputs().forEach(output -> applicationStackOutputsMap.put(output.outputKey(), output.outputValue()));
+
+            storeServiceURLInContext(applicationStackOutputsMap.get(SERVICE_URL_STACK_OUTPUT_KEY));
 
             String exportPrefix = applicationStack.parameters().stream()
                     .filter(parameter -> parameter.parameterKey().equals("ExportPrefix"))
@@ -119,9 +127,9 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
             HashMap<String, String> migrationStackParams = new HashMap<String, String>() {{
                put("NetworkPrivateSubnet", cfnExports.get(exportPrefix + "PriNets").split(",")[0]);
                put("EFSFileSystemId", efsId);
-               put("EFSSecurityGroup", applicationStackOutputsMap.get("SGname"));
-               put("RDSSecurityGroup", applicationStackOutputsMap.get("SGname"));
-               put("RDSEndpoint", applicationStackOutputsMap.get("DBEndpointAddress"));
+               put("EFSSecurityGroup", applicationStackOutputsMap.get(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY));
+               put("RDSSecurityGroup", applicationStackOutputsMap.get(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY));
+               put("RDSEndpoint", applicationStackOutputsMap.get(DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY));
                put("HelperInstanceType", "c5.large");
                put("HelperVpcId", cfnExports.get(exportPrefix + "VPCID"));
             }};
@@ -130,8 +138,16 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
 
         } catch (InvalidMigrationStageError invalidMigrationStageError) {
             logger.error("tried to transition migration from {} but got error: {}.", MigrationStage.PROVISION_APPLICATION_WAIT, invalidMigrationStageError.getMessage());
-            migrationService.error();
+            migrationService.error(invalidMigrationStageError.getMessage());
         }
+    }
+
+    private void storeServiceURLInContext(String serviceUrl) {
+        logger.info("Storing service URL in migration context");
+
+        MigrationContext context = migrationService.getCurrentContext();
+        context.setServiceUrl(serviceUrl);
+        context.save();
     }
 
     private void storeDbCredentials(Map<String, String> params) {

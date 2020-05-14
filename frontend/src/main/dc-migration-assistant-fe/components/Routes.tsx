@@ -18,36 +18,56 @@ import React, { FunctionComponent } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
-import { overviewPath, homePath, awsBasePath, fsPath, dbPath } from '../utils/RoutePaths';
-import { MigrationOverview } from './MigrationOverview';
+import {
+    homePath,
+    awsBasePath,
+    fsPath,
+    warningPath,
+    dbPath,
+    validationPath,
+    migrationErrorPath,
+} from '../utils/RoutePaths';
 import { FileSystemTransferPage } from './fs/FileSystemTransfer';
 import { DatabaseTransferPage } from './db/DatabaseMigration';
 import { Home } from './Home';
 import { AWSRoutes } from './aws/AwsRoutes';
+import { ValidateStagePage } from './stage/Validation';
+import { WarningStagePage } from './warning/WarningStage';
+import { MigrationStageRenderer } from './MigrationStageRenderer';
+import { MigrationErrorPage } from './MigrationErrorPage';
 
-export const App: FunctionComponent = () => (
+export const Routes: FunctionComponent = () => (
     <Router>
         <Switch>
-            <Route exact path={overviewPath}>
-                <MigrationOverview />
-            </Route>
             <Route path={awsBasePath}>
                 <AWSRoutes />
             </Route>
-            <Route path={fsPath}>
+            <Route exact path={fsPath}>
                 <FileSystemTransferPage />
             </Route>
-            <Route path={dbPath}>
+            <Route exact path={warningPath}>
+                <WarningStagePage />
+            </Route>
+            <Route exact path={dbPath}>
                 <DatabaseTransferPage />
+            </Route>
+            <Route exact path={validationPath}>
+                <ValidateStagePage />
+            </Route>
+            <Route exact path={migrationErrorPath}>
+                <MigrationErrorPage />
             </Route>
             <Route exact path={homePath}>
                 <Home
                     title={I18n.getText('atlassian.migration.datacenter.home.title')}
                     synopsis={I18n.getText('atlassian.migration.datacenter.home.synopsis')}
-                    exploreMigrationButtonText={I18n.getText(
-                        'atlassian.migration.datacenter.home.explore.migration'
+                    startButtonText={I18n.getText(
+                        'atlassian.migration.datacenter.home.migration.start'
                     )}
                 />
+            </Route>
+            <Route default>
+                <MigrationStageRenderer />
             </Route>
         </Switch>
     </Router>

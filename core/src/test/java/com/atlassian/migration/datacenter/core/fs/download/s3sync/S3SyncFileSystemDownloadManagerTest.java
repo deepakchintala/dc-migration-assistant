@@ -49,6 +49,7 @@ class S3SyncFileSystemDownloadManagerTest {
             progress.reportFileUploaded();
         }
 
+        when(mockStatus.isComplete()).thenReturn(true);
         sut.downloadFileSystem(progress);
 
         Thread.sleep(1000);
