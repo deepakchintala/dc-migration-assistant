@@ -63,6 +63,7 @@ import com.atlassian.util.concurrent.Supplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -247,8 +248,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public FilesystemMigrationService filesystemMigrationService(S3SyncFileSystemDownloadManager downloadManager, MigrationService migrationService, MigrationRunner migrationRunner, JiraIssueAttachmentListener attachmentListener, S3BulkCopy bulkCopy) {
-        return new S3FilesystemMigrationService(downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy);
+    public FilesystemMigrationService filesystemMigrationService(Environment environment, S3SyncFileSystemDownloadManager downloadManager, MigrationService migrationService, MigrationRunner migrationRunner, JiraIssueAttachmentListener attachmentListener, S3BulkCopy bulkCopy) {
+        return new S3FilesystemMigrationService(environment, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy);
     }
 
     @Bean

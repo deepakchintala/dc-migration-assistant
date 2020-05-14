@@ -30,6 +30,7 @@ import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationRe
 import com.atlassian.scheduler.config.JobId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DONE;
@@ -40,6 +41,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     private static final Logger logger = LoggerFactory.getLogger(S3FilesystemMigrationService.class);
 
 
+    private final Environment environment;
     private final MigrationService migrationService;
     private final MigrationRunner migrationRunner;
     private final S3SyncFileSystemDownloadManager fileSystemDownloadManager;
@@ -48,11 +50,12 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
 
     private FileSystemMigrationReport report;
 
-    public S3FilesystemMigrationService(S3SyncFileSystemDownloadManager fileSystemDownloadManager,
+    public S3FilesystemMigrationService(Environment environment, S3SyncFileSystemDownloadManager fileSystemDownloadManager,
                                         MigrationService migrationService,
                                         MigrationRunner migrationRunner,
                                         JiraIssueAttachmentListener attachmentListener,
                                         S3BulkCopy bulkCopy) {
+        this.environment = environment;
         this.migrationService = migrationService;
         this.migrationRunner = migrationRunner;
         this.fileSystemDownloadManager = fileSystemDownloadManager;
@@ -99,7 +102,12 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         }
 
         migrationService.transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
-        attachmentListener.start();
+
+        for (String profile : environment.getActiveProfiles()) {
+            if (profile.equals("gaFeature")) {
+                attachmentListener.start();
+            }
+        }
 
         report = new DefaultFileSystemMigrationReport();
         bulkCopy.bindMigrationReport(report);

@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -55,6 +56,7 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
@@ -119,9 +121,12 @@ class S3FilesystemMigrationServiceIT {
         when(jiraHome.getHome()).thenReturn(dir.toFile());
         when(migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
 
+        Environment environment = mock(Environment.class);
+        when(environment.getActiveProfiles()).thenReturn(new String[]{});
+
         Path file = genRandFile();
 
-        S3FilesystemMigrationService fsService = new S3FilesystemMigrationService(fileSystemDownloader, migrationService, migrationRunner, attachmentListener, bulkCopy);
+        S3FilesystemMigrationService fsService = new S3FilesystemMigrationService(environment, fileSystemDownloader, migrationService, migrationRunner, attachmentListener, bulkCopy);
 
         fsService.startMigration();
 
