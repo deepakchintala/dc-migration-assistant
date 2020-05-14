@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.fs.captor;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +27,11 @@ public class DefaultAttachmentPathCaptor implements AttachmentPathCaptor {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultAttachmentPathCaptor.class);
     private final ActiveObjects ao;
+    private final MigrationService migrationService;
 
-    public DefaultAttachmentPathCaptor(ActiveObjects ao) {
+    public DefaultAttachmentPathCaptor(ActiveObjects ao, MigrationService migrationService) {
         this.ao = ao;
+        this.migrationService = migrationService;
     }
 
     @Override
@@ -38,6 +41,8 @@ public class DefaultAttachmentPathCaptor implements AttachmentPathCaptor {
         FileSyncRecord record = ao.create(FileSyncRecord.class);
 
         record.setFilePath(attachmentPath.toString());
+        // FIXME: Should we cache the migration identifier so we don't hit the DB twice every time we capture a path?
+        record.setMigration(migrationService.getCurrentMigration());
 
         record.save();
     }
