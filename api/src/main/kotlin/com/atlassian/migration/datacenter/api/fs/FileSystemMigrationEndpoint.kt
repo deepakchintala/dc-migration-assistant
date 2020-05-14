@@ -15,6 +15,7 @@
  */
 package com.atlassian.migration.datacenter.api.fs
 
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.fasterxml.jackson.annotation.JsonAutoDetect
@@ -31,7 +32,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/migration/fs")
-class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigrationService) {
+class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigrationService, private val attachmentSyncManager: AttachmentSyncManager) {
     private val mapper: ObjectMapper = ObjectMapper()
 
     @PUT
@@ -57,6 +58,16 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
                 .entity(mapOf("error" to invalidMigrationStageError.message))
                 .build()
         }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("final-sync")
+    fun getFinalSyncFiles(): Response {
+        return Response
+                .status(Response.Status.OK)
+                .entity(mapOf("files" to attachmentSyncManager.capturedAttachments))
+                .build()
     }
 
     @Path("/report")
