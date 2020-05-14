@@ -16,6 +16,7 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor;
 
+
 import java.nio.file.Path;
 
 @FunctionalInterface
