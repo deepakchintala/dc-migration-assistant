@@ -51,6 +51,7 @@
         <module>jira-plugin</module>
         <module>spi</module>
         <module>filesystem-processor</module>
+        <module>ec2-mock-metadata</module>
     </modules>
 
 
