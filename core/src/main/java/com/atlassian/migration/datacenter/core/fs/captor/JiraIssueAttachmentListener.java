@@ -21,12 +21,14 @@ import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
+import com.atlassian.jira.issue.attachment.Attachment;
 import com.atlassian.jira.issue.attachment.AttachmentStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 
 import java.io.File;
+import java.util.Collection;
 
 public class JiraIssueAttachmentListener implements DisposableBean {
 
@@ -45,16 +47,23 @@ public class JiraIssueAttachmentListener implements DisposableBean {
 
     @EventListener
     public void onIssueEvent(IssueEvent issueEvent) {
-        logger.trace("received jira event with type {}", issueEvent.getEventTypeId());
         if (issueEvent.getEventTypeId().equals(EventType.ISSUE_CREATED_ID)) {
             logger.trace("got issue created event");
-            issueEvent
-                .getIssue()
-                .getAttachments()
-                .stream()
-                .map(this.attachmentStore::getAttachmentFile)
-                .map(File::toPath)
-                .forEach(this.attachmentPathCaptor::captureAttachmentPath);
+            Collection<Attachment> attachments = issueEvent
+                    .getIssue()
+                    .getAttachments();
+
+            attachments
+                    .stream()
+                    .map(this.attachmentStore::getAttachmentFile)
+                    .map(File::toPath)
+                    .forEach(this.attachmentPathCaptor::captureAttachmentPath);
+            attachments
+                    .stream()
+                    .map(attachment -> attachmentStore.getThumbnailFile(attachment))
+                    .map(File::toPath)
+                    .forEach(this.attachmentPathCaptor::captureAttachmentPath);
+
         }
     }
 
