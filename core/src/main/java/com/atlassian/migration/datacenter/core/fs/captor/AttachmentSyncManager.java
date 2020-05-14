@@ -16,10 +16,10 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor;
 
+import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 
-import java.nio.file.Path;
+import java.util.Set;
 
-@FunctionalInterface
-public interface AttachmentPathCaptor {
-    void captureAttachmentPath(Path attachmentPath);
+public interface AttachmentSyncManager extends AttachmentPathCaptor {
+    Set<FileSyncRecord> getCapturedAttachments();
 }

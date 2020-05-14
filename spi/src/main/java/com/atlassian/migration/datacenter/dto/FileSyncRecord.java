@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.captor;
+package com.atlassian.migration.datacenter.dto;
 
+import net.java.ao.Entity;
 
-import java.nio.file.Path;
+public interface FileSyncRecord extends Entity {
+    /**
+     * @return the migration that this file was captured in
+     */
+    Migration getMigration();
+    void setMigration(Migration migration);
 
-@FunctionalInterface
-public interface AttachmentPathCaptor {
-    void captureAttachmentPath(Path attachmentPath);
+    String getFilePath();
+    void setFilePath(String path);
 }

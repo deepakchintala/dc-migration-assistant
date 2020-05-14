@@ -47,9 +47,7 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
-import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentPathCaptor;
-import com.atlassian.migration.datacenter.core.fs.captor.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
@@ -265,10 +263,5 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public AWSMigrationHelperDeploymentService awsMigrationHelperDeploymentService(CfnApi cfnApi, MigrationService migrationService, Supplier<AutoScalingClient> autoScalingClientFactory) {
         return new AWSMigrationHelperDeploymentService(cfnApi, autoScalingClientFactory, migrationService);
-    }
-
-    @Bean
-    public AttachmentPathCaptor attachmentCaptor() {
-        return new DefaultAttachmentPathCaptor();
     }
 }

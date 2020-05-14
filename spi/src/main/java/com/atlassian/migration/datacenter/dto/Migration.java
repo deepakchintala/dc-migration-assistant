@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.dto;
 
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import net.java.ao.Entity;
+import net.java.ao.OneToMany;
 import net.java.ao.OneToOne;
 
 public interface Migration extends Entity {
@@ -28,5 +29,8 @@ public interface Migration extends Entity {
 
     @OneToOne(reverse = "getMigration")
     MigrationContext getContext();
+
+    @OneToMany(reverse = "getMigration")
+    FileSyncRecord[] getRecords();
 
 }

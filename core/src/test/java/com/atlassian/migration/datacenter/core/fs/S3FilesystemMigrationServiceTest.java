@@ -18,7 +18,7 @@ package com.atlassian.migration.datacenter.core.fs;
 
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
-import com.atlassian.migration.datacenter.core.fs.captor.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;

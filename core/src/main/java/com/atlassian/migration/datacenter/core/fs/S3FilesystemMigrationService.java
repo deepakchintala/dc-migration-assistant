@@ -16,7 +16,7 @@
 
 package com.atlassian.migration.datacenter.core.fs;
 
-import com.atlassian.migration.datacenter.core.fs.captor.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
@@ -50,7 +50,8 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
 
     private FileSystemMigrationReport report;
 
-    public S3FilesystemMigrationService(Environment environment, S3SyncFileSystemDownloadManager fileSystemDownloadManager,
+    public S3FilesystemMigrationService(Environment environment,
+                                        S3SyncFileSystemDownloadManager fileSystemDownloadManager,
                                         MigrationService migrationService,
                                         MigrationRunner migrationRunner,
                                         JiraIssueAttachmentListener attachmentListener,
