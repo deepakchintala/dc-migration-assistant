@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import java.util.stream.Collectors
 import javax.ws.rs.Consumes
 import javax.ws.rs.DELETE
 import javax.ws.rs.GET
@@ -64,9 +65,14 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
     @Produces(MediaType.APPLICATION_JSON)
     @Path("final-sync")
     fun getFinalSyncFiles(): Response {
+        val files = attachmentSyncManager.capturedAttachments
+                .stream()
+                .map { record -> record.filePath }
+                .collect(Collectors.toSet())
+
         return Response
                 .status(Response.Status.OK)
-                .entity(mapOf("files" to attachmentSyncManager.capturedAttachments))
+                .entity(mapOf("files" to files))
                 .build()
     }
 
