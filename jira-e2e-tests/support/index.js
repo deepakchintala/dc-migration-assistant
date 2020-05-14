@@ -1,12 +1,32 @@
 /// <reference types="Cypress" />
 
 
-export const baseURL = 'http://localhost:2990/jira';
-export const welcomeURL = baseURL+'/secure/WelcomeToJIRA.jspa'
-export const loginURL = baseURL+'/login.jsp';
-export const sudoURL = baseURL+'/secure/admin/WebSudoAuthenticate!default.jspa';
-export const migrationBase = baseURL+'/plugins/servlet/dc-migration-assistant';
-export const migrationHome = migrationBase;
+// export const baseURL = 'http://localhost:2990/jira';
+// export const welcomeURL = baseURL+'/secure/WelcomeToJIRA.jspa'
+// export const loginURL = baseURL+'/login.jsp';
+// export const sudoURL = baseURL+'/secure/admin/WebSudoAuthenticate!default.jspa';
+// export const migrationBase = baseURL+'/plugins/servlet/dc-migration-assistant';
+// export const migrationHome = migrationBase;
+
+export const gen_context = (base, context) => {
+    const baseURL = base+context;
+    const migrationBase = baseURL+'/plugins/servlet/dc-migration-assistant';
+
+    return {
+        base: base,
+        context: context,
+        baseURL: baseURL,
+        welcomeURL: baseURL+'/secure/WelcomeToJIRA.jspa',
+        loginURL: baseURL+'/login.jsp',
+        sudoURL: baseURL+'/secure/admin/WebSudoAuthenticate!default.jspa',
+        migrationBase: migrationBase,
+        migrationHome: migrationBase+'/home';
+    };
+};
+
+export const amps_context = gen_context('http://localhost:2990', '/jira');
+export const devserver_context = gen_context('http://localhost:3333', '');
+
 
 Cypress.Commands.add('jira_login', (uname, passwd) => {
     cy.visit(loginURL);

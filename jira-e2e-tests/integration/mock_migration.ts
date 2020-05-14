@@ -11,12 +11,12 @@ describe('Database Migration page', () => {
         })
         cy.server();
 
-        cy.jira_login('admin', 'admin');
+//        cy.jira_login('admin', 'admin');
     });
 
     it('End to end mocked', () => {
 
-        scenarios.mock_end2end();
+        scenarios.mock_end2end(jira.devserver_context);
 
     });
 

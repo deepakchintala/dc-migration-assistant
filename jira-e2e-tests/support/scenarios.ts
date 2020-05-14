@@ -1,17 +1,17 @@
 /// <reference types="Cypress" />
-import * as jira from './';
 
-export const mock_end2end = () => {
+export const mock_end2end = (ctx: any) => {
+
         // Initial/global mock responses
         cy.route({
             method: 'GET',
-            url: '/jira/rest/dc-migration/1.0/migration',
+            url: ctx.context+'/rest/dc-migration/1.0/migration',
             response: {"stage":"not_started"}
         }).as('stage_not_started');
 
         cy.route({
             method: 'GET',
-            url: '/jira/rest/dc-migration/1.0/migration/ready',
+            url: ctx.context+'/rest/dc-migration/1.0/migration/ready',
             response: {
                 dbCompatible: true,
                 osCompatible: true,
@@ -20,25 +20,25 @@ export const mock_end2end = () => {
         }).as("ready");
         cy.route({
             method: 'POST',
-            url: '/jira/rest/dc-migration/1.0/migration',
+            url: ctx.context+'/rest/dc-migration/1.0/migration',
             response: {},
         });
 
         cy.route({
             method: 'POST',
-            url: '/jira/rest/dc-migration/1.0/aws/configure',
+            url: ctx.context+'/rest/dc-migration/1.0/aws/configure',
             status: 204,
             response: {},
         });
 
         cy.route({
             method: 'GET',
-            url: '/jira/rest/dc-migration/1.0/aws/availabilityZones',
+            url: ctx.context+'/rest/dc-migration/1.0/aws/availabilityZones',
             response: ["ap-southeast-2a","ap-southeast-2b","ap-southeast-2c"]
         });
         cy.route({
             method: 'POST',
-            url: '/jira/rest/dc-migration/1.0/aws/stack/create',
+            url: ctx.context+'/rest/dc-migration/1.0/aws/stack/create',
             status: 202,
             response: {},
         });
@@ -46,7 +46,7 @@ export const mock_end2end = () => {
         // ******************** start ******************** //
 
         // Home; should be no migration; start one
-        cy.visit(jira.migrationHome);
+        cy.visit(ctx.migrationHome);
         cy.wait('@ready');
         cy.screenshot("home-ready-ok")
 
@@ -56,13 +56,13 @@ export const mock_end2end = () => {
 
         cy.route({
             method: 'GET',
-            url: '/jira/rest/dc-migration/1.0/migration',
+            url: ctx.context+'/rest/dc-migration/1.0/migration',
             response: {"stage":"provision_application_wait"}
         }).as('stage_provision_application_wait');
 
         // AWS auth page.
         cy.location().should((loc: Location) => {
-            expect(loc.pathname).to.eq("/jira/plugins/servlet/dc-migration-assistant/aws/auth")
+            expect(loc.pathname).to.eq(ctx.context+'/plugins/servlet/dc-migration-assistant/aws/auth')
         });
 
         cy.get('[data-test=aws-auth-key]').type('AWS_KEY');
@@ -80,7 +80,7 @@ export const mock_end2end = () => {
         // Note: These names are generated from the QS yaml
         cy.route({
             method: 'GET',
-            url: '/jira/rest/dc-migration/1.0/aws/stack/status',
+            url: ctx.context+'/rest/dc-migration/1.0/aws/stack/status',
             response: {"status":{"state":"CREATE_IN_PROGRESS","reason":"User Initiated"},"phase":"app_infra"}
         }).as('status1');
 
@@ -102,7 +102,7 @@ export const mock_end2end = () => {
 //        cy.wait('@status1', {timeout: 60000});
         // cy.route({
         //     method: 'GET',
-        //     url: '/jira/rest/dc-migration/1.0/aws/stack/status',
+        //     url: ctx.context+'/rest/dc-migration/1.0/aws/stack/status',
         //     response: {"status":{"state":"CREATE_COMPLETE","reason":"User Initiated"},"phase":"app_infra"}
         // }).as('status2');
         // cy.wait('@status2', {timeout: 60000});
