@@ -53,6 +53,7 @@ import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSyst
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
+import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
@@ -260,7 +261,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AttachmentPathCaptor attachmentCaptor() {
-        return new DefaultAttachmentPathCaptor();
+    public AttachmentPathCaptor attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService) {
+        return new DefaultAttachmentPathCaptor(activeObjects, migrationService);
     }
 }
