@@ -151,8 +151,8 @@ class JiraIssueAttachmentListenerTest {
         when(this.attachmentStore.getAttachmentFile(aMockAttachment)).thenReturn(new File(A_MOCK_ATTACHMENT_PATH));
         when(this.attachmentStore.getAttachmentFile(anotherMockAttachment)).thenReturn(new File(ANOTHER_MOCK_ATTACHMENT_PATH));
 
-        when(aMockAttachment.isThumbnailable()).thenReturn(includeThumbnails);
-        when(anotherMockAttachment.isThumbnailable()).thenReturn(includeThumbnails);
+//        when(aMockAttachment.isThumbnailable()).thenReturn(includeThumbnails);
+//        when(anotherMockAttachment.isThumbnailable()).thenReturn(includeThumbnails);
 
         if (includeThumbnails) {
             when(this.attachmentStore.getThumbnailFile(aMockAttachment)).thenReturn(new File(A_MOCK_ATTACHMENT_THUMBNAIL_PATH));

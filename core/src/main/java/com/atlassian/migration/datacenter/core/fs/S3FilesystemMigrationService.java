@@ -106,7 +106,10 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
 
         for (String profile : environment.getActiveProfiles()) {
             if (profile.equals("gaFeature")) {
+                logger.info("detected GA feature flag. Enabling file listener");
                 attachmentListener.start();
+            } else {
+                logger.trace("not enabling file listener");
             }
         }
 

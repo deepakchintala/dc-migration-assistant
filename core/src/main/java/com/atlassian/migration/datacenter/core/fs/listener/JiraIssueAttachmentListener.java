@@ -32,6 +32,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class JiraIssueAttachmentListener implements DisposableBean {
 
@@ -66,8 +67,10 @@ public class JiraIssueAttachmentListener implements DisposableBean {
 
             attachments
                     .stream()
-                    .filter(Attachment::isThumbnailable)
+                    // FIXME: I lie about thumbnailable
+                    //.filter(Attachment::isThumbnailable)
                     .map(attachmentStore::getThumbnailFile)
+                    .filter(Objects::nonNull)
                     .map(File::toPath)
                     .forEach(this.attachmentPathCaptor::captureAttachmentPath);
         }

@@ -78,7 +78,7 @@ export const fs = {
     },
 
     getCapturedFiles: async (): Promise<Array<string>> => {
-        const result = await callAppRest('PUT', RestApiPathConstants.fsStartRestPath);
+        const result = await callAppRest('GET', RestApiPathConstants.fsFinalSyncPath);
         const capturedFiles = (await result.json()) as GetFinalSyncResponse;
         return capturedFiles.files || [];
     },
