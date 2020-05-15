@@ -67,7 +67,7 @@ public class JiraIssueAttachmentListener implements DisposableBean {
 
             attachments
                     .stream()
-                    // FIXME: I create NPE's...
+                    // FIXME: I lie about thumbnailable
                     //.filter(Attachment::isThumbnailable)
                     .map(attachmentStore::getThumbnailFile)
                     .filter(Objects::nonNull)
