@@ -66,7 +66,8 @@ public class JiraIssueAttachmentListener implements DisposableBean {
 
             attachments
                     .stream()
-                    .filter(Attachment::isThumbnailable)
+                    // FIXME: I create NPE's...
+                    //.filter(Attachment::isThumbnailable)
                     .map(attachmentStore::getThumbnailFile)
                     .map(File::toPath)
                     .forEach(this.attachmentPathCaptor::captureAttachmentPath);
