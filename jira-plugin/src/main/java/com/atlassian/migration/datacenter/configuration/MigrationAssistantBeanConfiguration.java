@@ -16,8 +16,13 @@
 
 package com.atlassian.migration.datacenter.configuration;
 
+import java.nio.file.Paths;
+import java.util.function.Supplier;
+
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
@@ -47,29 +52,31 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
-import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
+import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
+import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.scheduler.SchedulerService;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
-
-import java.nio.file.Paths;
-import java.util.function.Supplier;
 
 @Configuration
 //ComponentScan is required only because IDEA seems to need it.
@@ -263,5 +270,15 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public AWSMigrationHelperDeploymentService awsMigrationHelperDeploymentService(CfnApi cfnApi, MigrationService migrationService, Supplier<AutoScalingClient> autoScalingClientFactory) {
         return new AWSMigrationHelperDeploymentService(cfnApi, autoScalingClientFactory, migrationService);
+    }
+
+    @Bean
+    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentPathCaptor attachmentPathCaptor, AttachmentStore attachmentStore) {
+        return new JiraIssueAttachmentListener(eventPublisher, attachmentPathCaptor, attachmentStore);
+    }
+
+    @Bean
+    public AttachmentSyncManager attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService) {
+        return new DefaultAttachmentSyncManager(activeObjects, migrationService);
     }
 }
