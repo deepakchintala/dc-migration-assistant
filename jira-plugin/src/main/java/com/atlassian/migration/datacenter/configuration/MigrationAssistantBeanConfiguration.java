@@ -20,7 +20,9 @@ import java.nio.file.Paths;
 import java.util.function.Supplier;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
@@ -50,6 +52,7 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
@@ -267,6 +270,11 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public AWSMigrationHelperDeploymentService awsMigrationHelperDeploymentService(CfnApi cfnApi, MigrationService migrationService, Supplier<AutoScalingClient> autoScalingClientFactory) {
         return new AWSMigrationHelperDeploymentService(cfnApi, autoScalingClientFactory, migrationService);
+    }
+
+    @Bean
+    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentPathCaptor attachmentPathCaptor, AttachmentStore attachmentStore) {
+        return new JiraIssueAttachmentListener(eventPublisher, attachmentPathCaptor, attachmentStore);
     }
 
     @Bean
