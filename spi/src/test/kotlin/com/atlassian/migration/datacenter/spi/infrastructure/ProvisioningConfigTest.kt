@@ -19,7 +19,7 @@ class ProvisioningConfigTest {
                 put("instanceCount", 2)
             }
         })
-        val params = config.getParams()
+        val params = config.params
         Assertions.assertEquals("us-east-2a,us-east-2b", params["azs"])
         Assertions.assertEquals("iamsupersecure.trustme", params["password"])
         Assertions.assertEquals("2", params["instanceCount"])
