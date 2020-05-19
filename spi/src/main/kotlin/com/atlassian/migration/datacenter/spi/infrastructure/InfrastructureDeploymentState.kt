@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.atlassian.migration.datacenter.spi.infrastructure;
+package com.atlassian.migration.datacenter.spi.infrastructure
 
 /**
  * Represents the status of the deployment of infrastructure
  */
-public enum InfrastructureDeploymentState {
-    CREATE_IN_PROGRESS, CREATE_COMPLETE, CREATE_FAILED
+enum class InfrastructureDeploymentState {
+    CREATE_IN_PROGRESS,
+    CREATE_COMPLETE,
+    CREATE_FAILED
 }
