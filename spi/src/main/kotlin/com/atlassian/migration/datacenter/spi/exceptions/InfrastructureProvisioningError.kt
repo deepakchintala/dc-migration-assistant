@@ -15,4 +15,4 @@
  */
 package com.atlassian.migration.datacenter.spi.exceptions
 
-class InfrastructureProvisioningError(message: String?) : Exception(message) 
+class InfrastructureProvisioningError(message: String) : Exception(message)

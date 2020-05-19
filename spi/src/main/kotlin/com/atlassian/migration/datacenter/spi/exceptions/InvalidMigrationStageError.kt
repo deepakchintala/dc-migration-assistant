@@ -18,7 +18,7 @@ package com.atlassian.migration.datacenter.spi.exceptions
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import org.apache.commons.lang3.StringUtils
 
-class InvalidMigrationStageError(message: String?) : Exception(message) {
+class InvalidMigrationStageError(message: String) : Exception(message) {
     companion object {
         fun errorWithMessage(expected: MigrationStage, actual: MigrationStage, prefix: String): InvalidMigrationStageError {
             var message = String.format("Attempt to migrate from `%s` to `%s`", expected, actual)

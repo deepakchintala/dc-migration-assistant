@@ -16,6 +16,6 @@
 package com.atlassian.migration.datacenter.spi.exceptions
 
 open class FileSystemMigrationFailure : Exception {
-    constructor(message: String?) : super(message) {}
-    constructor(message: String?, cause: Throwable?) : super(message, cause) {}
+    constructor(message: String) : super(message) {}
+    constructor(message: String, cause: Throwable) : super(message, cause) {}
 }

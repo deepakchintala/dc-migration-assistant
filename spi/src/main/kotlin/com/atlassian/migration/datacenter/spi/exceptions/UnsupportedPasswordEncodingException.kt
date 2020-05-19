@@ -11,4 +11,4 @@
  */
 package com.atlassian.migration.datacenter.spi.exceptions
 
-class UnsupportedPasswordEncodingException(message: String?) : RuntimeException(message) 
+class UnsupportedPasswordEncodingException(message: String) : RuntimeException(message)

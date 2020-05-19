@@ -15,4 +15,4 @@
  */
 package com.atlassian.migration.datacenter.spi.exceptions
 
-class MigrationAlreadyExistsException(message: String?) : Exception(message) 
+class MigrationAlreadyExistsException(message: String) : Exception(message)

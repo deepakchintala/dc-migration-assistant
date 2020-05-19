@@ -15,14 +15,10 @@
  */
 package com.atlassian.migration.datacenter.spi.infrastructure
 
-class ProvisioningConfig {
-    val templateUrl: String
-    val stackName: String
+class ProvisioningConfig(val templateUrl: String, val stackName: String, params: Map<String, Any>) {
     val params: Map<String, String>
 
-    constructor(templateUrl: String, stackName: String, params: Map<String, Any>) {
-        this.templateUrl = templateUrl
-        this.stackName = stackName
+    init {
         this.params = params.mapValues {
             if (it.value is List<*>) {
                 // Type inference and smart-cast doesn't play well with List
