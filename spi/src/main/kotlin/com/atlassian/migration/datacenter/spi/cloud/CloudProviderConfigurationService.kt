@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.cloud
 
-package com.atlassian.migration.datacenter.spi.cloud;
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidCredentialsException
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 
-
-import com.atlassian.migration.datacenter.spi.exceptions.InvalidCredentialsException;
-import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
-
-public interface CloudProviderConfigurationService {
-
+interface CloudProviderConfigurationService {
     /**
      * Configures access to a cloud provider to facilitate the migration
      *
@@ -29,6 +26,6 @@ public interface CloudProviderConfigurationService {
      * @param secret    the secret to authenticate the entity to the cloud provider e.g. AWS secret access key
      * @param geography the geography to use for deployment of resources e.g. AWS region
      */
-    void configureCloudProvider(String entity, String secret, String geography) throws InvalidMigrationStageError, InvalidCredentialsException;
-
+    @Throws(InvalidMigrationStageError::class, InvalidCredentialsException::class)
+    fun configureCloudProvider(entity: String?, secret: String?, geography: String?)
 }

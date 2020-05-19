@@ -13,11 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.exceptions
 
-package com.atlassian.migration.datacenter.spi.exceptions;
-
-public class MigrationAlreadyExistsException extends Exception {
-    public MigrationAlreadyExistsException(String message) {
-        super(message);
-    }
-}
+class MigrationAlreadyExistsException(message: String?) : Exception(message) 

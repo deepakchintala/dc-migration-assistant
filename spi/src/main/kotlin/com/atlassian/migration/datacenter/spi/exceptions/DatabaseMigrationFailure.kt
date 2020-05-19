@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.exceptions
 
-package com.atlassian.migration.datacenter.spi.exceptions;
-
-public class InfrastructureProvisioningError extends Exception {
-    public InfrastructureProvisioningError(String message) {
-        super(message);
-    }
-
+class DatabaseMigrationFailure : RuntimeException {
+    constructor(message: String?) : super(message) {}
+    constructor(message: String?, cause: Throwable?) : super(message, cause) {}
 }

@@ -13,15 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.exceptions
 
-package com.atlassian.migration.datacenter.spi.exceptions;
-
-public class DatabaseMigrationFailure extends RuntimeException {
-    public DatabaseMigrationFailure(String message) {
-        super(message);
-    }
-
-    public DatabaseMigrationFailure(String message, Throwable cause) {
-        super(message, cause);
-    }
+open class FileSystemMigrationFailure : Exception {
+    constructor(message: String?) : super(message) {}
+    constructor(message: String?, cause: Throwable?) : super(message, cause) {}
 }
