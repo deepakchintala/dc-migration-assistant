@@ -21,8 +21,8 @@ import org.apache.commons.lang3.StringUtils
 class InvalidMigrationStageError(message: String) : Exception(message) {
     companion object {
         fun errorWithMessage(expected: MigrationStage, actual: MigrationStage, prefix: String): InvalidMigrationStageError {
-            var message = String.format("Attempt to migrate from `%s` to `%s`", expected, actual)
-            if (StringUtils.isNotBlank(prefix)) {
+            var message = "Attempt to migrate from `$expected` to `$actual`."
+            if (prefix.isNotBlank()) {
                 message = String.format("%s. %s", prefix, message)
             }
             return InvalidMigrationStageError(message)
