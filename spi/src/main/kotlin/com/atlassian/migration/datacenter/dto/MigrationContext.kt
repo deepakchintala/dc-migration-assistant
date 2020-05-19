@@ -13,31 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.dto
 
-package com.atlassian.migration.datacenter.dto;
+import net.java.ao.Entity
 
-import net.java.ao.Entity;
-
-public interface MigrationContext extends Entity {
-
-    Migration getMigration();
-
-    void setMigration(Migration migration);
-
-    String getApplicationDeploymentId();
-
-    void setApplicationDeploymentId(String id);
-
-    String getHelperStackDeploymentId();
-
-    void setHelperStackDeploymentId(String deploymentId);
-
-    String getServiceUrl();
-
-    void setServiceUrl(String url);
-
-    String getErrorMessage();
-
-    void setErrorMessage(String message);
-
+interface MigrationContext : Entity {
+    var migration: Migration
+    var applicationDeploymentId: String
+    var helperStackDeploymentId: String
+    var serviceUrl: String
+    var errorMessage: String
 }

@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.dto
 
-package com.atlassian.migration.datacenter.dto;
+import com.atlassian.migration.datacenter.spi.MigrationStage
+import net.java.ao.Entity
+import net.java.ao.OneToMany
+import net.java.ao.OneToOne
 
-import net.java.ao.Entity;
+interface Migration : Entity {
+    var stage: MigrationStage
 
-public interface FileSyncRecord extends Entity {
-    /**
-     * @return the migration that this file was captured in
-     */
-    Migration getMigration();
-    void setMigration(Migration migration);
+    @get:OneToOne(reverse = "getMigration")
+    val context: MigrationContext
 
-    String getFilePath();
-    void setFilePath(String path);
+    @get:OneToMany(reverse = "getMigration")
+    val records: Array<FileSyncRecord>
 }
