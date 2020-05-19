@@ -9,19 +9,14 @@ class ProvisioningConfigTest {
     fun shouldGetListParametersAsCommaSeparatedValues() {
         val config = ProvisioningConfig("https://template.url", "stackName", object : HashMap<String, Any>() {
             init {
-                put("azs", object : ArrayList<String?>() {
-                    init {
-                        add("us-east-2a")
-                        add("us-east-2b")
-                    }
-                })
                 put("password", "iamsupersecure.trustme")
                 put("instanceCount", 2)
+                put("multiAZ", false)
             }
         })
         val params = config.params
-        Assertions.assertEquals("us-east-2a,us-east-2b", params["azs"])
         Assertions.assertEquals("iamsupersecure.trustme", params["password"])
         Assertions.assertEquals("2", params["instanceCount"])
+        Assertions.assertEquals("false", params["multiAZ"])
     }
 }
