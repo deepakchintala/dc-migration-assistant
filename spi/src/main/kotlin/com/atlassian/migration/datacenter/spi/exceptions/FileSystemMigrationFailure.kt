@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.exceptions
 
-package com.atlassian.migration.datacenter.dto;
-
-import net.java.ao.Entity;
-
-public interface FileSyncRecord extends Entity {
-    /**
-     * @return the migration that this file was captured in
-     */
-    Migration getMigration();
-    void setMigration(Migration migration);
-
-    String getFilePath();
-    void setFilePath(String path);
+open class FileSystemMigrationFailure : Exception {
+    constructor(message: String) : super(message) {}
+    constructor(message: String, cause: Throwable) : super(message, cause) {}
 }

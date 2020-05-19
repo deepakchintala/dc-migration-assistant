@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.dto
 
-package com.atlassian.migration.datacenter.spi.exceptions;
+import net.java.ao.Entity
 
-public class InfrastructureProvisioningError extends Exception {
-    public InfrastructureProvisioningError(String message) {
-        super(message);
-    }
-
+interface MigrationContext : Entity {
+    var migration: Migration
+    var applicationDeploymentId: String
+    var helperStackDeploymentId: String
+    var serviceUrl: String
+    var errorMessage: String
 }

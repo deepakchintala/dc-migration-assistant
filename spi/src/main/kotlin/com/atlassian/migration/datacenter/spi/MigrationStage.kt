@@ -39,7 +39,7 @@ enum class MigrationStage {
     FINISHED(CUTOVER),
     ERROR;
 
-    val validFrom: MigrationStage?
+    private val validFrom: MigrationStage?
     var exception: Throwable?
 
     constructor() {

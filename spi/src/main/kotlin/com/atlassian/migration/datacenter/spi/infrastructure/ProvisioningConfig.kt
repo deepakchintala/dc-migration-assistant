@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.infrastructure
 
-package com.atlassian.migration.datacenter.spi.infrastructure;
-
-/**
- * Represents the status of the deployment of infrastructure
- */
-public enum InfrastructureDeploymentState {
-    CREATE_IN_PROGRESS, CREATE_COMPLETE, CREATE_FAILED
+class ProvisioningConfig(val templateUrl: String, val stackName: String, params: Map<String, Any>) {
+    val params: Map<String, String> = params.mapValues { it.value.toString() }
 }

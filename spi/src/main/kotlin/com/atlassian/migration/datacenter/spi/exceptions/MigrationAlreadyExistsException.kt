@@ -13,15 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.exceptions
 
-package com.atlassian.migration.datacenter.spi.exceptions;
-
-public class FileSystemMigrationFailure extends Exception {
-    public FileSystemMigrationFailure(String message) {
-        super(message);
-    }
-
-    public FileSystemMigrationFailure(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
+class MigrationAlreadyExistsException(message: String) : Exception(message)

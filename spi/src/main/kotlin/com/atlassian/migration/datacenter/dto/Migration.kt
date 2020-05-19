@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.dto
 
-package com.atlassian.migration.datacenter.spi.exceptions;
+import com.atlassian.migration.datacenter.spi.MigrationStage
+import net.java.ao.Entity
+import net.java.ao.OneToMany
+import net.java.ao.OneToOne
 
-public class DatabaseMigrationFailure extends RuntimeException {
-    public DatabaseMigrationFailure(String message) {
-        super(message);
-    }
+interface Migration : Entity {
+    var stage: MigrationStage
 
-    public DatabaseMigrationFailure(String message, Throwable cause) {
-        super(message, cause);
-    }
+    @get:OneToOne(reverse = "getMigration")
+    val context: MigrationContext
+
+    @get:OneToMany(reverse = "getMigration")
+    val records: Array<FileSyncRecord>
 }

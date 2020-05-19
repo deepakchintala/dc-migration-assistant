@@ -13,44 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi
 
-package com.atlassian.migration.datacenter.spi;
-
-import com.atlassian.migration.datacenter.dto.Migration;
-import com.atlassian.migration.datacenter.dto.MigrationContext;
-import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
-import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
+import com.atlassian.migration.datacenter.dto.Migration
+import com.atlassian.migration.datacenter.dto.MigrationContext
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
+import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
 
 /**
  * Manages the lifecycle of the migration
  */
-public interface MigrationService {
-
+interface MigrationService {
     /**
      * Creates a new migration in the initial stage. Using this method will create just one migration object in the database
-     * <b>or</b> find the existing migration object and return it.
+     * **or** find the existing migration object and return it.
      *
-     * @throws {@link MigrationAlreadyExistsException} when a migration object already exists.
+     * @throws [MigrationAlreadyExistsException] when a migration object already exists.
      */
-    Migration createMigration() throws MigrationAlreadyExistsException;
+    @Throws(MigrationAlreadyExistsException::class)
+    fun createMigration(): Migration
 
     /**
      * Gets the current stage of the migration
      */
-    MigrationStage getCurrentStage();
+    val currentStage: MigrationStage
 
     /**
      * @param expected the migration stage that the caller expects the migration to be in
      * @throws InvalidMigrationStageError when there is a mismatch between the expected stage and the current stage
      */
-    void assertCurrentStage(MigrationStage expected) throws InvalidMigrationStageError;
+    @Throws(InvalidMigrationStageError::class)
+    fun assertCurrentStage(expected: MigrationStage)
 
     /**
-     * Gets the Migration Object that can only be read. Setter invocation must happen through the {@link MigrationService} interface
+     * Gets the Migration Object that can only be read. Setter invocation must happen through the [MigrationService] interface
      *
      * @return a read-only migration object.
      */
-    Migration getCurrentMigration();
+    val currentMigration: Migration
 
     /**
      * Gets the current migration context. The migration context can be used to store or query specific data
@@ -58,12 +58,12 @@ public interface MigrationService {
      *
      * @return The migration context Entity for this migration.
      */
-    MigrationContext getCurrentContext();
+    val currentContext: MigrationContext
 
     /**
      * Deletes all migrations and associated contexts.
      */
-    void deleteMigrations();
+    fun deleteMigrations()
 
     /**
      * Tries to transition the migration state from one to another
@@ -71,29 +71,29 @@ public interface MigrationService {
      * @param to the state you want to transition to
      * @throws InvalidMigrationStageError when the transition is invalid
      */
-    void transition(MigrationStage to) throws InvalidMigrationStageError;
+    @Throws(InvalidMigrationStageError::class)
+    fun transition(to: MigrationStage)
 
     /**
      * Check whether migration prerequisites met.
      *
      * @return whether migration prerequisites met
      */
-    MigrationReadyStatus getReadyStatus();
+    val readyStatus: MigrationReadyStatus
 
     /**
      * Moves the migration into an error stage
      *
      * @param message a message describing the error
      *
-     * @see MigrationStage#ERROR
+     * @see MigrationStage.ERROR
      */
-    void error(String message);
+    fun error(message: String)
 
     /**
      * Moves the migration into an error stage, storing the cause.
      *
-     * @see MigrationStage#ERROR
+     * @see MigrationStage.ERROR
      */
-    void error(Throwable e);
-
+    fun error(e: Throwable)
 }
