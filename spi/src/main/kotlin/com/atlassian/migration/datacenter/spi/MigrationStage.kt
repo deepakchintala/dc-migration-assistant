@@ -13,76 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.atlassian.migration.datacenter.spi;
-
-import java.util.Optional;
-
+package com.atlassian.migration.datacenter.spi
 
 /**
  * Represents all possible states of an on-premise to cloud migration.
  */
-public enum MigrationStage {
-    NOT_STARTED(),
+enum class MigrationStage {
+    NOT_STARTED,
     AUTHENTICATION(NOT_STARTED),
     PROVISION_APPLICATION(AUTHENTICATION),
     PROVISION_APPLICATION_WAIT(PROVISION_APPLICATION),
     PROVISION_MIGRATION_STACK(PROVISION_APPLICATION_WAIT),
     PROVISION_MIGRATION_STACK_WAIT(PROVISION_MIGRATION_STACK),
-
     FS_MIGRATION_COPY(PROVISION_MIGRATION_STACK_WAIT),
     FS_MIGRATION_COPY_WAIT(FS_MIGRATION_COPY),
-
     OFFLINE_WARNING(FS_MIGRATION_COPY_WAIT),
-
     DB_MIGRATION_EXPORT(OFFLINE_WARNING),
     DB_MIGRATION_EXPORT_WAIT(DB_MIGRATION_EXPORT),
-
     DB_MIGRATION_UPLOAD(DB_MIGRATION_EXPORT_WAIT),
     DB_MIGRATION_UPLOAD_WAIT(DB_MIGRATION_UPLOAD),
-
     DATA_MIGRATION_IMPORT(DB_MIGRATION_UPLOAD_WAIT),
     DATA_MIGRATION_IMPORT_WAIT(DATA_MIGRATION_IMPORT),
-
     VALIDATE(DATA_MIGRATION_IMPORT_WAIT),
     CUTOVER(VALIDATE),
     FINISHED(CUTOVER),
-    ERROR();
+    ERROR;
 
-    private Optional<MigrationStage> validFrom;
-    private Optional<Throwable> exception;
+    val validFrom: MigrationStage?
+    var exception: Throwable?
 
-    MigrationStage() {
-        this.exception = Optional.empty();
-        this.validFrom = Optional.empty();
+    constructor() {
+        exception = null;
+        validFrom = null;
     }
 
-    MigrationStage(MigrationStage validFrom) {
-        this.exception = Optional.empty();
-        this.validFrom = Optional.of(validFrom);
+    constructor(validFrom: MigrationStage) {
+        exception = null
+        this.validFrom = validFrom
     }
 
-    public boolean isValidTransition(MigrationStage to) {
-        return to.validFrom
-                .map(source -> source.equals(this))
-                .orElse(true);
+    fun isValidTransition(to: MigrationStage): Boolean {
+        return to.validFrom?.equals(this) ?: true
     }
 
-    public boolean isDBPhase() {
-        // Hacky, but OK for now.
-        return this.toString().startsWith("DB_");
+    // Hacky, but OK for now.
+    val isDBPhase: Boolean
+        get() =// Hacky, but OK for now.
+            this.toString().startsWith("DB_")
+
+    override fun toString(): String {
+        return super.toString().toLowerCase()
     }
 
-    @Override
-    public String toString() {
-        return super.toString().toLowerCase();
-    }
-
-    public Optional<Throwable> getException() {
-        return exception;
-    }
-
-    public void setException(Optional<Throwable> exception) {
-        this.exception = exception;
-    }
 }
