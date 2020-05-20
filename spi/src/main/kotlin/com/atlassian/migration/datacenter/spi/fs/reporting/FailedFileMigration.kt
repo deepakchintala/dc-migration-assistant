@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.fs.reporting
 
-package com.atlassian.migration.datacenter.spi.fs.reporting;
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import java.nio.file.Path
 
-public enum FilesystemMigrationStatus {
-    NOT_STARTED,
-    FAILED,
-    UPLOADING,
-    DOWNLOADING,
-    DONE
+@JsonAutoDetect
+class FailedFileMigration(val filePath: Path, val reason: String){
+
+    override fun equals(obj: Any?): Boolean {
+        if (obj is FailedFileMigration) {
+            return filePath == obj.filePath && reason == obj.reason
+        }
+        return false
+    }
 }
