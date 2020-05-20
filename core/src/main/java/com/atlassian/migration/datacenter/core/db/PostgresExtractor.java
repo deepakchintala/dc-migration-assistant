@@ -81,7 +81,7 @@ public class PostgresExtractor implements DatabaseExtractor {
                 "--file", target.toString(),
                 "--dbname", config.getName(),
                 "--host", config.getHost(),
-                "--port", config.getPort().toString(),
+                "--port", new Integer(config.getPort()).toString(), // FIXME: Temporary until Kotlin conversion.
                 "--username", config.getUsername())
                 .inheritIO();
         builder.environment().put("PGPASSWORD", config.getPassword());

@@ -13,13 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.core.application
 
-package com.atlassian.migration.datacenter.core.application;
+class DatabaseConfiguration(val type: DBType, val host: String, val port: Int, val name: String, val username: String, val password: String) {
 
+    enum class DBType {
+        POSTGRESQL,
+        MYSQL,
+        SQLSERVER,
+        ORACLE,
+        H2
+    }
 
-import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
-
-public interface ApplicationConfiguration {
-    DatabaseConfiguration getDatabaseConfiguration() throws ConfigurationReadException;
+    companion object {
+        fun h2(): DatabaseConfiguration {
+            return DatabaseConfiguration(DBType.H2, "localhost", 0, "h2", "h2", "h2")
+        }
+    }
 
 }
