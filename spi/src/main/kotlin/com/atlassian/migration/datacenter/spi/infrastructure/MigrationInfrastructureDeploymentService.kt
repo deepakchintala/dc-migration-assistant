@@ -13,27 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.infrastructure
 
-package com.atlassian.migration.datacenter.spi.infrastructure;
-
-
-import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
-
-import java.util.Map;
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 
 /**
  * This service should be implemented if a migration requires any additional infrastructure to facilitate
  * the migration.
  */
-public interface MigrationInfrastructureDeploymentService extends DeploymentService {
-
+interface MigrationInfrastructureDeploymentService : DeploymentService {
     /**
      * Deploys any infrastructure required to facilitate the migration. Leaves naming of the infrastructure
      * group to the implementor
      * @param params Any parameters for the deployment
-     * @throws InvalidMigrationStageError when the current stage is not {@link com.atlassian.migration.datacenter.spi.MigrationStage#PROVISION_MIGRATION_STACK}
+     * @throws InvalidMigrationStageError when the current stage is not [com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_MIGRATION_STACK]
      */
-    void deployMigrationInfrastructure(Map<String, String> params) throws InvalidMigrationStageError;
-
-
+    @Throws(InvalidMigrationStageError::class)
+    fun deployMigrationInfrastructure(params: Map<String, String>)
 }

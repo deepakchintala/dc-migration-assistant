@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.fs.reporting
 
-package com.atlassian.migration.datacenter.spi.infrastructure;
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import java.nio.file.Path
 
-public class InfrastructureDeploymentError extends RuntimeException {
+@JsonAutoDetect
+class FailedFileMigration(val filePath: Path, val reason: String){
 
-    public InfrastructureDeploymentError(String message) {
-        super(message);
-    }
-
-    public InfrastructureDeploymentError(String message, Throwable cause) {
-        super(message, cause);
+    override fun equals(obj: Any?): Boolean {
+        if (obj is FailedFileMigration) {
+            return filePath == obj.filePath && reason == obj.reason
+        }
+        return false
     }
 }

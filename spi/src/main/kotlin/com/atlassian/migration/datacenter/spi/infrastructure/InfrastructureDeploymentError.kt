@@ -15,20 +15,7 @@
  */
 package com.atlassian.migration.datacenter.spi.infrastructure
 
-class ProvisioningConfig {
-    var templateUrl: String?
-    var stackName: String?
-    var params: Map<String, String>?
-
-    constructor() {
-        templateUrl = null
-        stackName = null
-        params = null
-    }
-
-    constructor (templateUrl: String, stackName: String, params: Map<String, Any>) {
-        this.templateUrl = templateUrl
-        this.stackName = stackName
-        this.params = params?.mapValues { it.value.toString() }
-    }
+class InfrastructureDeploymentError : RuntimeException {
+    constructor(message: String) : super(message) {}
+    constructor(message: String, cause: Throwable) : super(message, cause) {}
 }

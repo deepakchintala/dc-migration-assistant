@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.infrastructure
 
-package com.atlassian.migration.datacenter.spi.fs.reporting;
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
 
-public enum FilesystemMigrationStatus {
-    NOT_STARTED,
-    FAILED,
-    UPLOADING,
-    DOWNLOADING,
-    DONE
-}
+@JsonAutoDetect
+class InfrastructureDeploymentStatus(@get:JsonProperty("state") val state: InfrastructureDeploymentState, @get:JsonProperty("reason")
+@get:JsonInclude(JsonInclude.Include.NON_NULL) val reason: String) 

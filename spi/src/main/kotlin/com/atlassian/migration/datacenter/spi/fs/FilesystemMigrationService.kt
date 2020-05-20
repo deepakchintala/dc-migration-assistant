@@ -13,48 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.fs
 
-package com.atlassian.migration.datacenter.spi.fs;
-
-import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
-import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
+import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport
 
 /**
  * Service managing migration process of the application home folder to a remote location.
  */
-public interface FilesystemMigrationService {
+interface FilesystemMigrationService {
     /**
-     * Schedules filesystem migration to run asynchronously using the {@link com.atlassian.scheduler.SchedulerService}
+     * Schedules filesystem migration to run asynchronously using the [com.atlassian.scheduler.SchedulerService]
      *
-     * @return a <code>Boolean</code> value that represents if a migration task has been successfully scheduled.
+     * @return a `Boolean` value that represents if a migration task has been successfully scheduled.
      */
-    Boolean scheduleMigration() throws InvalidMigrationStageError;
+    @Throws(InvalidMigrationStageError::class)
+    fun scheduleMigration(): Boolean
 
     /**
      * Start migration of the application home. This is a long running blocking operation and should be run in
      * separate thread or scheduled job. It finds all files located in the home (or shared home in case
      * of data center deployment) and upload it to the remote location.
      */
-    void startMigration() throws InvalidMigrationStageError;
+    @Throws(InvalidMigrationStageError::class)
+    fun startMigration()
 
     /**
      * Provides filesystem migration report that can be used to monitor the operation
      *
      * @return migration report
      */
-    FileSystemMigrationReport getReport();
+    val report: FileSystemMigrationReport?
 
     /**
      * Return true if the filesystem migration is in non-terminal state
      *
      * @return true if the filesystem migration is in progress
      */
-    boolean isRunning();
+    val isRunning: Boolean
 
     /**
      * Cancel filesystem migration that is currently in progress
      *
      * @throws InvalidMigrationStageError if the migration is not running
      */
-    void abortMigration() throws InvalidMigrationStageError;
+    @Throws(InvalidMigrationStageError::class)
+    fun abortMigration()
 }

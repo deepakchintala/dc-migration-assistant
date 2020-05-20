@@ -13,66 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.fs.reporting
 
-package com.atlassian.migration.datacenter.spi.fs.reporting;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 
 /**
  * Tracks the progress of the file system migration
  */
-@JsonSerialize(as = FileSystemMigrationProgress.class)
-public interface FileSystemMigrationProgress {
-
+@JsonSerialize(`as` = FileSystemMigrationProgress::class)
+interface FileSystemMigrationProgress {
     /**
      * Gets the number of files which have been found to migrate.
      */
     @JsonProperty("filesFound")
-    Long getNumberOfFilesFound();
+    fun getNumberOfFilesFound(): Long?
 
-    void reportFileFound();
+    fun reportFileFound()
 
     /**
-     * @return true if all files have been discovered by the migration, false otherwise. At this point, {@link FileSystemMigrationProgress#getNumberOfFilesFound()}
+     * @return true if all files have been discovered by the migration, false otherwise. At this point, [FileSystemMigrationProgress.getNumberOfFilesFound]
      * should return the number of files that will be migrated
      */
     @JsonProperty("crawlingFinished")
-    boolean isCrawlingFinished();
+    fun isCrawlingFinished(): Boolean
 
     /**
      * Reports that the migration has finished discovering files to be migrated
      */
-    void reportCrawlingFinished();
+    fun reportCrawlingFinished()
 
     /**
      * Gets the number of files which have had their upload commenced
      */
     @JsonProperty("filesInFlight")
-    Long getNumberOfCommencedFileUploads();
-
-    void reportFileUploadCommenced();
+    fun getNumberOfCommencedFileUploads(): Long?
+    fun reportFileUploadCommenced()
 
     /**
      * Gets the number of files which have been successfully migrated
      */
     @JsonProperty("uploadedFiles")
-    Long getCountOfUploadedFiles();
+    fun getCountOfUploadedFiles(): Long?
 
     /**
      * Reports that a file was migrated successfully. Implementers should be careful that the underlying
      * collection is thread safe as this may be called from multiple file upload threads.
      */
-    void reportFileUploaded();
+    fun reportFileUploaded()
 
     /**
      * Gets the number of files that have been successfully downloaded on the remote application
      */
     @JsonProperty("downloadedFiles")
-    Long getCountOfDownloadFiles();
+    fun getCountOfDownloadFiles(): Long?
 
     /**
      * Sets the number of files which were downloaded on the remote application
      */
-    void setNumberOfFilesDownloaded(long downloadedFiles);
+    fun setNumberOfFilesDownloaded(downloadedFiles: Long)
 }

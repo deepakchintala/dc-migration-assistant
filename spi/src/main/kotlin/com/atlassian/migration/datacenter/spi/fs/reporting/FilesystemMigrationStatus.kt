@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.atlassian.migration.datacenter.spi.infrastructure
+package com.atlassian.migration.datacenter.spi.fs.reporting
 
-class ProvisioningConfig {
-    var templateUrl: String?
-    var stackName: String?
-    var params: Map<String, String>?
-
-    constructor() {
-        templateUrl = null
-        stackName = null
-        params = null
-    }
-
-    constructor (templateUrl: String, stackName: String, params: Map<String, Any>) {
-        this.templateUrl = templateUrl
-        this.stackName = stackName
-        this.params = params?.mapValues { it.value.toString() }
-    }
+enum class FilesystemMigrationStatus {
+    NOT_STARTED, FAILED, UPLOADING, DOWNLOADING, DONE
 }
