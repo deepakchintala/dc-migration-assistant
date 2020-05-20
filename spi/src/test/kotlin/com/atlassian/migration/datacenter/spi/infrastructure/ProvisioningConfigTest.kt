@@ -14,7 +14,7 @@ class ProvisioningConfigTest {
                 put("multiAZ", false)
             }
         })
-        val params = config.params
+        val params = config.params!!
         Assertions.assertEquals("iamsupersecure.trustme", params["password"])
         Assertions.assertEquals("2", params["instanceCount"])
         Assertions.assertEquals("false", params["multiAZ"])
