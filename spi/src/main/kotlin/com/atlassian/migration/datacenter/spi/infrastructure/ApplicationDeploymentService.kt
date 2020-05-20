@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.infrastructure
 
-package com.atlassian.migration.datacenter.spi.infrastructure;
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 
-public class InfrastructureDeploymentError extends RuntimeException {
-
-    public InfrastructureDeploymentError(String message) {
-        super(message);
-    }
-
-    public InfrastructureDeploymentError(String message, Throwable cause) {
-        super(message, cause);
-    }
+interface ApplicationDeploymentService : DeploymentService {
+    @Throws(InvalidMigrationStageError::class)
+    fun deployApplication(deploymentId: String, params: Map<String, String>)
 }

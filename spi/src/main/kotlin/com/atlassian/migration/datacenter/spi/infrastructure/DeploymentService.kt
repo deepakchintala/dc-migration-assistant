@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.spi.infrastructure
 
-package com.atlassian.migration.datacenter.spi.infrastructure;
-
-public interface DeploymentService {
-    InfrastructureDeploymentStatus getDeploymentStatus();
+interface DeploymentService {
+    val deploymentStatus: InfrastructureDeploymentStatus
 }
