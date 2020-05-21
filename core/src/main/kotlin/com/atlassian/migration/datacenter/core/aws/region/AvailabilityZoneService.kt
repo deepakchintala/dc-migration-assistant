@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.core.aws.region
 
-package com.atlassian.migration.datacenter.core.aws.region;
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.ec2.model.AvailabilityZone
 
-public class InvalidAWSRegionException extends Exception {
-    @Override
-    public String getMessage() {
-        return "Must be a valid AWS region";
-    }
+interface AvailabilityZoneService {
+    @Throws(InvalidAWSRegionException::class)
+    fun getAZForRegion(region: Region): List<AvailabilityZone>
 }
