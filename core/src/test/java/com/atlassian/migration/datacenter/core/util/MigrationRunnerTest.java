@@ -57,7 +57,7 @@ class MigrationRunnerTest
         Mockito.doThrow(SchedulerServiceException.class)
             .when(schedulerService)
             .scheduleJob(any(), any());
-        JobId id = JobId.of(runner.getKey()+"42");
+        JobId id = JobId.of(runner.getKey() + "42");
 
         Boolean isScheduled = migrationRunner.runMigration(id, runner);
         assertFalse(isScheduled);

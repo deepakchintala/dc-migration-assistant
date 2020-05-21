@@ -54,12 +54,12 @@ public class MigrationRunner
             .withSchedule(null) // run now
             .withRunMode(RunMode.RUN_ONCE_PER_CLUSTER);
         try {
-            logger.info("Scheduling new job for runner "+runner.getKey());
+            logger.info("Scheduling new job for runner " + runner.getKey());
             schedulerService.scheduleJob(jobId, jobConfig);
             return true;
 
         } catch (SchedulerServiceException e) {
-            logger.error("Exception when scheduling job for "+runner.getKey(), e);
+            logger.error("Exception when scheduling job for " + runner.getKey(), e);
             this.schedulerService.unscheduleJob(jobId);
             return false;
         }

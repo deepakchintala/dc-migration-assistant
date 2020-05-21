@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.core.util
 
-package com.atlassian.migration.datacenter.core.util;
+import com.atlassian.scheduler.JobRunner
 
-import com.atlassian.scheduler.JobRunner;
-import com.atlassian.scheduler.config.JobId;
-
-public interface MigrationJobRunner extends JobRunner
-{
-    String getKey();
+interface MigrationJobRunner : JobRunner {
+    val key: String
 }
