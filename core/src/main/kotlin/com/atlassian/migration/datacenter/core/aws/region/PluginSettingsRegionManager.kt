@@ -28,20 +28,23 @@ import javax.annotation.PostConstruct
  * The region is stored in the plugin settings of this app.
  */
 class PluginSettingsRegionManager(private val pluginSettingsFactorySupplier: Supplier<PluginSettingsFactory>, private val globalInfrastructure: GlobalInfrastructure) : RegionService {
+
     private var pluginSettings: PluginSettings = pluginSettingsFactorySupplier.get().createGlobalSettings()
 
     /**
      * @return The id of the region that has been stored most recently (e.g. us-east-2, ap-southeast-1). If no region
      * has been configured, it will return the id of the default region.
      */
-    override fun getRegion(): String {
-        // FIXME: Need to find a way to inject without calling the supplier every time
-        val pluginSettings = pluginSettingsFactorySupplier.get().createGlobalSettings()
-        val pluginSettingsRegion = pluginSettings[AWS_REGION_PLUGIN_STORAGE_KEY + REGION_PLUGIN_STORAGE_SUFFIX] as String
-        return if (pluginSettingsRegion == null || "" == pluginSettingsRegion) {
-            Region.US_EAST_1.toString()
-        } else pluginSettingsRegion
-    }
+    override val region: String
+        get() {
+            val pluginSettings = pluginSettingsFactorySupplier.get().createGlobalSettings()
+            val pluginSettingsRegion = pluginSettings[AWS_REGION_PLUGIN_STORAGE_KEY + REGION_PLUGIN_STORAGE_SUFFIX] as String
+            return if (pluginSettingsRegion == null || "" == pluginSettingsRegion) {
+                Region.US_EAST_1.toString()
+            } else
+                pluginSettingsRegion
+        }
+
 
     /**
      * Sets the region to be used for AWS API calls

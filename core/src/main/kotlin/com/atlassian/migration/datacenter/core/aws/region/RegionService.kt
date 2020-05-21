@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.core.aws.region
 
-package com.atlassian.migration.datacenter.core.aws.region;
+interface RegionService {
+    val region: String
 
-public interface RegionService {
-
-    String getRegion();
-
-    void storeRegion(String string) throws InvalidAWSRegionException;
-
-
+    @Throws(InvalidAWSRegionException::class)
+    fun storeRegion(string: String)
 }
