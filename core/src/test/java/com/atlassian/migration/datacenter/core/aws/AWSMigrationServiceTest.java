@@ -58,12 +58,6 @@ public class AWSMigrationServiceTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
-    private CfnApi cfnApi;
-    @Mock
-    private FilesystemMigrationService filesystemMigrationService;
-    @Mock
-    private SchedulerService schedulerService;
-    @Mock
     private ApplicationConfiguration applicationConfiguration;
     @Mock
     private JiraHome jiraHome;
