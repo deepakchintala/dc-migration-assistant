@@ -20,33 +20,30 @@ import { BrowserRouter as Router } from 'react-router-dom';
 
 import moment from 'moment';
 import { MigrationTransferProps, MigrationTransferPage } from './MigrationTransferPage';
+import { MigrationStage } from '../../api/migration';
+
+const mockFetch = jest.fn();
+mockFetch.mockReturnValue(Promise.resolve());
+window.fetch = mockFetch;
 
 const props: MigrationTransferProps = {
     heading: 'heading',
     description: 'description',
-    infoTitle: 'infoTitle',
-    infoContent: 'infoContent',
-    infoActions: [
-        {
-            key: 'learn',
-            href:
-                'https://media0.giphy.com/media/a6OnFHzHgCU1O/giphy.gif?cid=ecf05e472ee78099c642a7d2427127e6f1d4d6f0b77551c7&rid=giphy.gif',
-            text: 'infotext',
-        },
-    ],
     nextText: 'nextText',
-    started: moment().subtract(20, 'minutes'),
+    startMoment: moment().subtract(20, 'minutes'),
+    startMigrationPhase: Promise.resolve,
+    inProgressStages: [MigrationStage.AUTHENTICATION],
     getProgress: () => {
         return new Promise(resolve => {
             setTimeout(() => {
                 resolve({
                     completeness: 0.5,
                     phase: 'uploading files...',
-                    progress: '45 020 files copied',
                 });
             }, 500);
         });
     },
+    nextRoute: '',
 };
 
 describe('Migration Page Component', () => {
@@ -62,6 +59,5 @@ describe('Migration Page Component', () => {
 
         expect(getByText('heading')).toBeTruthy();
         expect(getByText('description')).toBeTruthy();
-        expect(getByText('infoContent')).toBeTruthy();
     });
 });

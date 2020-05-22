@@ -14,74 +14,119 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, useState, useEffect, ReactNode } from 'react';
 
 import { I18n } from '@atlassian/wrm-react-i18n';
 import moment from 'moment';
-import {
-    MigrationTransferProps,
-    MigrationTransferPage,
-    Progress,
-} from '../shared/MigrationTransferPage';
-import { fs } from '../../api/fs';
+import Spinner from '@atlaskit/spinner';
+import Panel from '@atlaskit/panel';
+import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
+import { Progress, ProgressBuilder } from '../shared/Progress';
+import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
+import { migration, MigrationStage } from '../../api/migration';
+import { warningPath } from '../../utils/RoutePaths';
 
 const dummyStarted = moment();
 
 dummyStarted.subtract(49, 'hours');
 dummyStarted.subtract(23, 'minutes');
 
+const getErrorFromResult = (result: FileSystemMigrationStatusResponse): ReactNode | undefined => {
+    if (result?.failedFiles.length > 0) {
+        const failedFilesCount = result.failedFiles.length;
+
+        return (
+            <>
+                <strong>{failedFilesCount} files</strong> failed to upload.{' '}
+                {failedFilesCount === 100 &&
+                    I18n.getText('atlassian.migration.datacenter.fs.error.maxFailedFiles')}
+                <Panel header={I18n.getText('atlassian.migration.datacenter.fs.error.failedFiles')}>
+                    {I18n.getText('atlassian.migration.datacenter.fs.error.resolutionAction')}
+                    <ul>
+                        {result.failedFiles.map(({ filePath, reason }) => (
+                            <li key={filePath}>
+                                {filePath}
+                                <br />
+                                <strong>
+                                    {I18n.getText('atlassian.migration.datacenter.error.reason')}:{' '}
+                                </strong>
+                                {reason.replace(/, Request ID.*/g, ')')}
+                            </li>
+                        ))}
+                    </ul>
+                </Panel>
+            </>
+        );
+    }
+    return undefined;
+};
+
+const getCompletenessFromResult = (result: FileSystemMigrationStatusResponse): number => {
+    if (result.status === 'UPLOADING' || result.status === 'DOWNLOADING') {
+        let offset = 0;
+        if (result.status === 'DOWNLOADING') {
+            offset = 0.5;
+        }
+        const downloadProgress = result.downloadedFiles / result.filesFound;
+        return offset + 0.5 * downloadProgress;
+    }
+    if (result.status === 'DONE') {
+        return 1;
+    }
+    return 0;
+};
+
+const getPhaseFromStatus = (result: FileSystemMigrationStatusResponse): string => {
+    switch (result.status) {
+        case 'DONE':
+            return I18n.getText('atlassian.migration.datacenter.fs.phase.complete');
+        case 'DOWNLOADING':
+            return I18n.getText('atlassian.migration.datacenter.fs.phase.download');
+        case 'UPLOADING':
+            return I18n.getText('atlassian.migration.datacenter.fs.phase.upload');
+        case 'NOT_STARTED':
+            return I18n.getText('atlassian.migration.datacenter.fs.phase.notStarted');
+        default:
+            return I18n.getText('atlassian.migration.datacenter.generic.error');
+    }
+};
+
 const getFsMigrationProgress = (): Promise<Progress> => {
     return fs
         .getFsMigrationStatus()
         .then(result => {
-            if (result.status === 'UPLOADING') {
-                const progress: Progress = {
-                    phase: 'Uploading files to AWS',
-                    progress: '',
-                };
+            const builder: ProgressBuilder = new ProgressBuilder();
 
-                if (result.crawlingFinished) {
-                    const uploadProgress = result.uploadedFiles / result.filesFound;
-                    const weightedProgress = 0.5 * uploadProgress;
-                    return {
-                        ...progress,
-                        completeness: weightedProgress,
-                    };
-                }
-                return progress;
-            }
-            if (result.status === 'DOWNLOADING') {
-                const downloadProgress = result.downloadedFiles / result.filesFound;
-                const weightedProgress = 0.5 + 0.5 * downloadProgress;
-                return {
-                    phase: 'Loading files into target application',
-                    progress: '',
-                    completeness: weightedProgress,
-                };
-            }
+            builder.setError(getErrorFromResult(result));
+            builder.setCompleteness(getCompletenessFromResult(result));
+            builder.setPhase(getPhaseFromStatus(result));
+            builder.setElapsedSeconds(result.elapsedTime.seconds);
+            builder.setFailed(result.status === 'FAILED');
+
             if (result.status === 'DONE') {
-                return {
-                    phase: 'Finished!',
-                    progress: `${result.downloadedFiles} files loaded`,
-                    completeness: 1,
-                };
+                builder.setCompleteMessage(
+                    I18n.getText(
+                        'atlassian.migration.datacenter.fs.completeMessage.boldPrefix',
+                        result.downloadedFiles,
+                        result.filesFound
+                    ),
+                    I18n.getText('atlassian.migration.datacenter.fs.completeMessage.message')
+                );
             }
-            if (result.status === 'NOT_STARTED') {
-                return {
-                    phase: 'Preparing to migrate files',
-                    progress: '',
-                };
-            }
-            return {
-                phase: 'error',
-                completeness: 0,
-                progress: '',
-            };
+
+            return builder.build();
         })
         .catch(err => {
+            const error = err as Error;
+            // JSON parse error usually means we're querying the progress before the fs migration has started
+            if (error.message.indexOf('JSON.parse') >= 0) {
+                return {
+                    phase: I18n.getText('atlassian.migration.datacenter.fs.phase.notStarted'),
+                };
+            }
             return {
-                phase: 'error',
-                progress: err,
+                phase: I18n.getText('atlassian.migration.datacenter.generic.error'),
+                error: error.message,
             };
         });
 };
@@ -89,21 +134,34 @@ const getFsMigrationProgress = (): Promise<Progress> => {
 const fsMigrationTranferPageProps: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.fs.title'),
     description: I18n.getText('atlassian.migration.datacenter.fs.description'),
-    infoTitle: I18n.getText('atlassian.migration.datacenter.fs.infoTitle'),
-    infoContent: I18n.getText('atlassian.migration.datacenter.fs.infoContent'),
-    infoActions: [
-        {
-            key: 'learn',
-            href:
-                'https://media0.giphy.com/media/a6OnFHzHgCU1O/giphy.gif?cid=ecf05e472ee78099c642a7d2427127e6f1d4d6f0b77551c7&rid=giphy.gif',
-            text: I18n.getText('atlassian.migration.datacenter.common.learn_more'),
-        },
-    ],
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
-    started: dummyStarted,
+    inProgressStages: [MigrationStage.FS_MIGRATION_COPY_WAIT],
+    startMigrationPhase: fs.startFsMigration,
     getProgress: getFsMigrationProgress,
+    nextRoute: warningPath,
 };
 
 export const FileSystemTransferPage: FunctionComponent = () => {
+    const [loading, setLoading] = useState<boolean>(true);
+    const [hasStarted, setHasStarted] = useState<boolean>(false);
+
+    useEffect(() => {
+        setLoading(true);
+        migration
+            .getMigrationStage()
+            .then(stage => {
+                if (stage === MigrationStage.FS_MIGRATION_COPY_WAIT) {
+                    setHasStarted(true);
+                }
+                setLoading(false);
+            })
+            .catch(() => {
+                setHasStarted(false);
+                setLoading(false);
+            });
+    }, []);
+    if (loading) {
+        return <Spinner />;
+    }
     return <MigrationTransferPage {...fsMigrationTranferPageProps} />;
 };

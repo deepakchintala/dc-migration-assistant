@@ -14,46 +14,146 @@
  * limitations under the License.
  */
 
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useEffect, useState, FunctionComponent } from 'react';
 import Button from '@atlaskit/button';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
+import { I18n } from '@atlassian/wrm-react-i18n';
+import Lozenge from '@atlaskit/lozenge';
+import SectionMessage from '@atlaskit/section-message';
+import Spinner from '@atlaskit/spinner';
 
-import { overviewPath, fsPath, dbPath } from '../utils/RoutePaths';
+import { migration, MigrationReadyStatus } from '../api/migration';
+import { ErrorFlag } from './shared/ErrorFlag';
+import { awsAuthPath } from '../utils/RoutePaths';
 
 type HomeProps = {
     title: string;
     synopsis: string;
-    exploreMigrationButtonText: string;
+    startButtonText: string;
 };
 
 const HomeContainer = styled.div`
     display: flex;
     flex-direction: column;
-    align-items: center;
+    width: 100%;
+    margin-right: auto;
+    margin-bottom: auto;
+    padding-left: 15px;
+    max-width: 920px;
 `;
 
-const ButtonContainer = styled.div`
-    margin-top: 250px;
-    align-self: flex-end;
+const MigrationsContainer = styled.div`
+    margin-top: 20px;
 `;
 
-export const Home = ({ title, synopsis, exploreMigrationButtonText }: HomeProps): ReactElement => {
+const InfoProps = {
+    title: I18n.getText('atlassian.migration.datacenter.home.info.title'),
+};
+
+type ActionSectionProps = {
+    startButtonText: string;
+};
+
+const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startButtonText }) => {
+    const [error, setError] = useState<string>();
+    const [loading, setLoading] = useState<boolean>(false);
+    const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
+
+    const createMigration = (): void => {
+        setLoading(true);
+        migration
+            .createMigration()
+            .then(() => {
+                setReadyForNextStep(true);
+            })
+            .catch(err => {
+                setLoading(false);
+                setError(err);
+            });
+    };
+
+    if (readyForNextStep) {
+        return <Redirect to={awsAuthPath} push />;
+    }
+
+    return (
+        <>
+            <ErrorFlag
+                showError={error && error !== ''}
+                dismissErrorFunc={(): void => setError('')}
+                title={I18n.getText('atlassian.migration.datacenter.home.start.error')}
+                description={error}
+                id="migration-creation-error"
+            />
+            <p>
+                <ReadyStatus />
+            </p>
+            <MigrationsContainer>
+                <Button
+                    isLoading={loading}
+                    appearance="primary"
+                    onClick={createMigration}
+                    data-test="start-migration"
+                >
+                    {startButtonText}
+                </Button>
+            </MigrationsContainer>
+        </>
+    );
+};
+
+export const ReadyStatus: FunctionComponent = () => {
+    const [ready, setReady] = useState<MigrationReadyStatus>();
+    const readyString = (state: boolean | undefined) => {
+        return state === undefined ? (
+            <Spinner size="small" />
+        ) : state ? (
+            <Lozenge appearance="success">OK</Lozenge>
+        ) : (
+            <Lozenge appearance="removed">Incompatible</Lozenge>
+        );
+    };
+
+    useEffect(() => {
+        migration.getReadyStatus().then(status => {
+            setReady(status);
+        });
+    }, []);
+
+    return (
+        <SectionMessage appearance="info" {...InfoProps}>
+            <ul>
+                <li>
+                    uses <strong>PostgreSQL</strong> database &nbsp;{' '}
+                    {readyString(ready?.dbCompatible)}
+                </li>
+                <li>
+                    is running on <strong>Linux</strong> &nbsp; {readyString(ready?.osCompatible)}
+                </li>
+                <li>
+                    has a home directory under 400GB &nbsp; {readyString(ready?.fsSizeCompatible)}
+                </li>
+            </ul>
+        </SectionMessage>
+    );
+};
+
+export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
     return (
         <HomeContainer>
-            <h2>{title}</h2>
-            <p>{synopsis}</p>
-            <Link to={fsPath}>
-                <Button appearance="primary">FS Migration</Button>
-            </Link>
-            <Link to={dbPath}>
-                <Button appearance="primary">Database Migration</Button>
-            </Link>
-            <ButtonContainer>
-                <Link to={overviewPath}>
-                    <Button appearance="primary">{exploreMigrationButtonText}</Button>
-                </Link>
-            </ButtonContainer>
+            <h1>{title}</h1>
+            <p>
+                {synopsis}{' '}
+                <a
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html"
+                >
+                    {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                </a>
+            </p>
+            <MigrationActionSection startButtonText={startButtonText} />
         </HomeContainer>
     );
 };

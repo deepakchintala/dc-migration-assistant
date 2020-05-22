@@ -24,7 +24,6 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService;
-import com.atlassian.util.concurrent.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -37,6 +36,7 @@ import software.amazon.awssdk.services.cloudformation.model.Stack;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -46,7 +46,9 @@ import java.util.stream.Stream;
 public class AWSMigrationHelperDeploymentService extends CloudformationDeploymentService implements MigrationInfrastructureDeploymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(AWSMigrationHelperDeploymentService.class);
-    private static final String MIGRATION_HELPER_TEMPLATE_URL = "https://trebuchet-aws-resources.s3.amazonaws.com/migration-helper.yml";
+    private static final String MIGRATION_HELPER_TEMPLATE_URL = "https://trebuchet-public-resources.s3.amazonaws.com/migration-helper.yml";
+
+    private static final String templateUrl = System.getProperty("migration_helper.template.url", MIGRATION_HELPER_TEMPLATE_URL);
 
     private final Supplier<AutoScalingClient> autoscalingClientFactory;
     private final MigrationService migrationService;
@@ -81,7 +83,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
         String applicationDeploymentId = migrationService.getCurrentContext().getApplicationDeploymentId();
         String migrationStackDeploymentId = applicationDeploymentId + "-migration";
-        super.deployCloudformationStack(MIGRATION_HELPER_TEMPLATE_URL, migrationStackDeploymentId, params);
+        super.deployCloudformationStack(templateUrl, migrationStackDeploymentId, params);
         migrationService.transition(MigrationStage.PROVISION_MIGRATION_STACK_WAIT);
 
         final MigrationContext context = migrationService.getCurrentContext();
@@ -99,7 +101,8 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
     @Override
     protected void handleSuccessfulDeployment() {
-        Optional<Stack> maybeStack = cfnApi.getStack(migrationService.getCurrentContext().getHelperStackDeploymentId());
+        String stackId = System.getProperty("com.atlassian.migration.migrationStack.id", migrationService.getCurrentContext().getHelperStackDeploymentId());
+        Optional<Stack> maybeStack = cfnApi.getStack(stackId);
         if (!maybeStack.isPresent()) {
             throw new InfrastructureDeploymentError("stack was not found by DescribeStack even though it succeeded");
         }
@@ -120,14 +123,14 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         try {
             migrationService.transition(MigrationStage.FS_MIGRATION_COPY);
         } catch (InvalidMigrationStageError invalidMigrationStageError) {
-            logger.error("error transitioning to FS_MIGRATION_COPY stage after successful migration stack deployment");
-            migrationService.error();
+            logger.error("error transitioning to FS_MIGRATION_COPY stage after successful migration stack deployment", invalidMigrationStageError);
+            migrationService.error(invalidMigrationStageError.getMessage());
         }
     }
 
     @Override
-    protected void handleFailedDeployment() {
-        migrationService.error();
+    protected void handleFailedDeployment(String error) {
+        migrationService.error(error);
     }
 
     public String getFsRestoreDocument() {

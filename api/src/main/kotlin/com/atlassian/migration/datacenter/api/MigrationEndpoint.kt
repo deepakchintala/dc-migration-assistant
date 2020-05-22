@@ -20,13 +20,10 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
-import javax.ws.rs.Consumes
-import javax.ws.rs.GET
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 
 /**
  * REST API Endpoint for managing in-product DC migrations.
@@ -37,9 +34,8 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     /**
      * @return A response with the status of the current migration
      */
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     fun getMigrationStatus(): Response {
         return if (migrationService.currentStage == MigrationStage.NOT_STARTED) {
             Response
@@ -76,5 +72,48 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
                 .entity(mapOf("error" to "Unable to transition migration from initial state"))
                 .build()
         }
+    }
+
+    @GET
+    @Path("/summary")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getMigrationSummary(): Response {
+        return if (migrationService.currentStage == MigrationStage.NOT_STARTED) {
+            Response
+                    .status(Response.Status.NOT_FOUND)
+                    .build()
+        } else {
+            Response
+                    .ok(migrationContextResponseEntity())
+                    .build()
+        }
+    }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @GET
+    @Path("/ready")
+    fun getMigrationReadyStatus(): Response {
+        val status = migrationService.readyStatus;
+        return Response
+                .ok(jacksonObjectMapper().writeValueAsString(status))
+                .build();
+    }
+
+    @DELETE
+    @Path("/reset")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun resetMigration(): Response {
+        migrationService.deleteMigrations()
+        return Response.ok().build()
+    }
+
+    private fun migrationContextResponseEntity(): Map<String, String> {
+        val currentContext = migrationService.currentContext
+
+        return mapOf(
+            "instanceUrl" to currentContext.serviceUrl,
+            "error" to currentContext.errorMessage
+        )
     }
 }

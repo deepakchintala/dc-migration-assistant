@@ -28,14 +28,18 @@ const routePrefix = ((): string => {
     return `${pathname}${awsMigrationServletPath}`;
 })();
 
-export const homePath = routePrefix;
-export const overviewPath = `${routePrefix}/overview`;
+export const homePath = `${routePrefix}/home`;
 
 export const awsBasePath = `${routePrefix}/aws`;
 export const quickstartPath = `${awsBasePath}/provision`;
-export const quickstartStatusPath = `${awsBasePath}/:stackId/status`;
+export const quickstartStatusPath = `${awsBasePath}/provision/status`;
 export const awsAuthPath = `${awsBasePath}/auth`;
 
 export const fsPath = `${routePrefix}/fs`;
-
 export const dbPath = `${routePrefix}/db`;
+
+export const warningPath = `${routePrefix}/warning`;
+
+export const validationPath = `${routePrefix}/validation`;
+
+export const migrationErrorPath = `${routePrefix}/migration-error`;

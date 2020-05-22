@@ -32,10 +32,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class DatabaseMigrationService
-{
+public class DatabaseMigrationService {
     private static Logger logger = LoggerFactory.getLogger(DatabaseMigrationService.class);
 
     private final Path tempDirectory;
@@ -47,20 +49,18 @@ public class DatabaseMigrationService
     private final DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback;
     private final MigrationService migrationService;
     private final MigrationRunner migrationRunner;
-    private final AWSMigrationHelperDeploymentService  migrationHelperDeploymentService;
+    private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
 
-    private final AtomicBoolean isRunning = new AtomicBoolean(false);
+    private final AtomicReference<Optional<LocalDateTime>> startTime = new AtomicReference<>(Optional.empty());
 
-    public DatabaseMigrationService(Path tempDirectory,
-                                    MigrationService migrationService,
-                                    MigrationRunner migrationRunner,
-                                    DatabaseArchivalService databaseArchivalService,
-                                    DatabaseArchiveStageTransitionCallback stageTransitionCallback,
-                                    DatabaseArtifactS3UploadService s3UploadService,
-                                    DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
-                                    SsmPsqlDatabaseRestoreService restoreService,
-                                    DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback, AWSMigrationHelperDeploymentService migrationHelperDeploymentService)
-    {
+    public DatabaseMigrationService(Path tempDirectory, MigrationService migrationService,
+            MigrationRunner migrationRunner, DatabaseArchivalService databaseArchivalService,
+            DatabaseArchiveStageTransitionCallback stageTransitionCallback,
+            DatabaseArtifactS3UploadService s3UploadService,
+            DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
+            SsmPsqlDatabaseRestoreService restoreService,
+            DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback,
+            AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.tempDirectory = tempDirectory;
         this.databaseArchivalService = databaseArchivalService;
         this.stageTransitionCallback = stageTransitionCallback;
@@ -74,20 +74,18 @@ public class DatabaseMigrationService
     }
 
     /**
-     * Start database dump and upload to S3 bucket. This is a blocking operation and should be started from ExecutorService
-     * or preferably from ScheduledJob. The status of the migration can be queried via getStatus().
+     * Start database dump and upload to S3 bucket. This is a blocking operation and
+     * should be started from ExecutorService or preferably from ScheduledJob. The
+     * status of the migration can be queried via getStatus().
      */
-    public FileSystemMigrationErrorReport performMigration() throws DatabaseMigrationFailure, InvalidMigrationStageError
-    {
+    public FileSystemMigrationErrorReport performMigration()
+            throws DatabaseMigrationFailure, InvalidMigrationStageError {
         migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT);
+        startTime.set(Optional.of(LocalDateTime.now()));
 
         Path pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory, stageTransitionCallback);
 
-        migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT_WAIT);
-
         FileSystemMigrationErrorReport report;
-
-        migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD);
 
         String bucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
 
@@ -97,18 +95,24 @@ public class DatabaseMigrationService
             migrationService.error(e);
             throw new DatabaseMigrationFailure("Error when uploading database dump to S3", e);
         }
-        migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD_WAIT);
 
-        migrationService.transition(MigrationStage.DATA_MIGRATION_IMPORT);
         try {
             restoreService.restoreDatabase(restoreStageTransitionCallback);
         } catch (Exception e) {
             migrationService.error(e);
             throw new DatabaseMigrationFailure("Error when restoring database", e);
         }
-        migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD_WAIT);
 
         return report;
+    }
+
+    public Optional<Duration> getElapsedTime() {
+        Optional<LocalDateTime> start = startTime.get();
+        if (!start.isPresent()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(Duration.between(start.get(), LocalDateTime.now()));
     }
 
     public Boolean scheduleMigration() {
@@ -119,7 +123,7 @@ public class DatabaseMigrationService
         boolean result = migrationRunner.runMigration(jobId, jobRunner);
 
         if (!result) {
-            migrationService.error();
+            migrationService.error("Unable to start database migration job.");
         }
         return result;
     }
@@ -129,12 +133,14 @@ public class DatabaseMigrationService
         migrationRunner.abortJobIfPresesnt(getScheduledJobId());
 
         if (!migrationService.getCurrentStage().isDBPhase() || s3UploadService == null) {
-            throw new InvalidMigrationStageError(String.format("Invalid migration stage when cancelling filesystem migration: %s", migrationService.getCurrentStage()));
+            throw new InvalidMigrationStageError(
+                    String.format("Invalid migration stage when cancelling filesystem migration: %s",
+                            migrationService.getCurrentStage()));
         }
 
         logger.warn("Aborting running filesystem migration");
 
-        migrationService.error();
+        migrationService.error("File system migration was aborted");
     }
 
     private JobId getScheduledJobId() {
@@ -142,4 +148,3 @@ public class DatabaseMigrationService
     }
 
 }
-

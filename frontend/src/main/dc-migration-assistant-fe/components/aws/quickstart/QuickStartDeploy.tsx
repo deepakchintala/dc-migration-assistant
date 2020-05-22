@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, ReactElement, useEffect, useState } from 'react';
+import React, { FunctionComponent, ReactElement, ReactFragment, useEffect, useState } from 'react';
 import yaml from 'yaml';
-import Form, { ErrorMessage, Field, FormHeader, FormSection } from '@atlaskit/form';
+import Form, { ErrorMessage, Field, FormHeader, FormSection, HelperMessage } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
-import Button from '@atlaskit/button';
+import Button, { ButtonGroup } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
 import { OptionType } from '@atlaskit/select';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import styled from 'styled-components';
+import Panel from '@atlaskit/panel';
+import { Redirect } from 'react-router-dom';
 
 import { createQuickstartFormField } from './quickstartToAtlaskit';
 import {
@@ -33,11 +35,8 @@ import {
 } from './QuickStartTypes';
 
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
-
-const QUICKSTART_PARAMETERS_URL =
-    'https://dcd-slinghost-templates.s3-ap-southeast-2.amazonaws.com/mothra/quickstart-jira-dc-with-vpc.template.parameters.yaml';
-const stackProvisioningTemplateUrl =
-    'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc-with-vpc.template.yaml';
+import { quickstartStatusPath } from '../../../utils/RoutePaths';
+import { CancelButton } from '../../shared/CancelButton';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 
@@ -53,13 +52,22 @@ const QuickstartFormContainer = styled.form`
     width: 60%;
 `;
 
-const QuickstartSubmitButton = styled(Button)`
-    margin-top: 10px;
+const PanelContainer = styled.div`
+    & span {
+        font-size: 1.4em;
+        font-weight: 400;
+    }
+`;
+
+const ButtonRow = styled.div`
+    margin: 15px 0px 0px 10px;
 `;
 
 const StackNameField = (): ReactElement => {
     const fieldNameValidator = (stackName: string): string => {
-        const regExpMatch = stackName.match('^[a-zA-Z][a-zA-Z0-9-.]{1,126}$');
+        // NOTE: This gets converted to an S3 bucket name (with '-migration'
+        // appended), so must also conform with bucket naming rules.
+        const regExpMatch = stackName.match('^[a-z][a-z0-9-.]{1,53}$');
         return regExpMatch != null
             ? undefined
             : I18n.getText(
@@ -75,10 +83,16 @@ const StackNameField = (): ReactElement => {
                 'atlassian.migration.datacenter.provision.aws.form.stackName.label'
             )}
             name={STACK_NAME_FIELD_NAME}
+            data-test="stack-name"
         >
             {({ fieldProps, error }: any): ReactElement => (
                 <>
                     <TextField width="medium" {...fieldProps} />
+                    <HelperMessage>
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.provision.aws.form.stackName.helper'
+                        )}
+                    </HelperMessage>
                     {error && <ErrorMessage>{error}</ErrorMessage>}
                 </>
             )}
@@ -86,64 +100,80 @@ const StackNameField = (): ReactElement => {
     );
 };
 
-const QuickstartForm = ({
-    quickstartParamGroups,
-}: Record<string, Array<QuickstartParameterGroup>>): ReactElement => (
-    <Form
-        onSubmit={(data: Record<string, any>): void => {
-            const transformedCfnParams = data;
-            const stackNameValue = transformedCfnParams[STACK_NAME_FIELD_NAME];
-            delete transformedCfnParams[STACK_NAME_FIELD_NAME];
-
-            Object.entries(data).forEach(entry => {
-                // Hoist value from Select/Multiselect inputs to root of form value
-                const [key, value] = entry;
-                if (isOptionType(value)) {
-                    transformedCfnParams[key] = value.value;
-                } else if (isArrayOfOptionType(value)) {
-                    transformedCfnParams[key] = JSON.stringify(value.map(option => option.value));
-                }
-            });
-
-            callAppRest('POST', RestApiPathConstants.awsStackCreateRestPath, {
-                templateUrl: stackProvisioningTemplateUrl,
-                stackName: stackNameValue,
-                params: transformedCfnParams,
-            })
-                .then(response => {
-                    if (response.status !== 202) {
-                        throw Error('Stack provisioning failed');
-                    }
-                    return response;
-                })
-                .then(r => r.text())
-                .catch(err => {
-                    console.error(err);
-                });
-        }}
-    >
-        {({ formProps }: any): ReactElement => (
-            <QuickstartFormContainer {...formProps}>
-                <FormHeader
-                    title={I18n.getText('atlassian.migration.datacenter.provision.aws.form.title')}
-                />
-                <StackNameField />
-                {quickstartParamGroups.map(group => {
-                    return (
-                        <FormSection key={group.groupLabel} title={group.groupLabel}>
-                            {group.parameters.map(parameter => {
-                                return createQuickstartFormField(parameter);
-                            })}
-                        </FormSection>
-                    );
+const renderFormSection = (group: QuickstartParameterGroup): ReactFragment => {
+    const getFormSectionFragment = (props = {}): ReactFragment => {
+        return (
+            <FormSection key={group.groupLabel} {...props}>
+                {group.parameters.map(parameter => {
+                    return createQuickstartFormField(parameter);
                 })}
-                <QuickstartSubmitButton type="submit" appearance="primary">
-                    {I18n.getText('atlassian.migration.datacenter.generic.submit')}
-                </QuickstartSubmitButton>
-            </QuickstartFormContainer>
-        )}
-    </Form>
-);
+            </FormSection>
+        );
+    };
+
+    if (group.shouldExpandGroupOnLoad) {
+        return getFormSectionFragment({ title: group.groupLabel });
+    }
+    return (
+        <PanelContainer key={`${group.groupLabel}-panelContainer`}>
+            <Panel
+                header={group.groupLabel}
+                key={`${group.groupLabel}-panel`}
+                isDefaultExpanded={group.shouldExpandGroupOnLoad}
+            >
+                {getFormSectionFragment()}
+            </Panel>
+        </PanelContainer>
+    );
+};
+
+type QuickstartFormProps = {
+    paramGroups: Array<QuickstartParameterGroup>;
+    onSubmit: (data: Record<string, any>) => Promise<void>;
+};
+
+const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({ paramGroups, onSubmit }) => {
+    const [submitLoading, setSubmitLoading] = useState<boolean>(false);
+
+    const doSubmit = (data: Record<string, any>): void => {
+        setSubmitLoading(true);
+        onSubmit(data).finally(() => setSubmitLoading(false));
+    };
+
+    return (
+        <Form onSubmit={doSubmit}>
+            {({ formProps }: any): ReactElement => (
+                <QuickstartFormContainer {...formProps}>
+                    <FormHeader
+                        title={I18n.getText('atlassian.migration.datacenter.provision.aws.title')}
+                    />
+                    <p>
+                        {I18n.getText('atlassian.migration.datacenter.provision.aws.description')}
+                    </p>
+                    <StackNameField />
+                    {paramGroups.map(group => {
+                        return renderFormSection(group);
+                    })}
+                    <ButtonRow>
+                        <ButtonGroup>
+                            <Button
+                                isLoading={submitLoading}
+                                type="submit"
+                                appearance="primary"
+                                data-test="qs-submit"
+                            >
+                                {I18n.getText(
+                                    'atlassian.migration.datacenter.provision.aws.form.deploy'
+                                )}
+                            </Button>
+                            <CancelButton />
+                        </ButtonGroup>
+                    </ButtonRow>
+                </QuickstartFormContainer>
+            )}
+        </Form>
+    );
+};
 
 const buildQuickstartParams = (quickstartParamDoc: any): Array<QuickstartParameterGroup> => {
     const params: Record<string, QuickStartParameterYamlNode> = quickstartParamDoc.Parameters;
@@ -156,6 +186,7 @@ const buildQuickstartParams = (quickstartParamDoc: any): Array<QuickstartParamet
         const paramGroupLabel = Label;
         return {
             groupLabel: paramGroupLabel.default,
+            shouldExpandGroupOnLoad: !/optional/i.test(paramGroupLabel.default),
             parameters: Parameters.map(parameter => {
                 return {
                     paramKey: parameter,
@@ -174,13 +205,24 @@ const QuickStartDeployContainer = styled.div`
     justify-items: center;
 `;
 
+const DEFAULT_QUICKSTART_PARAMETER_URL =
+    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.parameters.yaml';
+
+const quickstartParametersTemplateLocation = () => {
+    const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_PARAMETERS_URL;
+    return parametersUrlFromEnv === undefined
+        ? DEFAULT_QUICKSTART_PARAMETER_URL
+        : parametersUrlFromEnv;
+};
+
 export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
-    const [params, setParams]: [Array<QuickstartParameterGroup>, Function] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [params, setParams] = useState<Array<QuickstartParameterGroup>>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
 
     useEffect(() => {
         setLoading(true);
-        fetch(QUICKSTART_PARAMETERS_URL, {
+        fetch(quickstartParametersTemplateLocation(), {
             method: 'GET',
         })
             .then(resp => resp.text())
@@ -194,9 +236,44 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
             });
     }, []);
 
+    const onSubmitQuickstartForm = (data: Record<string, any>): Promise<void> => {
+        const transformedCfnParams = data;
+        const stackNameValue = transformedCfnParams[STACK_NAME_FIELD_NAME];
+        delete transformedCfnParams[STACK_NAME_FIELD_NAME];
+
+        Object.entries(data).forEach(entry => {
+            // Hoist value from Select/Multiselect inputs to root of form value
+            const [key, value] = entry;
+            if (isOptionType(value)) {
+                transformedCfnParams[key] = value.value;
+            } else if (isArrayOfOptionType(value)) {
+                transformedCfnParams[key] = value.map(option => option.value).join(',');
+            }
+        });
+
+        return callAppRest('POST', RestApiPathConstants.awsStackCreateRestPath, {
+            stackName: stackNameValue,
+            params: transformedCfnParams,
+        })
+            .then(response => {
+                if (response.status !== 202) {
+                    throw Error('Stack provisioning failed');
+                }
+                setReadyForNextStep(true);
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    };
+
     return (
         <QuickStartDeployContainer>
-            {loading ? <Spinner /> : <QuickstartForm quickstartParamGroups={params} />}
+            {readyForNextStep && <Redirect to={quickstartStatusPath} push />}
+            {loading ? (
+                <Spinner />
+            ) : (
+                <QuickstartForm paramGroups={params} onSubmit={onSubmitQuickstartForm} />
+            )}
         </QuickStartDeployContainer>
     );
 };

@@ -20,62 +20,60 @@ import Toggle from '@atlaskit/toggle';
 import TextField from '@atlaskit/textfield';
 import { ErrorMessage, Field, HelperMessage } from '@atlaskit/form';
 import { I18n } from '@atlassian/wrm-react-i18n';
-
 // eslint-disable-next-line import/extensions
 import { QuickstartParameter } from './QuickStartTypes';
+import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 
 type FormElementGenerator = (
-    defaultProps: Record<string, string>,
+    defaultProps: DefaultFieldProps,
     param: QuickstartParameter
 ) => ReactElement;
 type InputProps = Record<string, boolean | number | string | Function>;
 
+type DefaultFieldProps = {
+    key: string;
+    label: string;
+    name: string;
+    defaultValue: string;
+};
+
+const availabilityZonesLoadOptions = (): Promise<Array<OptionType>> =>
+    callAppRest('GET', RestApiPathConstants.awsAzListForRegion)
+        .then(r => r.json())
+        .then(azs => (azs as Array<string>).map(az => ({ label: az, value: az, key: az })));
+
 const createAZSelection: FormElementGenerator = (defaultFieldProps, param) => {
-    // TODO: This should be queried via plugin API
-    const AZsForRegion = [
-        'us-east-1a',
-        'us-east-1b',
-        'us-east-1c',
-        'us-east-1d',
-        'us-east-1e',
-        'us-east-1f',
-        'ap-southeast-2a',
-        'ap-southeast-2b',
-    ];
-
-    // This will be replaced by an API call
-    const promiseOptions = (): Promise<Array<OptionType>> =>
-        new Promise(resolve => {
-            setTimeout(() => {
-                resolve(AZsForRegion.map(az => ({ label: az, value: az, key: az })));
-            }, 1000);
-        });
-
     const {
         paramProperties: { Description },
     } = param;
 
     const validate = (value: Array<OptionType>): string => {
-        if (value.length !== 2) {
+        if (value?.length !== 2) {
             return 'INCORRECT_NUM_AZ';
         }
         return undefined;
     };
 
     return (
-        <Field validate={validate} {...defaultFieldProps}>
+        <Field
+            validate={validate}
+            name={defaultFieldProps.name}
+            label={defaultFieldProps.label}
+            key={defaultFieldProps.key}
+        >
             {({ fieldProps, error }: any): ReactElement => (
                 <>
-                    <HelperMessage>{Description}</HelperMessage>
                     <AsyncSelect
                         className="az-select"
                         cacheOptions
                         defaultOptions
                         isMulti
                         isSearchable={false}
-                        loadOptions={promiseOptions}
+                        loadOptions={availabilityZonesLoadOptions}
+                        data-test="az-select"
                         {...fieldProps}
                     />
+                    <HelperMessage>{Description}</HelperMessage>
                     {error && (
                         <ErrorMessage>
                             {I18n.getText(
@@ -139,8 +137,8 @@ const createNumberInputFromQuickstartParam: FormElementGenerator = (defaultField
             {({ fieldProps, error }: any): ReactElement => {
                 return (
                     <>
-                        <HelperMessage>{Description}</HelperMessage>
                         <TextField width="medium" {...fieldProps} {...overrideInputProps} />
+                        <HelperMessage>{Description}</HelperMessage>
                         {error && <ErrorMessage>{error}</ErrorMessage>}
                     </>
                 );
@@ -202,8 +200,8 @@ const createStringInputFromQuickstartParam: FormElementGenerator = (defaultField
         <Field {...defaultFieldProps} {...overrideFieldProps}>
             {({ fieldProps, error }: any): ReactElement => (
                 <>
-                    <HelperMessage>{Description}</HelperMessage>
                     <TextField width="xlarge" {...fieldProps} {...overrideInputProps} />
+                    <HelperMessage>{Description}</HelperMessage>
                     {error && <ErrorMessage>{error}</ErrorMessage>}
                 </>
             )}
@@ -213,17 +211,13 @@ const createStringInputFromQuickstartParam: FormElementGenerator = (defaultField
 
 const createInputFromQuickstartParam: FormElementGenerator = (defaultFieldProps, param) => {
     const {
-        paramKey,
         paramProperties: { Type },
     } = param;
     if (Type === 'Number') {
         return createNumberInputFromQuickstartParam(defaultFieldProps, param);
     }
-    if (Type === 'String') {
-        return createStringInputFromQuickstartParam(defaultFieldProps, param);
-    }
 
-    return <div key={paramKey}>UNRECOGNISED PARAM TYPE</div>;
+    return createStringInputFromQuickstartParam(defaultFieldProps, param);
 };
 
 const createSelectFromQuickstartParam: FormElementGenerator = (defaultFieldProps, param) => {
@@ -234,12 +228,12 @@ const createSelectFromQuickstartParam: FormElementGenerator = (defaultFieldProps
             <Field {...defaultFieldProps}>
                 {({ fieldProps }: any): ReactElement => (
                     <>
-                        <HelperMessage>{Description}</HelperMessage>
                         <Toggle
                             {...fieldProps}
                             size="large"
                             isDefaultChecked={Default as boolean}
                         />
+                        <HelperMessage>{Description}</HelperMessage>
                     </>
                 )}
             </Field>
@@ -257,8 +251,33 @@ const createSelectFromQuickstartParam: FormElementGenerator = (defaultFieldProps
         <Field {...defaultFieldProps} defaultValue={defaultOption}>
             {({ fieldProps }: any): ReactElement => (
                 <>
-                    <HelperMessage>{Description}</HelperMessage>
                     <Select {...fieldProps} {...overrideFieldProps} />
+                    <HelperMessage>{Description}</HelperMessage>
+                </>
+            )}
+        </Field>
+    );
+};
+
+const createKeyPairNameField: FormElementGenerator = (defaultFieldProps, param) => {
+    const {
+        paramProperties: { Description, ConstraintDescription },
+    } = param;
+
+    const validateFun = (val: string): string => {
+        if (val.length === 0) {
+            return 'TOO_SHORT';
+        }
+        return undefined;
+    };
+
+    return (
+        <Field validate={validateFun} {...defaultFieldProps}>
+            {({ fieldProps, error }: any): ReactElement => (
+                <>
+                    <TextField width="xlarge" {...fieldProps} />
+                    <HelperMessage>{Description}</HelperMessage>
+                    {error && <ErrorMessage>{ConstraintDescription}</ErrorMessage>}
                 </>
             )}
         </Field>
@@ -272,6 +291,9 @@ const quickstartParamToAtlaskitFormElement: FormElementGenerator = (defaultField
     }
     if (paramProperties.Type === 'List<AWS::EC2::AvailabilityZone::Name>') {
         return createAZSelection(defaultFieldProps, param);
+    }
+    if (paramProperties.Type === 'AWS::EC2::KeyPair::KeyName') {
+        return createKeyPairNameField(defaultFieldProps, param);
     }
     return createInputFromQuickstartParam(defaultFieldProps, param);
 };

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -60,5 +61,13 @@ public class S3SyncFileSystemDownloadManager {
         }, 0, 10, TimeUnit.SECONDS);
 
         syncCompleteFuture.whenComplete((_i, _j) -> scheduledFuture.cancel(true));
+
+        try {
+            syncCompleteFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            final String errorMessage = "error occured during filesystem download";
+            logger.error(errorMessage, e);
+            throw new S3SyncFileSystemDownloader.CannotLaunchCommandException(errorMessage, e);
+        }
     }
 }
