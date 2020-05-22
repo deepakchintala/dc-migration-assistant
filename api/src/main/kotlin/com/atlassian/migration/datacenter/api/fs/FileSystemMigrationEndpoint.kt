@@ -15,23 +15,20 @@
  */
 package com.atlassian.migration.datacenter.api.fs
 
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import javax.ws.rs.Consumes
-import javax.ws.rs.DELETE
-import javax.ws.rs.GET
-import javax.ws.rs.PUT
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import java.util.stream.Collectors
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/migration/fs")
-class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigrationService) {
+class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigrationService, private val attachmentSyncManager: AttachmentSyncManager) {
     private val mapper: ObjectMapper = ObjectMapper()
 
     @PUT
@@ -42,7 +39,7 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
         return if (fsMigrationService.isRunning) {
             Response
                 .status(Response.Status.CONFLICT)
-                .entity(mapOf("status" to fsMigrationService.report.status))
+                .entity(mapOf("status" to fsMigrationService.report!!.status))
                 .build()
         } else try {
             val started = fsMigrationService.scheduleMigration()
@@ -57,6 +54,21 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
                 .entity(mapOf("error" to invalidMigrationStageError.message))
                 .build()
         }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("final-sync")
+    fun getFinalSyncFiles(): Response {
+        val files = attachmentSyncManager.capturedAttachments
+                .stream()
+                .map { record -> record.filePath }
+                .collect(Collectors.toSet())
+
+        return Response
+                .status(Response.Status.OK)
+                .entity(mapOf("files" to files))
+                .build()
     }
 
     @Path("/report")
