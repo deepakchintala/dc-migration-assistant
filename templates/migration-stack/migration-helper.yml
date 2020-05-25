@@ -218,7 +218,7 @@ Resources:
         download_java_helper_app:
           packages:
             yum:
-              java: []
+              java-1.8.0-openjdk: []
           commands:
             01_download:
               command: "wget http://trebuchet-public-assets.s3.us-east-1.amazonaws.com/filesystem-processor-1.0.0.jar -O /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
