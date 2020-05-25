@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Profile
 
 @Configuration
 @Profile("production")
-@EnableStackConfiguration(stackName = STACK_NAME)
+@EnableStackConfiguration
 open class AWSServicesConfiguration : IAWSServicesConfiguration {
 
     @Bean

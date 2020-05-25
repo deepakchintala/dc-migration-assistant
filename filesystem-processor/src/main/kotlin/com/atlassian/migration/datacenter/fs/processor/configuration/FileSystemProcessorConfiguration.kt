@@ -1,7 +1,6 @@
 package com.atlassian.migration.datacenter.fs.processor.configuration
 
 import com.amazonaws.services.sqs.AmazonSQSAsync
-import com.atlassian.migration.datacenter.fs.processor.configuration.AWSServicesConfiguration.Companion.STACK_NAME
 import com.atlassian.migration.datacenter.fs.processor.services.SQSMessageProcessor
 import org.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration
 import org.springframework.cloud.aws.core.env.ResourceIdResolver
@@ -23,7 +22,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 
 @Configuration
 @ComponentScan
-@EnableStackConfiguration(stackName = STACK_NAME)
+@EnableStackConfiguration
 open class FileSystemProcessorConfiguration {
 
     @Bean
@@ -82,6 +81,5 @@ open class FileSystemProcessorConfiguration {
 
     companion object {
         private const val QUEUE_LOGICAL_NAME: String = "MigrationQueue"
-        private const val STACK_NAME: String = "migration-helper"
     }
 }
