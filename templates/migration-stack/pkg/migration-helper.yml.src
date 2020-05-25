@@ -216,9 +216,12 @@ Resources:
             01_mount:
               command: /opt/atlassian/dc-migration-assistant/mount-efs.sh
         download_java_helper_app:
+          packages:
+            yum:
+              java: []
           commands:
             01_download:
-              command: "aws s3 cp s3://trebuchet-public-assets/filesystem-processor-1.0.0.jar /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
+              command: "wget http://trebuchet-public-assets.s3.us-east-1.amazonaws.com/filesystem-processor-1.0.0.jar -O /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
         start_java_helper_app:
           commands:
             01_start_app:

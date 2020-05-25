@@ -1,5 +1,6 @@
 STACK_NAME := $(shell whoami)-$(shell date +"%d-%mt%H-%M-%S")-migration-helper
 INSTANCE_TYPE ?= c5.large
+PLSQL_VERSION ?= 9.6
 
 # Params for create-stack
 # VPC_ID: the VPC to deploy the elastic beanstalk environment in
