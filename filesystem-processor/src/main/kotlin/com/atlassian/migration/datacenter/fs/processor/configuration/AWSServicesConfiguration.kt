@@ -41,28 +41,28 @@ open class AWSServicesConfiguration : IAWSServicesConfiguration {
     @Bean
     @Primary
     @ConditionalOnMissingAmazonClient(AmazonEC2::class)
-    override fun amazonEc2Client(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonEC2AsyncClient?>? {
+    override fun amazonEc2Client(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonEC2AsyncClient> {
         return AmazonWebserviceClientFactoryBean(AmazonEC2AsyncClient::class.java, credentialsProvider, regionProvider)
     }
 
     @Bean
     @Primary
     @ConditionalOnMissingAmazonClient(AmazonSQS::class)
-    override fun awsSqsClient(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient?>? {
+    override fun awsSqsClient(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient> {
         return AmazonWebserviceClientFactoryBean(AmazonSQSAsyncClient::class.java, credentialsProvider, regionProvider)
     }
 
     @Bean
     @Primary
     @ConditionalOnMissingAmazonClient(AmazonS3::class)
-    override fun amazonS3Client(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonS3Client?>? {
+    override fun amazonS3Client(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonS3Client> {
         return AmazonWebserviceClientFactoryBean(AmazonS3Client::class.java, credentialsProvider, regionProvider)
     }
 
     @Bean
     @Primary
     @ConditionalOnMissingAmazonClient(AmazonCloudFormation::class)
-    override fun amazonCloudFormationClient(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonCloudFormationAsyncClient?>? {
+    override fun amazonCloudFormationClient(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonCloudFormationAsyncClient> {
         return AmazonWebserviceClientFactoryBean(AmazonCloudFormationAsyncClient::class.java, credentialsProvider, regionProvider)
     }
 
