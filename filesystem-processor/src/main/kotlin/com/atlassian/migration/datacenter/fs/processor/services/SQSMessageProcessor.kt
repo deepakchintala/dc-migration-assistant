@@ -9,6 +9,7 @@ import org.springframework.messaging.MessageHandler
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.util.function.Consumer
 
 @Component
@@ -17,7 +18,9 @@ class SQSMessageProcessor(private val s3Client: AmazonS3?, private val threadPoo
     private val log = LoggerFactory.getLogger(SQSMessageProcessor::class.java)
 
     override fun handleMessage(message: Message<*>) {
-        val s3EventNotificationRecord: S3EventNotification = message.payload as S3EventNotification
+        val payload = message.payload as? String ?: throw IllegalArgumentException("SQS message is not a string, we can't handle that")
+
+        val s3EventNotificationRecord = S3EventNotification.parseJson(payload)
         if (log.isDebugEnabled) {
             log.debug("Received SQS message {}", s3EventNotificationRecord.toJson())
         }
