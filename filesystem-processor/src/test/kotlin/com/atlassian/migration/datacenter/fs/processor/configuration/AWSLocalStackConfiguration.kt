@@ -36,48 +36,48 @@ open class AWSLocalStackConfiguration : IAWSServicesConfiguration {
     lateinit var awsSSMLocalStackEndpoint: String
 
     @Bean
-    override fun regionProvider(@Value("\${app.region.id}") regionId: String): RegionProvider? {
+    override fun regionProvider(@Value("\${app.region.id}") regionId: String): RegionProvider {
         return StaticRegionProvider(regionId)
     }
 
     @Bean
     @Primary
-    override fun credentialsProvider(): DefaultAWSCredentialsProviderChain? {
+    override fun credentialsProvider(): DefaultAWSCredentialsProviderChain {
         return DefaultAWSCredentialsProviderChain()
     }
 
     @Bean
     @Primary
-    override fun amazonEc2Client(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonEC2AsyncClient?>? {
+    override fun amazonEc2Client(regionProvider: RegionProvider, credentialsProvider: AWSCredentialsProvider): AmazonWebserviceClientFactoryBean<AmazonEC2AsyncClient> {
         return LocalStackClientFactoryBean(AmazonEC2AsyncClient::class.java, credentialsProvider, regionProvider, this.awsEC2LocalStackEndpoint)
     }
 
     @Bean
     @Primary
-    override fun awsSqsClient(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient?>? {
+    override fun awsSqsClient(regionProvider: RegionProvider, credentialsProvider: AWSCredentialsProvider): AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient> {
         return LocalStackClientFactoryBean(AmazonSQSAsyncClient::class.java, credentialsProvider, regionProvider, this.awsSQSLocalStackEndpoint)
     }
 
     @Bean
     @Primary
-    override fun amazonCloudFormationClient(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonCloudFormationAsyncClient?>? {
+    override fun amazonCloudFormationClient(regionProvider: RegionProvider, credentialsProvider: AWSCredentialsProvider): AmazonWebserviceClientFactoryBean<AmazonCloudFormationAsyncClient> {
         return LocalStackClientFactoryBean(AmazonCloudFormationAsyncClient::class.java, credentialsProvider, regionProvider, this.awsCloudFormationLocalStackEndpoint)
     }
 
     @Bean
     @Primary
-    open fun awsS3Client(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonS3Client?>? {
+    open fun awsS3Client(regionProvider: RegionProvider, credentialsProvider: AWSCredentialsProvider): AmazonWebserviceClientFactoryBean<AmazonS3Client> {
         return this.amazonS3Client(regionProvider, credentialsProvider)
     }
 
     @Bean
-    override fun amazonS3Client(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AmazonS3Client?>? {
+    override fun amazonS3Client(regionProvider: RegionProvider, credentialsProvider: AWSCredentialsProvider): AmazonWebserviceClientFactoryBean<AmazonS3Client> {
         return LocalStackClientFactoryBean(AmazonS3Client::class.java, credentialsProvider, regionProvider, this.awsS3LocalStackEndpoint)
     }
 
     @Bean
     @Primary
-    open fun awsSSM(regionProvider: RegionProvider?, credentialsProvider: AWSCredentialsProvider?): AmazonWebserviceClientFactoryBean<AWSSimpleSystemsManagementAsyncClient?>? {
+    open fun awsSSM(regionProvider: RegionProvider, credentialsProvider: AWSCredentialsProvider): AmazonWebserviceClientFactoryBean<AWSSimpleSystemsManagementAsyncClient> {
         return LocalStackClientFactoryBean(AWSSimpleSystemsManagementAsyncClient::class.java, credentialsProvider, regionProvider, this.awsSSMLocalStackEndpoint)
     }
 
