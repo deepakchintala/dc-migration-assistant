@@ -8,6 +8,7 @@ import com.atlassian.migration.datacenter.fs.processor.configuration.LocalStackE
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableStackConfiguration(stackName = "migration-helper")
 @ExtendWith(LocalstackDockerExtension.class)
 @LocalstackDockerProperties(environmentVariableProvider = LocalStackEnvironmentVars.class, useSingleDockerContainer = true, services = "sqs,s3,ssm,cfn,ec2,cloudformation", imageTag = "0.10.8")
+@Disabled
 class FilesystemProcessorApplicationTests {
 
     @Autowired
@@ -74,6 +76,7 @@ class FilesystemProcessorApplicationTests {
 
     @SneakyThrows
     @Test
+    @Disabled
     public void testQueueSend() {
         final S3EventNotification eventNotification = createNotification();
         Message<S3EventNotification> message = MessageBuilder.withPayload(eventNotification)
