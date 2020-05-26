@@ -22,6 +22,7 @@ import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,10 +42,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
+import static com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY;
+import static com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.SECURITY_GROUP_NAME_STACK_OUTPUT_KEY;
+import static com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.SERVICE_URL_STACK_OUTPUT_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,9 +65,11 @@ class QuickstartDeploymentServiceTest {
 
     static final String TEST_SG = "test-sg";
     static final String TEST_DB_ENDPOINT = "my-db.com";
+    static final String TEST_SERVICE_URL = "https://my.loadbalancer";
     static final List<Output> MOCK_OUTPUTS = new LinkedList<Output>() {{
-        add(Output.builder().outputKey("SGname").outputValue(TEST_SG).build());
-        add(Output.builder().outputKey("DBEndpointAddress").outputValue(TEST_DB_ENDPOINT).build());
+        add(Output.builder().outputKey(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY).outputValue(TEST_SG).build());
+        add(Output.builder().outputKey(DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY).outputValue(TEST_DB_ENDPOINT).build());
+        add(Output.builder().outputKey(SERVICE_URL_STACK_OUTPUT_KEY).outputValue(TEST_SERVICE_URL).build());
     }};
 
     static final String TEST_SUBNET_1 = "subnet-123";
@@ -123,7 +130,9 @@ class QuickstartDeploymentServiceTest {
     {
         deploySimpleStack();
 
-        verify(mockCfnApi).provisionStack("https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc-with-vpc.template.yaml", STACK_NAME, STACK_PARAMS);
+        verify(mockCfnApi).provisionStack(
+                "https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.yaml",
+                STACK_NAME, STACK_PARAMS);
     }
 
     @Test
@@ -136,17 +145,18 @@ class QuickstartDeploymentServiceTest {
     @Test
     void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError {
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_IN_PROGRESS);
+        givenStackDeploymentWillBeInProgress();
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
 
         deploySimpleStack();
 
-        assertEquals(InfrastructureDeploymentStatus.CREATE_IN_PROGRESS, deploymentService.getDeploymentStatus());
+        InfrastructureDeploymentStatus status = deploymentService.getDeploymentStatus();
+        assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, status.getState());
     }
 
     @Test
     void shouldTransitionToWaitingForDeploymentWhileDeploymentIsCompleting() throws InvalidMigrationStageError, InterruptedException {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_IN_PROGRESS);
+        givenStackDeploymentWillBeInProgress();
 
         deploySimpleStack();
 
@@ -157,8 +167,7 @@ class QuickstartDeploymentServiceTest {
 
     @Test
     void shouldTransitionMigrationServiceStateWhenDeploymentFinishes() throws InterruptedException, InvalidMigrationStageError {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_COMPLETE);
-
+        givenStackDeploymentWillComplete();
         deploySimpleStack();
 
         Thread.sleep(100);
@@ -168,18 +177,18 @@ class QuickstartDeploymentServiceTest {
 
     @Test
     void shouldTransitionMigrationServiceToErrorWhenDeploymentFails() throws InterruptedException, InvalidMigrationStageError {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_FAILED);
+        givenStackDeploymentWillFail();
 
         deploySimpleStack();
 
         Thread.sleep(100);
 
-        verify(mockMigrationService).error();
+        verify(mockMigrationService).error("it broke");
     }
 
     @Test
     void shouldDeployMigrationStackWithApplicationStackOutputsAndResources() throws InvalidMigrationStageError, InterruptedException {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_COMPLETE);
+        givenStackDeploymentWillComplete();
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
 
         deploySimpleStack();
@@ -197,6 +206,31 @@ class QuickstartDeploymentServiceTest {
         }};
 
         verify(migrationHelperDeploymentService).deployMigrationInfrastructure(expectedMigrationStackParams);
+    }
+
+    @Test
+    void shouldStoreServiceUrlInMigrationContext() throws InvalidMigrationStageError, InterruptedException {
+        givenStackDeploymentWillComplete();
+        when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
+
+        deploySimpleStack();
+
+        Thread.sleep(100);
+
+        verify(mockContext).setServiceUrl(TEST_SERVICE_URL);
+        verify(mockContext, times(2)).save();
+    }
+
+    private void givenStackDeploymentWillBeInProgress() {
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_IN_PROGRESS, ""));
+    }
+
+    private void givenStackDeploymentWillComplete() {
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_COMPLETE, ""));
+    }
+
+    private void givenStackDeploymentWillFail() {
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_FAILED, "it broke"));
     }
 
     private void deploySimpleStack() throws InvalidMigrationStageError {

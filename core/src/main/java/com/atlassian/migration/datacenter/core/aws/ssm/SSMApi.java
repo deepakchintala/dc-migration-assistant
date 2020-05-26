@@ -17,7 +17,6 @@
 package com.atlassian.migration.datacenter.core.aws.ssm;
 
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
-import com.atlassian.util.concurrent.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -28,6 +27,7 @@ import software.amazon.awssdk.services.ssm.model.SendCommandResponse;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class SSMApi {
 
@@ -35,6 +35,8 @@ public class SSMApi {
 
     private Supplier<SsmClient> clientFactory;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+
+    private final String ssmS3KeyPrefix = "trebuchet-ssm-document-logs";
 
     public SSMApi(Supplier<SsmClient> clientFactory, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.clientFactory = clientFactory;
@@ -62,7 +64,7 @@ public class SSMApi {
                 .timeoutSeconds(600)
                 .comment("command run by Jira DC Migration Assistant")
                 .outputS3BucketName(migrationHelperDeploymentService.getMigrationS3BucketName())
-                .outputS3KeyPrefix("trebuchet-ssm-document-logs")
+                .outputS3KeyPrefix(ssmS3KeyPrefix)
                 .build();
 
         SendCommandResponse response = client.sendCommand(request);
@@ -94,5 +96,9 @@ public class SSMApi {
         GetCommandInvocationResponse response = client.getCommandInvocation(request);
 
         return response;
+    }
+
+    public String getSsmS3KeyPrefix() {
+        return ssmS3KeyPrefix;
     }
 }

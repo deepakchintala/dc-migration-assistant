@@ -208,8 +208,8 @@ Resources:
                       echo "Directory $EFS_MOUNT_DIR is already a valid mountpoint!"
                   fi
 
-                  echo 'EFS mount complete.'
-                - { EFSID: !Ref EFSFileSystemId }
+                    echo 'EFS mount complete.'
+                - EFSID: !Ref EFSFileSystemId
               mode: "000755"
         mount_efs:
           commands:
@@ -223,38 +223,23 @@ Resources:
               test: "grep -qv jira /etc/passwd"
               command: "useradd -u 2001 jira"
               ignoreErrors: false
-        download_java_helper_app:
-          files:
-            /usr/lib/systemd/system/dc-migration-sqs-consumer.service:
-              content:
-                |
-                [Unit]
-                Description=Consumer for SQS queue used for DC Migration Assistant File System Migration
-
-                [Service]
-                WorkingDirectory=/opt/atlassian/dc-migration-assistant
-                ExecStart=/bin/java -jar filesystem-processor-1.0.0.jar --spring.profiles.active=production
-                User=jira
-                Type=simple
-                Restart=on-failure
-                RestartSec=10
-
-                [Install]
-                WantedBy=multi-user.target
-              owner: root
-              mode: "000600"
+        prepare_efs_sync_script:
           packages:
             yum:
-              java-1.8.0-openjdk: []
-          commands:
-            01_download:
-              command: "wget http://trebuchet-public-assets.s3.us-east-1.amazonaws.com/filesystem-processor-1.0.0.jar -O /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
-            02_ownership:
-              command: "chown -R jira:jira /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
-        start_java_helper_app:
-          commands:
-            01_start_app:
-              command: "service dc-migration-sqs-consumer start"
+              python3: []
+          files:
+            /opt/atlassian/dc-migration-assistant/copy-shared-home.sh:
+              content: !Sub
+                - |
+                  #!/bin/bash
+                  SYNC_LOG_FILE="/var/atlassian/dc-migration-assistant/sync-log.txt"
+                  echo "beginning s3 sync with shared home" >> $SYNC_LOG_FILE
+                  aws s3 sync s3://${MigrationBucket} /efs/jira/shared >> $SYNC_LOG_FILE 2>/var/atlassian/dc-migration-assistant/sync-error.txt
+                  echo "s3 sync with shared home complete with exit code $?" >> $SYNC_LOG_FILE
+                - MigrationBucket: !Ref MigrationBucket
+              mode: "000755"
+            /opt/atlassian/dc-migration-assistant/home-copy-status.py:
+              content: | %{HOME_COPY_SCRIPT}%
         install_psql_client:
           commands:
             01_install_psql:
@@ -287,32 +272,38 @@ Resources:
                   DBUser: "atljira"
                 }
               mode: "000755"
-        prepare_efs_sync_script:
+        download_java_helper_app:
+          files:
+            /usr/lib/systemd/system/dc-migration-sqs-consumer.service:
+              content:
+                |
+                [Unit]
+                Description=Consumer for SQS queue used for DC Migration Assistant File System Migration
+
+                [Service]
+                WorkingDirectory=/opt/atlassian/dc-migration-assistant
+                ExecStart=/bin/java -jar filesystem-processor-1.0.0.jar --spring.profiles.active=production
+                User=jira
+                Type=simple
+                Restart=on-failure
+                RestartSec=10
+
+                [Install]
+                WantedBy=multi-user.target
+              owner: root
+              mode: "000600"
           packages:
             yum:
-              python3: []
-          files:
-            /opt/atlassian/dc-migration-assistant/copy-shared-home.sh:
-              content: !Sub
-                - |
-                  #!/bin/bash
-                  SYNC_LOG_FILE="/var/atlassian/dc-migration-assistant/sync-log.txt"
-                  echo "beginning s3 sync with shared home" >> $SYNC_LOG_FILE
-                  aws s3 sync s3://${MigrationBucket} /efs/jira/shared >> $SYNC_LOG_FILE 2>/var/atlassian/dc-migration-assistant/sync-error.txt
-                  echo "s3 sync with shared home complete with exit code $?" >> $SYNC_LOG_FILE
-                - { MigrationBucket: !Ref MigrationBucket }
-              mode: "000755"
-            /opt/atlassian/dc-migration-assistant/home-copy-status.py:
-              content: | %{HOME_COPY_SCRIPT}%
-
+              java-1.8.0-openjdk: []
           commands:
-            01_create_migration_dirs:
-              test: "test ! -d /var/atlassian/dc-migration-assistant"
-              command: mkdir -p /var/atlassian/dc-migration-assistant
-              ignoreErrors: false
-            01_set_migration_dir_perms:
-              command: chown jira:jira /var/atlassian/dc-migration-assistant
-              ignoreErrors: false
+            01_download:
+              command: "wget http://trebuchet-public-assets.s3.us-east-1.amazonaws.com/filesystem-processor-1.0.0.jar -O /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
+            02_ownership:
+              command: "chown -R jira:jira /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
+        start_java_helper_app:
+          commands:
+            01_start_app:
+              command: "service dc-migration-sqs-consumer start"
 
     Properties:
       ImageId: !Ref LatestAmiId
@@ -375,14 +366,12 @@ Resources:
             Statement:
               - Action: 's3:*'
                 Effect: Allow
-                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}/*', { MigrationBucket: !Ref MigrationBucket
-                }]
+                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}/*', { MigrationBucket: !Ref MigrationBucket }]
               - Action:
                   - 's3:ListBucket'
                   - 's3:HeadBucket'
                 Effect: Allow
-                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}', { MigrationBucket: !Ref MigrationBucket
-                }]
+                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}', { MigrationBucket: !Ref MigrationBucket }]
         - PolicyName: MigrationInstanceSecretReadAccess
           PolicyDocument:
             Version: 2012-10-17

@@ -16,20 +16,16 @@
 package com.atlassian.migration.datacenter.api
 
 import com.atlassian.migration.datacenter.dto.Migration
+import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
-import io.mockk.MockKAnnotations
-import io.mockk.Runs
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.runs
-import io.mockk.verify
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -42,6 +38,9 @@ import javax.ws.rs.core.Response
 class MigrationEndpointTest {
     @MockK
     lateinit var migrationService: MigrationService
+
+    @MockK
+    lateinit var migrationContext: MigrationContext
 
     @InjectMockKs
     lateinit var sut: MigrationEndpoint
@@ -56,6 +55,22 @@ class MigrationEndpointTest {
         val response = sut.getMigrationStatus()
 
         assertThat(response.entity.toString(), Matchers.containsString(MigrationStage.AUTHENTICATION.toString()))
+    }
+
+    @Test
+    fun testOKAndMigrationContextWhenMigrationExists() {
+        val expectedServiceUrl = "i_am_a_service_url"
+
+        every { migrationService.currentStage } returns MigrationStage.VALIDATE
+        every { migrationService.currentContext } returns migrationContext
+        every { migrationContext.serviceUrl } returns expectedServiceUrl
+        every { migrationContext.errorMessage } returns "foobar"
+
+        val response = sut.getMigrationSummary()
+
+        assertThat(response.status, Matchers.equalTo(Response.Status.OK.statusCode))
+        val entity = response.entity as? Map<String, String>
+        assertThat(entity!!["instanceUrl"], equalTo(expectedServiceUrl))
     }
 
     @Test
@@ -101,5 +116,31 @@ class MigrationEndpointTest {
         val entity = response.entity as MutableMap<*, *>
         assertEquals("migration already exists", entity["error"])
         verify(exactly = 0) { migrationService.transition(any()) }
+    }
+
+    @Test
+    fun shouldResetMigration() {
+        every { migrationService.deleteMigrations() } just Runs
+
+        val response = sut.resetMigration()
+
+        assertThat(response.status, equalTo(Response.Status.OK.statusCode))
+        verify { migrationService.deleteMigrations() }
+    }
+
+    @Test
+    fun shouldShowErrorMessageInMigration() {
+        val expectedError = "i am an error message"
+
+        every { migrationService.currentStage } returns MigrationStage.ERROR
+        every { migrationService.currentContext } returns migrationContext
+        every { migrationContext.serviceUrl } returns "foobar"
+        every { migrationContext.errorMessage } returns expectedError
+
+        val response = sut.getMigrationSummary()
+
+        assertThat(response.status, Matchers.equalTo(Response.Status.OK.statusCode))
+        val entity = response.entity as? Map<String, String>
+        assertThat(entity!!["error"], equalTo(expectedError))
     }
 }

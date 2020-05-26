@@ -15,17 +15,17 @@
  */
 
 import React, { FunctionComponent, ReactElement, useState } from 'react';
-import Form, { ErrorMessage, Field, FormFooter, HelperMessage } from '@atlaskit/form';
+import Form, { ErrorMessage, Field, FormFooter } from '@atlaskit/form';
 import Button, { ButtonGroup } from '@atlaskit/button';
-import styled from 'styled-components';
 import TextField from '@atlaskit/textfield';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import { Redirect } from 'react-router-dom';
 import { AsyncSelect, OptionType } from '@atlaskit/select';
-import Flag from '@atlaskit/flag';
-import ErrorIcon from '@atlaskit/icon/glyph/error';
-import { colors } from '@atlaskit/theme';
-import { useHistory } from 'react-router-dom';
+
 import { quickstartPath } from '../../../utils/RoutePaths';
+import { ErrorFlag } from '../../shared/ErrorFlag';
+import { CancelButton } from '../../shared/CancelButton';
+import styled from 'styled-components';
 
 export type AWSCreds = {
     accessKeyId: string;
@@ -50,17 +50,14 @@ export type AuthenticateAWSProps = {
     getRegions: QueryRegionFun;
 };
 
-type AuthenticationErrorProps = {
-    showError: boolean;
-    dismissErrorFunc: () => void;
-};
-
-const AwsAuthErrorContainer = styled.div`
-    position: fixed;
-    top: 70px;
-    left: 75%;
-    right: 1%;
-    overflow: inherit;
+const AuthenticationContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-right: auto;
+    margin-bottom: auto;
+    padding-left: 15px;
+    max-width: 920px;
 `;
 
 const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props): ReactElement => {
@@ -85,40 +82,14 @@ const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props):
     );
 };
 
-const AuthenticationErrorFlag: FunctionComponent<AuthenticationErrorProps> = (
-    props
-): ReactElement => {
-    const { showError, dismissErrorFunc } = props;
-
-    if (showError) {
-        return (
-            <AwsAuthErrorContainer>
-                <Flag
-                    actions={[
-                        {
-                            content: 'Dismiss',
-                            onClick: dismissErrorFunc,
-                        },
-                    ]}
-                    icon={<ErrorIcon primaryColor={colors.R400} label="Info" />}
-                    description="You may not have permissions to connect to the AWS account with the supplied credentials. Please try again with a different set of credentials to continue with the migration."
-                    id="aws-auth-connect-error-flag"
-                    key="connect-error"
-                    title="AWS Credentials Error"
-                />
-            </AwsAuthErrorContainer>
-        );
-    }
-    return null;
-};
-
 export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
     onSubmitCreds,
     getRegions,
 }): ReactElement => {
-    const [credentialPersistError, setCredentialPersistError] = useState(false);
-    const [awaitResponseFromApi, setAwaitResponseFromApi] = useState(false);
-    const history = useHistory();
+    const [credentialPersistError, setCredentialPersistError] = useState<boolean>(false);
+    const [awaitResponseFromApi, setAwaitResponseFromApi] = useState<boolean>(false);
+    const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
+
     const submitCreds = (formCreds: {
         accessKeyId: string;
         secretAccessKey: string;
@@ -136,10 +107,9 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
             resolve();
         })
             .then(() => onSubmitCreds(creds))
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            .then(_value => {
+            .then(() => {
                 setAwaitResponseFromApi(false);
-                history.push(quickstartPath);
+                setReadyForNextStep(true);
             })
             .catch(() => {
                 setAwaitResponseFromApi(false);
@@ -148,14 +118,28 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
     };
 
     return (
-        <>
-            <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.phrase')}</h1>
-            <h1>{I18n.getText('atlassian.migration.datacenter.authenticate.aws.title')}</h1>
-            <AuthenticationErrorFlag
+        <AuthenticationContainer>
+            {readyForNextStep && <Redirect to={quickstartPath} push />}
+            <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.title')}</h1>
+            <p>
+                {I18n.getText('atlassian.migration.datacenter.authenticate.aws.description')}{' '}
+                <a
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html"
+                >
+                    {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                </a>
+            </p>
+            <ErrorFlag
                 showError={credentialPersistError}
                 dismissErrorFunc={(): void => {
                     setCredentialPersistError(false);
                 }}
+                // FIXME: Internationalisation
+                description="You may not have permissions to connect to the AWS account with the supplied credentials. Please try again with a different set of credentials to continue with the migration."
+                id="aws-auth-connect-error-flag"
+                title="AWS Credentials Error"
             />
             <Form onSubmit={submitCreds}>
                 {({ formProps }: any): ReactElement => (
@@ -169,7 +153,11 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                             defaultValue=""
                         >
                             {({ fieldProps }: any): ReactElement => (
-                                <TextField width="xlarge" {...fieldProps} />
+                                <TextField
+                                    width="xlarge"
+                                    data-test="aws-auth-key"
+                                    {...fieldProps}
+                                />
                             )}
                         </Field>
                         <Field
@@ -181,10 +169,15 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                             defaultValue=""
                         >
                             {({ fieldProps }: any): ReactElement => (
-                                <TextField width="xlarge" {...fieldProps} />
+                                <TextField
+                                    width="xlarge"
+                                    data-test="aws-auth-secret"
+                                    {...fieldProps}
+                                />
                             )}
                         </Field>
                         <Field
+                            isRequired
                             label={I18n.getText(
                                 'atlassian.migration.datacenter.authenticate.aws.region.label'
                             )}
@@ -195,11 +188,6 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                         >
                             {({ fieldProps, error }: any): ReactElement => (
                                 <>
-                                    <HelperMessage>
-                                        {I18n.getText(
-                                            'atlassian.migration.datacenter.authenticate.aws.region.helper'
-                                        )}
-                                    </HelperMessage>
                                     <RegionSelect getRegions={getRegions} {...fieldProps} />
                                     {error && (
                                         <ErrorMessage>
@@ -218,21 +206,18 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                                     appearance="primary"
                                     testId="awsSecretKeySubmitFormButton"
                                     isLoading={awaitResponseFromApi}
+                                    data-test="aws-auth-submit"
                                 >
                                     {I18n.getText(
                                         'atlassian.migration.datacenter.authenticate.aws.submit'
                                     )}
                                 </Button>
-                                <Button appearance="default">
-                                    {I18n.getText(
-                                        'atlassian.migration.datacenter.authenticate.aws.cancel'
-                                    )}
-                                </Button>
+                                <CancelButton />
                             </ButtonGroup>
                         </FormFooter>
                     </form>
                 )}
             </Form>
-        </>
+        </AuthenticationContainer>
     );
 };

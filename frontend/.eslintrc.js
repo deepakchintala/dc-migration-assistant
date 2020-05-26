@@ -53,6 +53,7 @@ module.exports = {
         'react/require-default-props': 'warn',
         'no-undef': 'warn',
         'no-param-reassign': 'warn',
+        'no-nested-ternary': 'warn',
         'react/destructuring-assignment': 'warn',
         'import/no-extraneous-dependencies': ["error", {"devDependencies": ["**/*.test.tsx", "**/*.test.ts"]}],
         'jsx-a11y/label-has-associated-control': 'warn',
@@ -72,6 +73,7 @@ module.exports = {
         'no-unused-expressions': 'warn',
         'import/no-unresolved': 'warn',
         'react/forbid-component-props': 'warn',
+        'object-shorthand': 'warn',
     },
     settings: {
         'import/resolver': {

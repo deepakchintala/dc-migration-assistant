@@ -19,6 +19,7 @@ const merge = require('webpack-merge');
 const webpack = require('webpack');
 const path = require('path');
 const dotenv = require('dotenv');
+const fs = require('fs');
 
 const {
     DEV_SERVER_HOST,
@@ -42,6 +43,12 @@ const watchConfig = {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': '*',
+        },
+        proxy: {
+            '/rest': {
+                target: 'http://localhost:2990/jira',
+                auth: 'admin:admin',
+            },
         },
     },
     plugins: [new webpack.HotModuleReplacementPlugin()],
@@ -84,22 +91,40 @@ const prodConfig = {
 };
 
 module.exports = (env, argv = {}) => {
-    function isProductionEnv(mode = argv.mode) {
-        return mode !== 'development';
-    }
+    const isProductionEnv = (mode = argv.mode) => mode !== 'development';
 
-    function loadDotEnvVariables(mode) {
-        let dotEnvFilePath = path.join(__dirname, '../..', '.env');
-        if (!isProductionEnv(mode)) {
-            dotEnvFilePath = dotEnvFilePath + '.' + mode;
-        }
-        const dotEnvOverrides = dotenv.config({ path: dotEnvFilePath }).parsed;
-
+    const parseEnvVariablesFrom = filePath => {
+        const dotEnvOverrides = dotenv.config({ path: filePath }).parsed;
         return Object.keys(dotEnvOverrides).reduce((acc, current) => {
             acc[`process.env.${current}`] = JSON.stringify(dotEnvOverrides[current]);
             return acc;
         }, {});
-    }
+    };
+
+    const loadEnvVarsFrom = (dotEnvFilePath, acc) => {
+        if (fs.existsSync(dotEnvFilePath)) {
+            const envVars = parseEnvVariablesFrom(dotEnvFilePath);
+            Object.keys(envVars).forEach(key => {
+                acc[key] = envVars[key];
+            });
+        }
+        return acc;
+    };
+
+    const loadDotEnvVariables = mode => {
+        const dotEnvFilePath = path.join(__dirname, '../..', '.env');
+        const varsFromEnvFile = loadEnvVarsFrom(dotEnvFilePath, {});
+        if (!isProductionEnv(mode)) {
+            const envScopedOverridesFile = `${dotEnvFilePath}.${mode}`;
+            const envVarOverrides = loadEnvVarsFrom(envScopedOverridesFile, varsFromEnvFile);
+            console.log(`Loaded env vars with overrides`);
+            console.log(envVarOverrides);
+            return envVarOverrides;
+        }
+        console.log(`Loaded env vars`);
+        console.log(varsFromEnvFile);
+        return varsFromEnvFile;
+    };
 
     const isProduction = isProductionEnv();
     const modeConfig = isProduction ? prodConfig : devConfig(env);

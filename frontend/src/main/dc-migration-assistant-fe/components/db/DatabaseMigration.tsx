@@ -15,37 +15,75 @@
  */
 
 import React, { FunctionComponent } from 'react';
-
 import { I18n } from '@atlassian/wrm-react-i18n';
-import moment from 'moment';
+
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
+import { Progress, ProgressBuilder } from '../shared/Progress';
+import { callAppRest } from '../../utils/api';
+import {
+    dbStatusReportEndpoint,
+    dbStartEndpoint,
+    DatabaseMigrationStatus,
+    statusToI18nString,
+    dbLogsEndpoint,
+    DBMigrationStatus,
+    CommandDetails,
+} from '../../api/db';
+import { MigrationStage } from '../../api/migration';
+import { validationPath } from '../../utils/RoutePaths';
+
+const dbMigrationInProgressStages = [
+    MigrationStage.DATA_MIGRATION_IMPORT,
+    MigrationStage.DATA_MIGRATION_IMPORT_WAIT,
+    MigrationStage.DB_MIGRATION_EXPORT,
+    MigrationStage.DB_MIGRATION_EXPORT_WAIT,
+    MigrationStage.DB_MIGRATION_UPLOAD,
+    MigrationStage.DB_MIGRATION_UPLOAD_WAIT,
+];
+
+const toProgress = (status: DatabaseMigrationStatus): Progress => {
+    const builder = new ProgressBuilder();
+
+    builder.setPhase(statusToI18nString(status.status));
+    builder.setElapsedSeconds(status.elapsedTime.seconds);
+    builder.setFailed(status.status === DBMigrationStatus.FAILED);
+
+    if (status.status === DBMigrationStatus.DONE) {
+        builder.setCompleteness(1);
+        builder.setCompleteMessage(
+            '',
+            I18n.getText('atlassian.migration.datacenter.db.completeMessage')
+        );
+    }
+
+    return builder.build();
+};
+
+const fetchDBMigrationStatus = (): Promise<DatabaseMigrationStatus> => {
+    return callAppRest('GET', dbStatusReportEndpoint).then((result: any) => result.json());
+};
+
+const startDbMigration = (): Promise<void> => {
+    return callAppRest('PUT', dbStartEndpoint).then(result => result.json());
+};
+
+const getProgressFromStatus = (): Promise<Progress> => {
+    return fetchDBMigrationStatus().then(toProgress);
+};
+
+const fetchDBMigrationLogs = (): Promise<CommandDetails> => {
+    return callAppRest('GET', dbLogsEndpoint).then(result => result.json());
+};
 
 const props: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.db.title'),
     description: I18n.getText('atlassian.migration.datacenter.db.description'),
-    infoTitle: I18n.getText('atlassian.migration.datacenter.db.progress.title.in_progress'),
-    infoContent: I18n.getText('atlassian.migration.datacenter.common.can_close_window'),
-    infoActions: [
-        {
-            key: 'learn',
-            href:
-                'https://media0.giphy.com/media/a6OnFHzHgCU1O/giphy.gif?cid=ecf05e472ee78099c642a7d2427127e6f1d4d6f0b77551c7&rid=giphy.gif',
-            text: I18n.getText('atlassian.migration.datacenter.common.learn_more'),
-        },
-    ],
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
-    started: moment(),
-    getProgress: () => {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve({
-                    completeness: 0.5,
-                    phase: 'uploading files...',
-                    progress: '45 020 files copied',
-                });
-            }, 500);
-        });
-    },
+    startMigrationPhase: startDbMigration,
+    inProgressStages: dbMigrationInProgressStages,
+    getProgress: getProgressFromStatus,
+    nextRoute: validationPath,
+    getDetails: fetchDBMigrationLogs,
 };
 
 export const DatabaseTransferPage: FunctionComponent = () => {

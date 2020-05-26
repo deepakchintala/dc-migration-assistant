@@ -15,6 +15,7 @@
  */
 package com.atlassian.migration.datacenter.api.fs
 
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.atlassian.migration.datacenter.spi.fs.reporting.FailedFileMigration
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport
@@ -48,6 +49,9 @@ class FileSystemMigrationProgressEndpointTest {
     @MockK
     lateinit var report: FileSystemMigrationReport
 
+    @MockK
+    lateinit var attachmentSyncManager: AttachmentSyncManager
+
     @InjectMockKs
     lateinit var endpoint: FileSystemMigrationEndpoint
 
@@ -63,13 +67,13 @@ class FileSystemMigrationProgressEndpointTest {
         failedFilesCollection.add(failedFileMigration)
         every { fsMigrationService.report } returns mockk {
             every { status } returns FilesystemMigrationStatus.UPLOADING
-            every { numberOfCommencedFileUploads } returns 1L
-            every { numberOfFilesFound } returns 1L
+            every { getNumberOfCommencedFileUploads() } returns 1L
+            every { getNumberOfFilesFound() } returns 1L
             every { failedFiles } returns failedFilesCollection
-            every { countOfUploadedFiles } returns 1L
+            every { getCountOfUploadedFiles() } returns 1L
             every { elapsedTime } returns Duration.ofMinutes(1)
-            every { countOfDownloadFiles } returns 1L
-            every { isCrawlingFinished } returns true
+            every { getCountOfDownloadFiles() } returns 1L
+            every { isCrawlingFinished() } returns true
         }
 
         val response = endpoint.getFilesystemMigrationStatus()
@@ -99,10 +103,10 @@ class FileSystemMigrationProgressEndpointTest {
         every { fsMigrationService.report } returns report
         every { report.status } returns FilesystemMigrationStatus.UPLOADING
         every { report.elapsedTime } returns Duration.ofMinutes(1)
-        every { report.numberOfFilesFound } returns 1000000L
-        every { report.numberOfCommencedFileUploads } returns 1000000L
-        every { report.countOfDownloadFiles } returns 1000000L
-        every { report.isCrawlingFinished } returns true
+        every { report.getNumberOfFilesFound() } returns 1000000L
+        every { report.getNumberOfCommencedFileUploads() } returns 1000000L
+        every { report.getCountOfDownloadFiles() } returns 1000000L
+        every { report.isCrawlingFinished() } returns true
         val failedFiles: MutableSet<FailedFileMigration?> = HashSet()
         val testReason = "test reason"
         val testFile = Paths.get("file")
@@ -110,8 +114,8 @@ class FileSystemMigrationProgressEndpointTest {
             val failedFileMigration = FailedFileMigration(testFile, testReason)
             failedFiles.add(failedFileMigration)
         }
-        every { report.failedFiles } returns failedFiles
-        every { report.countOfUploadedFiles } returns 1000000L
+        every { report.failedFiles } returns failedFiles as Set<FailedFileMigration>
+        every { report.getCountOfUploadedFiles() } returns 1000000L
 
         val response = endpoint.getFilesystemMigrationStatus()
 

@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +57,7 @@ class CloudformationDeploymentServiceTest {
     void setup() {
         sut = new CloudformationDeploymentService(mockCfnApi) {
             @Override
-            protected void handleFailedDeployment() {
+            protected void handleFailedDeployment(String message) {
                 deploymentFailed = true;
             }
 
@@ -77,17 +78,19 @@ class CloudformationDeploymentServiceTest {
     @Test
     void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError
     {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_IN_PROGRESS);
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_IN_PROGRESS, ""));
 
         deploySimpleStack();
 
-        assertEquals(InfrastructureDeploymentStatus.CREATE_IN_PROGRESS, sut.getDeploymentStatus(STACK_NAME));
+        InfrastructureDeploymentStatus status = sut.getDeploymentStatus(STACK_NAME);
+        assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, status.getState());
+        assertEquals("", status.getReason());
     }
 
-    @ParameterizedTest
-    @EnumSource(mode = EnumSource.Mode.INCLUDE, names = {"CREATE_FAILED", "ROLLBACK_COMPLETE", "ROLLBACK_FAILED"}, value = StackStatus.class)
-    void shouldCallHandleFailedDeploymentWhenDeploymentFails(StackStatus failedStatus) throws InterruptedException {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(failedStatus);
+    @Test
+    void shouldCallHandleFailedDeploymentWhenDeploymentFails() throws InterruptedException {
+        final String badStatus = "it broke";
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_FAILED, badStatus));
 
         deploySimpleStack();
 
@@ -95,11 +98,16 @@ class CloudformationDeploymentServiceTest {
 
         assertTrue(deploymentFailed);
         assertFalse(deploymentSucceeded);
+
+
+        InfrastructureDeploymentStatus status = sut.getDeploymentStatus(STACK_NAME);
+        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, status.getState());
+        assertEquals(badStatus, status.getReason());
     }
 
     @Test
     void shouldCallHandleSuccessfulDeploymentWhenDeploymentFails() throws InterruptedException {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_COMPLETE);
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_COMPLETE, ""));
 
         deploySimpleStack();
 

@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,8 @@ import java.util.concurrent.TimeUnit;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Superclass for classes which manage the deployment of cloudformation templates.
+ * Superclass for classes which manage the deployment of cloudformation
+ * templates.
  */
 public abstract class CloudformationDeploymentService {
 
@@ -40,6 +42,7 @@ public abstract class CloudformationDeploymentService {
 
     private final CfnApi cfnApi;
     private int deployStatusPollIntervalSeconds;
+    private ScheduledFuture<?> deploymentWatcher;
 
     CloudformationDeploymentService(CfnApi cfnApi) {
         this(cfnApi, 30);
@@ -51,14 +54,15 @@ public abstract class CloudformationDeploymentService {
     }
 
     /**
-     * Method that will be called if the deployment {@link this#deployCloudformationStack(String, String, Map)} fails
+     * Method that will be called if the deployment
+     * {@link this#deployCloudformationStack(String, String, Map)} fails
      */
     protected abstract void handleSuccessfulDeployment();
 
     /**
      * Method that will be called if the deployment succeeds
      */
-    protected abstract void handleFailedDeployment();
+    protected abstract void handleFailedDeployment(String message);
 
     /**
      * Deploys a cloudformation stack and starts a thread to monitor the deployment.
@@ -74,54 +78,49 @@ public abstract class CloudformationDeploymentService {
 
     protected InfrastructureDeploymentStatus getDeploymentStatus(String stackName) {
         requireNonNull(stackName);
-        StackStatus status = cfnApi.getStatus(stackName);
+        InfrastructureDeploymentStatus status = cfnApi.getStatus(stackName);
 
-        switch (status) {
-            case CREATE_COMPLETE:
-                return InfrastructureDeploymentStatus.CREATE_COMPLETE;
-            case CREATE_FAILED:
-                return InfrastructureDeploymentStatus.CREATE_FAILED;
-            case CREATE_IN_PROGRESS:
-                return InfrastructureDeploymentStatus.CREATE_IN_PROGRESS;
-            default:
-                throw new RuntimeException("Unexpected stack status");
+        if (status.getState().equals(InfrastructureDeploymentState.CREATE_FAILED)) {
+            logger.error("discovered that cloudformation stack deployment failed when getting status. Reason is: {}", status.getReason());
+            handleFailedDeployment(status.getReason());
+            deploymentWatcher.cancel(true);
         }
+
+        return status;
     }
 
     private void beginWatchingDeployment(String stackName) {
         CompletableFuture<String> stackCompleteFuture = new CompletableFuture<>();
 
         final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        ScheduledFuture<?> ticker = scheduledExecutorService.scheduleAtFixedRate(() -> {
-            final StackStatus status = cfnApi.getStatus(stackName);
-            if (status.equals(StackStatus.CREATE_COMPLETE)) {
+        deploymentWatcher = scheduledExecutorService.scheduleAtFixedRate(() -> {
+            final InfrastructureDeploymentStatus status = cfnApi.getStatus(stackName);
+            if (status.getState().equals(InfrastructureDeploymentState.CREATE_COMPLETE)) {
                 logger.info("stack {} creation succeeded", stackName);
                 handleSuccessfulDeployment();
                 stackCompleteFuture.complete("");
             }
-            if (isFailedStatus(status)) {
-                logger.error("stack {} creation failed", stackName);
-                handleFailedDeployment();
+            if (status.getState().equals(InfrastructureDeploymentState.CREATE_FAILED)) {
+                logger.error("stack {} creation failed with reason {}", stackName, status.getReason());
+                handleFailedDeployment(status.getReason());
                 stackCompleteFuture.complete("");
             }
         }, 0, deployStatusPollIntervalSeconds, TimeUnit.SECONDS);
 
         ScheduledFuture<?> canceller = scheduledExecutorService.scheduleAtFixedRate(() -> {
-            logger.error("timed out while waiting for stack {} to deploy", stackName);
-            handleFailedDeployment();
-            ticker.cancel(true);
+            if (deploymentWatcher.isCancelled()) {
+                return;
+            }
+            String message = String.format("timed out while waiting for stack %s to deploy", stackName);
+            logger.error(message);
+            handleFailedDeployment(message);
+            deploymentWatcher.cancel(true);
             // Need to have non-zero period otherwise we get illegal argument exception
         }, 1, 100, TimeUnit.HOURS);
 
         stackCompleteFuture.whenComplete((result, thrown) -> {
-            ticker.cancel(true);
+            deploymentWatcher.cancel(true);
             canceller.cancel(true);
         });
-    }
-
-    private boolean isFailedStatus(StackStatus status) {
-        return status.equals(StackStatus.CREATE_FAILED) ||
-                status.equals(StackStatus.ROLLBACK_COMPLETE) ||
-                status.equals(StackStatus.ROLLBACK_FAILED);
     }
 }
