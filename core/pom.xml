@@ -26,9 +26,17 @@
             <groupId>com.atlassian.sal</groupId>
             <artifactId>sal-api</artifactId>
         </dependency>
+<!--TODO: add instead of jsr-->
+<!--   <dependency>
+            <groupId>com.atlassian.annotations</groupId>
+            <artifactId>atlassian-annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+-->
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
