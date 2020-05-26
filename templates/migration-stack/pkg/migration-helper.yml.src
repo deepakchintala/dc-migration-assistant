@@ -405,7 +405,7 @@ Resources:
               - Action:
                   - 'cloudformation:*'
                 Effect: Allow
-                Resource: !Ref 'AWS::StackName'
+                Resource: !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}*"
               - Action:
                   - 'cloudformation:Describe*'
                 Effect: Allow
