@@ -216,16 +216,40 @@ Resources:
             01_mount:
               command: /opt/atlassian/dc-migration-assistant/mount-efs.sh
         download_java_helper_app:
+          files:
+            /usr/lib/systemd/system/dc-migration-sqs-consumer.service:
+              content:
+                |
+                [Unit]
+                Description=Consumer for SQS queue used for DC Migration Assistant File System Migration
+
+                [Service]
+                WorkingDirectory=/opt/atlassian/dc-migration-assistant
+                ExecStart=/bin/java -jar filesystem-processor-1.0.0.jar --spring.profiles.active=production
+                User=sqs-fs-processor
+                Type=simple
+                Restart=on-failure
+                RestartSec=10
+
+                [Install]
+                WantedBy=multi-user.target
+              owner: root
+              mode: "000600"
+          users:
+            sqs-fs-processor:
+              uid: 3000
           packages:
             yum:
               java-1.8.0-openjdk: []
           commands:
             01_download:
               command: "wget http://trebuchet-public-assets.s3.us-east-1.amazonaws.com/filesystem-processor-1.0.0.jar -O /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
+            02_ownership:
+              command: "chown -R sqs-fs-processor:sqs-fs-processor /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
         start_java_helper_app:
           commands:
             01_start_app:
-              command: "java -jar /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar --spring.profiles.active=production"
+              command: "service dc-migration-sqs-consumer start"
         install_psql_client:
           commands:
             01_install_psql:
