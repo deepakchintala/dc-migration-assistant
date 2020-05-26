@@ -42,8 +42,7 @@ public class LocalStackEnvAutoConfiguration {
     @Bean
     @SneakyThrows
     public CreateStackResult setupCloudFormation(AmazonCloudFormation amazonCloudFormation, AmazonS3 amazonS3, AmazonSQSAsync awsSqsClient) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource("localstack.yml");
+        URL resource = getClass().getResource("localstack.yml");
         File cfnTemplate = new File(resource.getFile());
         String templateBody = FileUtils.readFileToString(cfnTemplate, Charset.defaultCharset());
         CreateStackRequest createStackRequest = new CreateStackRequest().withStackName(STACK_NAME).withTemplateBody(templateBody);
