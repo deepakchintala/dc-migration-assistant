@@ -115,7 +115,7 @@ Resources:
   StackNameParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /config/migration-helper/cloud.aws.stack.name
+      Name: /atlassian/config/migration-helper/cloud.aws.stack.name
       Type: String
       Value: !Ref AWS::StackName
       Description: CloudFormation Stack Name
@@ -123,7 +123,7 @@ Resources:
   JiraFilePathParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /config/migration-helper/app.jira.file.path
+      Name: /atlassian/config/migration-helper/app.jira.file.path
       Type: String
       Value: !Ref MigrationFilePath
       Description: File Path
@@ -131,7 +131,7 @@ Resources:
   VPCIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /config/migration-helper/app.vpc.id
+      Name: /atlassian/config/migration-helper/app.vpc.id
       Type: String
       Value: !Ref HelperVpcId
       Description: Helper VPC Id
@@ -139,7 +139,7 @@ Resources:
   RegionParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /config/migration-helper/app.region.id
+      Name: /atlassian/config/migration-helper/app.region.id
       Type: String
       Value: !Ref AWS::Region
       Description: Region Name
@@ -377,7 +377,7 @@ Resources:
                   - 'ssm:GetParameter'
                   - 'ssm:GetParametersByPath'
                 Effect: Allow
-                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/config/migration-helper*"
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/atlassian/config*"
               - Action:
                   - 'cloudformation:*'
                 Effect: Allow
