@@ -27,7 +27,7 @@ open class FileSystemProcessorConfiguration {
 
     @Bean
     @ServiceActivator(inputChannel = "errorChannel")
-    open fun errorLogging(): LoggingHandler? {
+    open fun errorLogging(): LoggingHandler {
         val adapter = LoggingHandler(LoggingHandler.Level.INFO)
         adapter.setLoggerName("ERROR_LOGGER")
         adapter.setLogExpressionString("headers.id + ': ' + payload")
@@ -36,7 +36,7 @@ open class FileSystemProcessorConfiguration {
 
     @Bean
     @ServiceActivator(inputChannel = "loggingChannel")
-    open fun discardLogging(): LoggingHandler? {
+    open fun discardLogging(): LoggingHandler {
         val adapter = LoggingHandler(LoggingHandler.Level.INFO)
         adapter.setLoggerName("DISCARD_LOGGER")
         adapter.setLogExpressionString("headers.id + ': ' + payload")
@@ -44,13 +44,13 @@ open class FileSystemProcessorConfiguration {
     }
 
     @Bean
-    open fun loggingChannel(): SubscribableChannel? {
+    open fun loggingChannel(): SubscribableChannel {
         return PublishSubscribeChannel()
     }
 
 
     @Bean
-    open fun sqsMessageDrivenChannelAdapter(destinationResolver: DynamicQueueUrlDestinationResolver?, errorChannel: PublishSubscribeChannel?, inboundChannel: SubscribableChannel?, amazonSqs: AmazonSQSAsync): MessageProducer? {
+    open fun sqsMessageDrivenChannelAdapter(destinationResolver: DynamicQueueUrlDestinationResolver, errorChannel: PublishSubscribeChannel, inboundChannel: SubscribableChannel, amazonSqs: AmazonSQSAsync): MessageProducer {
         val adapter = SqsMessageDrivenChannelAdapter(amazonSqs, QUEUE_LOGICAL_NAME)
         adapter.setDestinationResolver(destinationResolver)
         adapter.setQueueStopTimeout(60000)
@@ -60,22 +60,22 @@ open class FileSystemProcessorConfiguration {
     }
 
     @Bean
-    open fun inboundChannel(threadPoolTaskExecutor: ThreadPoolTaskExecutor): SubscribableChannel? {
+    open fun inboundChannel(threadPoolTaskExecutor: ThreadPoolTaskExecutor): SubscribableChannel {
         return ExecutorChannel(threadPoolTaskExecutor, RoundRobinLoadBalancingStrategy())
     }
 
     @Bean
-    open fun filteredChannel(threadPoolTaskExecutor: ThreadPoolTaskExecutor): SubscribableChannel? {
+    open fun filteredChannel(threadPoolTaskExecutor: ThreadPoolTaskExecutor): SubscribableChannel {
         return ExecutorChannel(threadPoolTaskExecutor, RoundRobinLoadBalancingStrategy())
     }
 
     @Bean
-    open fun consumer(filteredChannel: SubscribableChannel?, sqsMessageProcessor: SQSMessageProcessor?): EventDrivenConsumer {
+    open fun consumer(filteredChannel: SubscribableChannel, sqsMessageProcessor: SQSMessageProcessor): EventDrivenConsumer {
         return EventDrivenConsumer(filteredChannel, sqsMessageProcessor)
     }
 
     @Bean
-    open fun dynamicQueueUrlDestinationResolver(idResolver: ResourceIdResolver, amazonSqs: AmazonSQSAsync): DynamicQueueUrlDestinationResolver? {
+    open fun dynamicQueueUrlDestinationResolver(idResolver: ResourceIdResolver, amazonSqs: AmazonSQSAsync): DynamicQueueUrlDestinationResolver {
         return DynamicQueueUrlDestinationResolver(amazonSqs, idResolver)
     }
 

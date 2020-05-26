@@ -12,7 +12,7 @@ import java.io.File
 import java.util.function.Consumer
 
 @Component
-class SQSMessageProcessor(private val s3Client: AmazonS3?, private val threadPoolTaskExecutor: ThreadPoolTaskExecutor?, @Value("\${app.jira.file.path}") private val jiraHome: String) : MessageHandler {
+class SQSMessageProcessor(private val s3Client: AmazonS3, private val threadPoolTaskExecutor: ThreadPoolTaskExecutor, @Value("\${app.jira.file.path}") private val jiraHome: String) : MessageHandler {
 
     private val log = LoggerFactory.getLogger(SQSMessageProcessor::class.java)
 
@@ -43,9 +43,9 @@ class SQSMessageProcessor(private val s3Client: AmazonS3?, private val threadPoo
         }
     }
 
-    private fun submitTask(s3Client: AmazonS3?, item: S3EventNotification.S3Entity, jiraHome: String?) {
+    private fun submitTask(s3Client: AmazonS3, item: S3EventNotification.S3Entity, jiraHome: String) {
         val fileWriter = S3ToFileWriter(s3Client, item, jiraHome)
-        threadPoolTaskExecutor!!.submit(fileWriter)
+        threadPoolTaskExecutor.submit(fileWriter)
     }
 
 
