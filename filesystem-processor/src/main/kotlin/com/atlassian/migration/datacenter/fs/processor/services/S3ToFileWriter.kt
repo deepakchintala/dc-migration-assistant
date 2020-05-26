@@ -6,13 +6,11 @@ import lombok.SneakyThrows
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.net.URLDecoder
-import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousFileChannel
-import java.nio.channels.CompletionHandler
 import java.nio.charset.Charset
 import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
 
 class S3ToFileWriter(private val s3Client: AmazonS3?, private val entity: S3EventNotification.S3Entity?, private val jiraHome: String?) : Runnable {
 
@@ -26,26 +24,19 @@ class S3ToFileWriter(private val s3Client: AmazonS3?, private val entity: S3Even
                 s3object.objectContent.use { inputStream ->
                     val localPath = File("$jiraHome/$key")
                     val keyFile: String = Paths.get(localPath.path).fileName.toString()
+                    log.info("Got request to write file: $keyFile")
+                    // FIXME: Is this determining if the object is a file by checking if it has a file extension?
                     if (keyFile.contains(".")) {
                         if (!localPath.parentFile.exists()) {
                             if (localPath.parentFile.mkdirs()) {
-
-                                log.debug("Made the directory {}", localPath.path)
+                                log.info("Made the missing parent directory {}", localPath.path)
                             }
                         }
-                        val fileChannel = AsynchronousFileChannel.open(localPath.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)
-                        val bytes = IOUtils.toByteArray(inputStream)
-                        val buffer = ByteBuffer.wrap(bytes)
-                        fileChannel.write(buffer, 0, buffer, object : CompletionHandler<Int?, ByteBuffer?> {
-                            override fun completed(result: Int?, attachment: ByteBuffer?) {
-                                log.debug("Wrote the file {}", localPath.toString())
-                            }
-
-                            override fun failed(exc: Throwable, attachment: ByteBuffer?) {
-                                log.error(exc.cause!!.localizedMessage)
-                                log.error("Failed to write the file {}", localPath.toString())
-                            }
-                        })
+                        try {
+                            IOUtils.copy(inputStream, FileOutputStream(localPath))
+                        } catch (e: IOException) {
+                            log.error("Failed to write file $keyFile", e)
+                        }
                     } else {
                         localPath.mkdirs()
                     }
