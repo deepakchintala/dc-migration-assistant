@@ -214,24 +214,12 @@ public class CfnApi {
         }
     }
 
-    public List<StackSummary> filterASIs(List<StackSummary> stacks) {
-        return stacks.stream()
-            .filter(summary -> {
-                Optional<Stack> stack = getStack(summary.stackName());
-                if (!stack.isPresent()) return false;
-                List<String> outputs = stack.get().outputs().stream()
-                    .map(o -> o.outputKey())
-                    .collect(Collectors.toList());
-
-                // Crude heuristic to guess if this is an Atlassian Service Infrastructure (ASI) stack.
-                return outputs.containsAll(ImmutableSet.of("VPCID",
-                                                           "PrivateSubnets",
-                                                           "PublicSubnets"));
-            })
-            .collect(Collectors.toList());
-    }
-
-    public List<StackSummary> findASIs() {
+    /**
+     * Wrapper for basic AWS `list-stacks` functionality.
+     *
+     * @return List of StackSummary for the current region
+     */
+    public List<StackSummary> listStacks() {
         ListStacksResponse stacks;
         try {
             stacks = getClient().listStacks().join();
@@ -240,6 +228,18 @@ public class CfnApi {
             return Collections.emptyList();
         }
 
-        return filterASIs(stacks.stackSummaries());
+        return stacks.stackSummaries();
+    }
+
+    /**
+     * Wrapper around AWS `list-stacks` that hydrates the stack details.
+     *
+     * @return List of Stack
+     */
+    public List<Stack> listStacksFull() {
+        return listStacks().stream()
+            .map(summary -> getStack(summary.stackName()).orElse(null))
+            .filter(stack -> stack != null)
+            .collect(Collectors.toList());
     }
 }
