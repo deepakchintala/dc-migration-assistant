@@ -19,7 +19,11 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
-import javax.ws.rs.*
+import javax.ws.rs.Consumes
+import javax.ws.rs.DELETE
+import javax.ws.rs.PUT
+import javax.ws.rs.Path
+import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -42,14 +46,14 @@ class DevelopEndpoint(private val migrationService: MigrationService, private va
             try {
                 migrationService.transition(targetStage)
                 Response
-                        .ok(mapOf("targetStage" to migrationService.currentStage.toString()))
-                        .build()
+                    .ok(mapOf("targetStage" to migrationService.currentStage.toString()))
+                    .build()
             } catch (e: Exception) {
                 logger.warn("Cannot parse the migration stage", e)
                 Response
-                        .status(Response.Status.CONFLICT)
-                        .entity(mapOf("error" to "Unable to transition migration to $targetStage"))
-                        .build()
+                    .status(Response.Status.CONFLICT)
+                    .entity(mapOf("error" to "Unable to transition migration to $targetStage"))
+                    .build()
             }
         }
     }

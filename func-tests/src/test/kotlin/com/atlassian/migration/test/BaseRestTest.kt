@@ -27,10 +27,10 @@ open class BaseRestTest {
     private val password: String = System.getProperty("JIRA_PASSWORD", "admin")
 
     val requestSpec = RequestSpecBuilder()
-            .log(LogDetail.ALL)
-            .setBaseUri(System.getProperty("JIRA_BASE_URL", "http://localhost:2990/jira"))
-            .setBasePath(System.getProperty("JIRA_BASE_PATH", "/rest/dc-migration/1.0"))
-            .setAuth(RestAssured.basic(username, password))
-            .addParam("os_authType", "basic")
-            .build()
+        .log(LogDetail.ALL)
+        .setBaseUri(System.getProperty("JIRA_BASE_URL", "http://localhost:2990/jira"))
+        .setBasePath(System.getProperty("JIRA_BASE_PATH", "/rest/dc-migration/1.0"))
+        .setAuth(RestAssured.basic(username, password))
+        .addParam("os_authType", "basic")
+        .build()
 }
