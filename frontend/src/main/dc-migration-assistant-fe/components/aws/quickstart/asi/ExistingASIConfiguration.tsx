@@ -30,10 +30,6 @@ const RequiredStar = styled.span`
     color: #de350b;
 `;
 
-const ButtonRow = styled.div`
-    margin: 15px 0px 0px 10px;
-`;
-
 const ContentContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -44,6 +40,11 @@ const ContentContainer = styled.div`
     padding-left: 15px;
 `;
 
+const Description = styled.p`
+    width: 90%;
+    margin-bottom: 15px;
+`;
+
 const ASISelectorContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -51,6 +52,11 @@ const ASISelectorContainer = styled.div`
     max-width: 500px;
     margin-right: auto;
     margin-bottom: auto;
+    margin-top: 15px;
+`;
+
+const ButtonRow = styled.div`
+    margin: 30px 0px 0px 0px;
 `;
 
 const asyncASIPrefixOptions = (): Promise<Array<OptionType>> =>
@@ -84,12 +90,12 @@ export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfiguratio
     return (
         <ContentContainer>
             <h1>{I18n.getText('atlassian.migration.datacenter.provision.aws.asi.title')}</h1>
-            <p>
+            <Description>
                 {I18n.getText('atlassian.migration.datacenter.provision.aws.asi.description')}{' '}
                 <a href="https://aws.amazon.com/quickstart/architecture/atlassian-standard-infrastructure/">
                     {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
                 </a>
-            </p>
+            </Description>
             <SectionMessage appearance="info">
                 <p>{I18n.getText('atlassian.migration.datacenter.provision.aws.asi.found')}</p>
             </SectionMessage>
