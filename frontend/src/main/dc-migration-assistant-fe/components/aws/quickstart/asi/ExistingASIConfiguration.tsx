@@ -7,12 +7,21 @@ import { AsyncSelect, OptionType } from '@atlaskit/select';
 import TextField from '@atlaskit/textfield';
 import React, { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
+import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { CancelButton } from '../../../shared/CancelButton';
 
 const radioValues = [
-    { name: 'deploymentMode', value: 'existing', label: 'Existing ASI' },
-    { name: 'deploymentMode', value: 'new', label: 'New ASI' },
+    {
+        name: 'deploymentMode',
+        value: 'existing',
+        label: I18n.getText('atlassian.migration.datacenter.provision.aws.asi.option.existing'),
+    },
+    {
+        name: 'deploymentMode',
+        value: 'new',
+        label: I18n.getText('atlassian.migration.datacenter.provision.aws.asi.option.new'),
+    },
 ];
 
 const RequiredStar = styled.span`
@@ -24,6 +33,7 @@ const ButtonRow = styled.div`
 `;
 
 const asyncASIPrefixOptions = (): Promise<Array<OptionType>> =>
+    // FIXME: example options until there is API call to list ASI's
     Promise.resolve([
         { label: 'ATL-', value: 'ATL-', key: 'ATL-' },
         { label: 'BP-', value: 'BP-', key: 'BP-' },
@@ -34,25 +44,27 @@ export const ExistingASIConfiguration: FunctionComponent = () => {
     const [prefix, setPrefix] = useState<string>('');
 
     const handleSubmit = (): void => {
+        // TODO: Call callback passed as prop and nav to quickstart page
         console.log(`ASI prefix is: ${prefix}`);
     };
 
     return (
         <div>
-            <h1>Step 2 of 7: Configure ASI</h1>
+            <h1>{I18n.getText('atlassian.migration.datacenter.provision.aws.asi.title')}</h1>
             <p>
-                The Atlassian Standard Infrastructure (ASI) is a virtual private cloud specifically
-                customized to host Atlassian Data Center products.{' '}
-                <a href="www.atlassian.com">Learn more</a>
+                {I18n.getText('atlassian.migration.datacenter.provision.aws.asi.description')}{' '}
+                <a href="https://aws.amazon.com/quickstart/architecture/atlassian-standard-infrastructure/">
+                    {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                </a>
             </p>
             <SectionMessage appearance="info">
-                <p>
-                    We found an existing ASI in your region. You acn deploy to this ASI, or create a
-                    new one
-                </p>
+                <p>{I18n.getText('atlassian.migration.datacenter.provision.aws.asi.found')}</p>
             </SectionMessage>
             <h5>
-                Deploy to<RequiredStar>*</RequiredStar>
+                {I18n.getText(
+                    'atlassian.migration.datacenter.provision.aws.asi.chooseDeploymentMethod.label'
+                )}
+                <RequiredStar>*</RequiredStar>
             </h5>
             <RadioGroup
                 options={radioValues}
@@ -80,10 +92,7 @@ export const ExistingASIConfiguration: FunctionComponent = () => {
                 />
             )}
             <HelperMessage>
-                Identifier used in all variables (VPCID, SubnetIDs, KeyName) exported from this
-                deployment&apos;s Atlassian Standard Infrastructure. Use different identifiers if
-                you&apos;re deploying multiple Atlassian Standard Infrastructures in the same AWS
-                region. Format is 3 upper case letters followed by ”-“.
+                {I18n.getText('atlassian.migration.datacenter.provision.aws.asi.details')}
             </HelperMessage>
             <ButtonRow>
                 <ButtonGroup>
