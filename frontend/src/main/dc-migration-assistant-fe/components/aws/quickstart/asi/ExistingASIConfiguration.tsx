@@ -1,23 +1,19 @@
-import React, { FunctionComponent, ReactNode, useState } from 'react';
-import SectionMessage from '@atlaskit/section-message';
-import Form, { Field, HelperMessage } from '@atlaskit/form';
-import { RadioGroup } from '@atlaskit/radio';
-import TextField from '@atlaskit/textfield';
-import styled from 'styled-components';
 import { ButtonGroup } from '@atlaskit/button';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
+import { HelperMessage } from '@atlaskit/form';
+import { RadioGroup } from '@atlaskit/radio';
+import SectionMessage from '@atlaskit/section-message';
 import { AsyncSelect, OptionType } from '@atlaskit/select';
+import TextField from '@atlaskit/textfield';
+import React, { FunctionComponent, useState } from 'react';
+import styled from 'styled-components';
+
 import { CancelButton } from '../../../shared/CancelButton';
 
 const radioValues = [
     { name: 'deploymentMode', value: 'existing', label: 'Existing ASI' },
     { name: 'deploymentMode', value: 'new', label: 'New ASI' },
 ];
-
-type ExistingASIConfigurationFormData = {
-    ASIIdentifierExisting: string;
-    ASIIdentifierNew: string;
-};
 
 const RequiredStar = styled.span`
     color: #de350b;
@@ -35,6 +31,11 @@ const asyncASIPrefixOptions = (): Promise<Array<OptionType>> =>
 
 export const ExistingASIConfiguration: FunctionComponent = () => {
     const [useExisting, setUseExisting] = useState<boolean>(true);
+    const [prefix, setPrefix] = useState<string>('');
+
+    const handleSubmit = (): void => {
+        console.log(`ASI prefix is: ${prefix}`);
+    };
 
     return (
         <div>
@@ -56,7 +57,10 @@ export const ExistingASIConfiguration: FunctionComponent = () => {
             <RadioGroup
                 options={radioValues}
                 defaultValue={radioValues[0].value}
-                onChange={(event): void => setUseExisting(event.currentTarget.value === 'existing')}
+                onChange={(event): void => {
+                    setUseExisting(event.currentTarget.value === 'existing');
+                    setPrefix('');
+                }}
             />
             {useExisting ? (
                 <AsyncSelect
@@ -65,9 +69,15 @@ export const ExistingASIConfiguration: FunctionComponent = () => {
                     defaultOptions
                     loadOptions={asyncASIPrefixOptions}
                     data-test="asi-select"
+                    onChange={(event: OptionType): void => setPrefix(event.value.toString())}
                 />
             ) : (
-                <TextField placeholder="ATL-" width="xlarge" />
+                <TextField
+                    placeholder="ATL-"
+                    width="xlarge"
+                    value={prefix}
+                    onChange={(event): void => setPrefix(event.currentTarget.value)}
+                />
             )}
             <HelperMessage>
                 Identifier used in all variables (VPCID, SubnetIDs, KeyName) exported from this
@@ -77,7 +87,12 @@ export const ExistingASIConfiguration: FunctionComponent = () => {
             </HelperMessage>
             <ButtonRow>
                 <ButtonGroup>
-                    <Button type="submit" appearance="primary" data-test="asi-submit">
+                    <Button
+                        onClick={handleSubmit}
+                        type="submit"
+                        appearance="primary"
+                        data-test="asi-submit"
+                    >
                         Next
                     </Button>
                     <CancelButton />
