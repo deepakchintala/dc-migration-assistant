@@ -84,266 +84,65 @@
         </pluginRepository>
     </pluginRepositories>
 
-
-    <dependencies>
-        <!-- Dependencies common to all modules -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.30</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
-            <version>${kotlin.version}</version>
-        </dependency>
-
-        <!-- Test Dependencies follow -->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wink</groupId>
-            <artifactId>wink-client</artifactId>
-            <version>1.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.atlassian.activeobjects</groupId>
-            <artifactId>activeobjects-test</artifactId>
-            <version>${ao.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
-            <version>2.5.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>cloud.localstack</groupId>
-            <artifactId>localstack-utils</artifactId>
-            <version>${localstack.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>${testcontainers.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>localstack</artifactId>
-            <version>${testcontainers.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>${postgres.driver.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${testcontainers.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.11.728</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-            <version>1.1.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>java-hamcrest</artifactId>
-            <version>2.0.0.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.mockk</groupId>
-            <artifactId>mockk</artifactId>
-            <version>${mockk.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring.version}</version>
-                <scope>provided</scope>
+                <groupId>com.atlassian.platform</groupId>
+                <artifactId>platform</artifactId>
+                <version>${atlassian.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>com.atlassian.jira</groupId>
-                <artifactId>jira-api</artifactId>
-                <version>7.13.12</version>
-                <scope>provided</scope>
+                <groupId>com.atlassian.platform</groupId>
+                <artifactId>third-party</artifactId>
+                <version>${atlassian.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
-            <!-- We depend on atlassian-util-concurrent to be present on the compile classpath as we use LazyReference from the library. This is not exported by jira in versions below 8.0. Scopes are defined in the child modules at the point of usage for readability and atlassian convention.
-            -->
-            <dependency>
-                <groupId>io.atlassian.util.concurrent</groupId>
-                <artifactId>atlassian-util-concurrent</artifactId>
-                <version>4.0.1</version>
-            </dependency>
-            <!-- We use the Attachment Store API and have a dependency on com.atlassian.util.concurrent. This will be provided by the system bundle even in the most recent version of jira i.e. 8.8.x at the time of this commit. Scopes are defined in the child modules at the point of usage for readability and atlassian convention.-->
+
+            <!-- We no longer depend on io.atlassian.util.concurrent.atlassian-util-concurrent to be present on the compile classpath as we use LazyReference from the com.atlassian.util.concurrent library. Additionally, we use the Attachment Store API and have a dependency on com.atlassian.util.concurrent. This will be provided by the system bundle even in the most recent version of jira i.e. 8.8.x at the time of this commit. Scopes are defined in the child modules at the point of usage for readability and atlassian convention.-->
             <!--Revisit this in case this is no longer provided by the jira system bundle-->
             <dependency>
                 <groupId>com.atlassian.util.concurrent</groupId>
                 <artifactId>atlassian-util-concurrent</artifactId>
-                <version>3.0.0</version>
+                <version>${atlassian.util.concurrent.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.atlassian.util.concurrent</groupId>
-                <artifactId>atlassian-util-concurrent</artifactId>
-                <version>3.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>io.atlassian.util.concurrent</groupId>
-                <artifactId>atlassian-util-concurrent</artifactId>
-                <version>4.0.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.soy</groupId>
-                <artifactId>soy-template-renderer-api</artifactId>
-                <version>${soy.version}</version>
-                <scope>provided</scope>
-            </dependency>
+            <!--TODO: What module uses JTA?? -->
             <dependency>
                 <groupId>jta</groupId>
                 <artifactId>jta</artifactId>
-                <version>1.0.1b</version>
-                <scope>provided</scope>
+                <version>${jta.version}</version>
             </dependency>
+
+            <!-- Review if we need this at all? -->
             <dependency>
-                <groupId>com.atlassian.activeobjects</groupId>
-                <artifactId>activeobjects-plugin</artifactId>
-                <version>${ao.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.scheduler</groupId>
-                <artifactId>atlassian-scheduler-api</artifactId>
-                <version>3.0.0</version>
-                <scope>provided</scope>
+                <groupId>com.fasterxml.woodstox</groupId>
+                <artifactId>woodstox-core</artifactId>
+                <version>${woodstox.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-xml</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-kotlin</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.sal</groupId>
-                <artifactId>sal-api</artifactId>
-                <version>${sal.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>javax.annotation</groupId>
-                <artifactId>javax.annotation-api</artifactId>
-                <version>1.3.2</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>jsr311-api</artifactId>
-                <version>1.1.1</version>
-                <scope>provided</scope>
-            </dependency>
+
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.framework</artifactId>
                 <version>${apache.felix.framework.version}</version>
-                <scope>provided</scope>
             </dependency>
+
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-beans</artifactId>
-                <version>${spring.version}</version>
-                <scope>provided</scope>
+                <groupId>com.atlassian.jira</groupId>
+                <artifactId>jira-api</artifactId>
+                <version>${jira.api.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>com.atlassian.plugins</groupId>
                 <artifactId>atlassian-plugins-osgi-javaconfig</artifactId>
                 <version>${atlassian.plugins.osgi.javaconfig.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>servlet-api</artifactId>
-                <version>2.4</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.plugins</groupId>
-                <artifactId>atlassian-plugins-api</artifactId>
-                <version>${atlassian.plugins.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.plugins</groupId>
-                <artifactId>atlassian-plugins-webfragment-api</artifactId>
-                <version>${webfragments.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.woodstox</groupId>
-                <artifactId>woodstox-core</artifactId>
-                <version>6.0.3</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
@@ -359,6 +158,121 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- Kotlin -->
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-stdlib-jdk8</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-kotlin</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <!-- Test Dependencies. Scope is not required in the dependencyManagement section -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.vintage</groupId>
+                <artifactId>junit-vintage-engine</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wink</groupId>
+                <artifactId>wink-client</artifactId>
+                <version>${apache.wink.client.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.atlassian.activeobjects</groupId>
+                <artifactId>activeobjects-test</artifactId>
+                <version>${ao.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hsqldb</groupId>
+                <artifactId>hsqldb</artifactId>
+                <version>${hsqldb.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>cloud.localstack</groupId>
+                <artifactId>localstack-utils</artifactId>
+                <version>${localstack.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>localstack</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgres.driver.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>java-hamcrest</artifactId>
+                <version>${hamcrest.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-test</artifactId>
+                <version>${kotlin.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.mockk</groupId>
+                <artifactId>mockk</artifactId>
+                <version>${mockk.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -432,12 +346,16 @@
                     <execution>
                         <id>java-compile</id>
                         <phase>compile</phase>
-                        <goals> <goal>compile</goal> </goals>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
                     </execution>
                     <execution>
                         <id>java-test-compile</id>
                         <phase>test-compile</phase>
-                        <goals> <goal>testCompile</goal> </goals>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -518,29 +436,43 @@
         <yarn.cmd.build.dev>build:dev</yarn.cmd.build.dev>
         <node.modules>${project.basedir}/src/main/dc-migration-assistant-fe/node_modules</node.modules>
         <frontend.working.directory>src/main/dc-migration-assistant-fe</frontend.working.directory>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
 
-        <ao.version>3.2.2</ao.version>
-        <maven-frontend-plugin.version>1.9.1</maven-frontend-plugin.version>
-        <sal.version>4.0.0</sal.version>
-        <spring.version>5.0.10.RELEASE</spring.version>
-        <atlassian.plugins.version>5.2.1</atlassian.plugins.version>
         <apache.felix.framework.version>4.0.0</apache.felix.framework.version>
+        <apache.wink.client.version>1.4</apache.wink.client.version>
+        <ao.version>3.2.2</ao.version>
+        <amps.version>8.0.4</amps.version>
+        <amps.jvm.args/>
+        <atlassian.platform.version>5.0.13</atlassian.platform.version>
         <atlassian.plugins.osgi.javaconfig.version>0.2.0</atlassian.plugins.osgi.javaconfig.version>
-        <amps.version>8.0.2</amps.version>
-        <soy.version>5.0.0</soy.version>
-        <webfragments.version>5.1.0</webfragments.version>
-        <mockito.version>3.2.4</mockito.version>
-        <junit.version>5.4.2</junit.version>
+        <atlassian.plugins.version>5.2.1</atlassian.plugins.version>
+        <atlassian.scheduler.api.version>3.0.0</atlassian.scheduler.api.version>
+        <atlassian.util.concurrent.version>3.0.0</atlassian.util.concurrent.version>
         <aws.sdk.version>2.10.61</aws.sdk.version>
-        <localstack.version>0.2.1</localstack.version>
-        <testcontainers.version>1.13.0</testcontainers.version>
-        <postgres.driver.version>42.2.10</postgres.driver.version>
+        <hsqldb.version>2.5.0</hsqldb.version>
+        <hamcrest.version>2.0.0.0</hamcrest.version>
+        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <kotlin.version>1.3.70</kotlin.version>
         <jackson.version>2.10.3</jackson.version>
+        <javax.annotation.api.version>1.3.2</javax.annotation.api.version>
+        <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
+        <jira.api.version>7.13.12</jira.api.version>
+        <jsr.311.api.version>1.1.1</jsr.311.api.version>
+        <jta.version>1.0.1b</jta.version>
+        <junit.version>5.4.2</junit.version>
+        <localstack.version>0.2.1</localstack.version>
+        <maven-frontend-plugin.version>1.9.1</maven-frontend-plugin.version>
+        <mockito.version>3.2.4</mockito.version>
         <mockk.version>1.9.3</mockk.version>
+        <postgres.driver.version>42.2.10</postgres.driver.version>
+        <sal.version>4.0.0</sal.version>
+        <slf4j.version>1.7.30</slf4j.version>
+        <soy.version>5.0.0</soy.version>
+        <spring.version>5.0.10.RELEASE</spring.version>
         <surefire.version>3.0.0-M4</surefire.version>
-        <amps.jvm.args/>
-
-        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+        <testcontainers.version>1.13.0</testcontainers.version>
+        <webfragments.version>5.1.0</webfragments.version>
+        <woodstox.core.version>6.0.3</woodstox.core.version>
     </properties>
 </project>
