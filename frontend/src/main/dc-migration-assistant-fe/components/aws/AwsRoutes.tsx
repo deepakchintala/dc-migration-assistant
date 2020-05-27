@@ -28,6 +28,7 @@ import { AuthenticateAWS, CredSubmitFun, QueryRegionFun } from './auth/Authentic
 import { callAppRest, RestApiPathConstants } from '../../utils/api';
 import { ProvisioningStatusPage } from './quickstart/ProvisioningStatusPage';
 import { ExistingASIConfiguration } from './quickstart/asi/ExistingASIConfiguration';
+import { ASIConfiguration } from './quickstart/asi/ASIConfiguration';
 
 const getRegions: QueryRegionFun = async () => {
     return callAppRest('GET', RestApiPathConstants.awsRegionListPath).then(response =>
@@ -56,12 +57,7 @@ const saveAWSCredentials: CredSubmitFun = creds => {
 export const AWSRoutes: FunctionComponent = () => (
     <Switch>
         <Route exact path={asiConfigurationPath}>
-            <ExistingASIConfiguration
-                handleASIPrefixSet={(prefix): Promise<void> => {
-                    console.log(`ASI prefix is ${prefix}`);
-                    return Promise.resolve();
-                }}
-            />
+            <ASIConfiguration ASIExists={true} />
         </Route>
         <Route exact path={quickstartPath}>
             <QuickStartDeploy />
