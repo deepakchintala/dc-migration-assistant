@@ -32,6 +32,25 @@ const ButtonRow = styled.div`
     margin: 15px 0px 0px 10px;
 `;
 
+const ContentContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 920px;
+    margin-right: auto;
+    margin-bottom: auto;
+    padding-left: 15px;
+`;
+
+const ASISelectorContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%
+    max-width: 500px;
+    margin-right: auto;
+    margin-bottom: auto;
+`;
+
 const asyncASIPrefixOptions = (): Promise<Array<OptionType>> =>
     // FIXME: example options until there is API call to list ASI's
     Promise.resolve([
@@ -49,7 +68,7 @@ export const ExistingASIConfiguration: FunctionComponent = () => {
     };
 
     return (
-        <div>
+        <ContentContainer>
             <h1>{I18n.getText('atlassian.migration.datacenter.provision.aws.asi.title')}</h1>
             <p>
                 {I18n.getText('atlassian.migration.datacenter.provision.aws.asi.description')}{' '}
@@ -74,39 +93,45 @@ export const ExistingASIConfiguration: FunctionComponent = () => {
                     setPrefix('');
                 }}
             />
-            {useExisting ? (
-                <AsyncSelect
-                    className="asi-select"
-                    cacheOptions
-                    defaultOptions
-                    loadOptions={asyncASIPrefixOptions}
-                    data-test="asi-select"
-                    onChange={(event: OptionType): void => setPrefix(event.value.toString())}
-                />
-            ) : (
-                <TextField
-                    placeholder="ATL-"
-                    width="xlarge"
-                    value={prefix}
-                    onChange={(event): void => setPrefix(event.currentTarget.value)}
-                />
-            )}
-            <HelperMessage>
-                {I18n.getText('atlassian.migration.datacenter.provision.aws.asi.details')}
-            </HelperMessage>
-            <ButtonRow>
-                <ButtonGroup>
-                    <Button
-                        onClick={handleSubmit}
-                        type="submit"
-                        appearance="primary"
-                        data-test="asi-submit"
-                    >
-                        Next
-                    </Button>
-                    <CancelButton />
-                </ButtonGroup>
-            </ButtonRow>
-        </div>
+            <ASISelectorContainer>
+                <h5>
+                    {I18n.getText('atlassian.migration.datacenter.provision.aws.asi.prefix')}
+                    <RequiredStar>*</RequiredStar>
+                </h5>
+                {useExisting ? (
+                    <AsyncSelect
+                        className="asi-select"
+                        cacheOptions
+                        defaultOptions
+                        loadOptions={asyncASIPrefixOptions}
+                        data-test="asi-select"
+                        onChange={(event: OptionType): void => setPrefix(event.value.toString())}
+                    />
+                ) : (
+                    <TextField
+                        placeholder="ATL-"
+                        width="xlarge"
+                        value={prefix}
+                        onChange={(event): void => setPrefix(event.currentTarget.value)}
+                    />
+                )}
+                <HelperMessage>
+                    {I18n.getText('atlassian.migration.datacenter.provision.aws.asi.details')}
+                </HelperMessage>
+                <ButtonRow>
+                    <ButtonGroup>
+                        <Button
+                            onClick={handleSubmit}
+                            type="submit"
+                            appearance="primary"
+                            data-test="asi-submit"
+                        >
+                            Next
+                        </Button>
+                        <CancelButton />
+                    </ButtonGroup>
+                </ButtonRow>
+            </ASISelectorContainer>
+        </ContentContainer>
     );
 };
