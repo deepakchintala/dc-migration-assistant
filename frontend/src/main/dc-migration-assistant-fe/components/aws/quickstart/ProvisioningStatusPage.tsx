@@ -78,8 +78,9 @@ export const ProvisioningStatusPage: FunctionComponent = () => {
     
   /*
    * Pages that are navigated to from long content pages 
-   * stay scrolled down. This is a component that will 
-   * scroll the window up.
+   * stay scrolled down. 
+   * 
+   * Scroll the window up after render.
    */
     const { pathname } = useLocation();
     useEffect(() => {
