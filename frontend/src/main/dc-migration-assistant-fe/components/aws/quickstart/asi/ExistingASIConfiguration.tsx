@@ -9,7 +9,9 @@ import React, { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
+import { Redirect } from 'react-router-dom';
 import { CancelButton } from '../../../shared/CancelButton';
+import { quickstartPath } from '../../../../utils/RoutePaths';
 
 const radioValues = [
     {
@@ -58,14 +60,26 @@ const asyncASIPrefixOptions = (): Promise<Array<OptionType>> =>
         { label: 'BP-', value: 'BP-', key: 'BP-' },
     ]);
 
-export const ExistingASIConfiguration: FunctionComponent = () => {
+type ExistingASIConfigurationProps = {
+    handleASIPrefixSet: (prefix: string) => Promise<void>;
+};
+
+export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfigurationProps> = ({
+    handleASIPrefixSet,
+}) => {
     const [useExisting, setUseExisting] = useState<boolean>(true);
     const [prefix, setPrefix] = useState<string>('');
+    const [readyForNextStep, setReadyForNextStep] = useState<boolean>();
 
     const handleSubmit = (): void => {
-        // TODO: Call callback passed as prop and nav to quickstart page
-        console.log(`ASI prefix is: ${prefix}`);
+        handleASIPrefixSet(prefix).then(() => {
+            setReadyForNextStep(true);
+        });
     };
+
+    if (readyForNextStep) {
+        return <Redirect to={quickstartPath} push />;
+    }
 
     return (
         <ContentContainer>

@@ -56,7 +56,12 @@ const saveAWSCredentials: CredSubmitFun = creds => {
 export const AWSRoutes: FunctionComponent = () => (
     <Switch>
         <Route exact path={asiConfigurationPath}>
-            <ExistingASIConfiguration />
+            <ExistingASIConfiguration
+                handleASIPrefixSet={(prefix): Promise<void> => {
+                    console.log(`ASI prefix is ${prefix}`);
+                    return Promise.resolve();
+                }}
+            />
         </Route>
         <Route exact path={quickstartPath}>
             <QuickStartDeploy />
