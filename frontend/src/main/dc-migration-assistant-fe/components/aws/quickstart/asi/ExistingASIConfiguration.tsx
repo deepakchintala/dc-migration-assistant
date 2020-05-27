@@ -24,16 +24,6 @@ const RequiredStar = styled.span`
     color: #de350b;
 `;
 
-const ContentContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 920px;
-    margin-right: auto;
-    margin-bottom: auto;
-    padding-left: 15px;
-`;
-
 const ASISelectorContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -101,7 +91,7 @@ export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfiguratio
     const [useExisting, setUseExisting] = useState<boolean>(true);
 
     return (
-        <ContentContainer>
+        <>
             <SectionMessage appearance="info">
                 <p>{I18n.getText('atlassian.migration.datacenter.provision.aws.asi.found')}</p>
             </SectionMessage>
@@ -119,6 +109,6 @@ export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfiguratio
                 }}
             />
             <ASISelector useExisting={useExisting} handlePrefixUpdated={handleASIPrefixSet} />
-        </ContentContainer>
+        </>
     );
 };

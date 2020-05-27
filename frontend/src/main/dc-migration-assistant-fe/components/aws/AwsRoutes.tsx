@@ -27,7 +27,6 @@ import { QuickStartDeploy } from './quickstart/QuickStartDeploy';
 import { AuthenticateAWS, CredSubmitFun, QueryRegionFun } from './auth/AuthenticateAWS';
 import { callAppRest, RestApiPathConstants } from '../../utils/api';
 import { ProvisioningStatusPage } from './quickstart/ProvisioningStatusPage';
-import { ExistingASIConfiguration } from './quickstart/asi/ExistingASIConfiguration';
 import { ASIConfiguration } from './quickstart/asi/ASIConfiguration';
 
 const getRegions: QueryRegionFun = async () => {
@@ -57,7 +56,7 @@ const saveAWSCredentials: CredSubmitFun = creds => {
 export const AWSRoutes: FunctionComponent = () => (
     <Switch>
         <Route exact path={asiConfigurationPath}>
-            <ASIConfiguration ASIExists={true} />
+            <ASIConfiguration ASIExists={false} />
         </Route>
         <Route exact path={quickstartPath}>
             <QuickStartDeploy />
