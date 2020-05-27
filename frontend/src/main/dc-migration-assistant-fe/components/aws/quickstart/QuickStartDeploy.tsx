@@ -105,7 +105,11 @@ const renderFormSection = (group: QuickstartParameterGroup): ReactFragment => {
         return (
             <FormSection key={group.groupLabel} {...props}>
                 {group.parameters.map(parameter => {
-                    return createQuickstartFormField(parameter);
+                    const param = parameter;
+                    if (parameter.paramKey === 'ExportPrefix') {
+                        param.paramProperties.Default = 'OVER-';
+                    }
+                    return createQuickstartFormField(param);
                 })}
             </FormSection>
         );
