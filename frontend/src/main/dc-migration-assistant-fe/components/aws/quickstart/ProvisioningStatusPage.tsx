@@ -22,6 +22,8 @@ import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
 import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
 import { MigrationStage } from '../../../api/migration';
 import { fsPath } from '../../../utils/RoutePaths';
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 const getDeploymentProgress: ProgressCallback = () => {
     return provisioning
@@ -73,6 +75,17 @@ const inProgressStages = [
 ];
 
 export const ProvisioningStatusPage: FunctionComponent = () => {
+    
+  /*
+   * Pages that are navigated to from long content pages 
+   * stay scrolled down. This is a component that will 
+   * scroll the window up.
+   */
+    const { pathname } = useLocation();
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+
     return (
         <MigrationTransferPage
             description={I18n.getText(

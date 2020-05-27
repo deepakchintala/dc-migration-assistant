@@ -22,23 +22,6 @@ import { QuickStartDeploy } from './quickstart/QuickStartDeploy';
 import { AuthenticateAWS, CredSubmitFun, QueryRegionFun } from './auth/AuthenticateAWS';
 import { callAppRest, RestApiPathConstants } from '../../utils/api';
 import { ProvisioningStatusPage } from './quickstart/ProvisioningStatusPage';
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
-
-/*
- * Pages that are navigated to from long content pages 
- * stay scrolled down. This is a component that will 
- * scroll the window up.
- */
-const ScrollToTop = (): null => {
-    const { pathname } = useLocation();
-
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [pathname]);
-
-    return null;
-};
 
 const getRegions: QueryRegionFun = () => {
     return callAppRest('GET', RestApiPathConstants.awsRegionListPath).then(response =>
@@ -70,7 +53,6 @@ export const AWSRoutes: FunctionComponent = () => (
             <QuickStartDeploy />
         </Route>
         <Route exact path={quickstartStatusPath}>
-            <ScrollToTop />
             <ProvisioningStatusPage />
         </Route>
         <Route exact path={awsAuthPath}>
