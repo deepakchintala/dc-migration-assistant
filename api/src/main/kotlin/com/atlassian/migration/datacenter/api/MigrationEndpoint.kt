@@ -20,10 +20,10 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 
 /**
  * REST API Endpoint for managing in-product DC migrations.
