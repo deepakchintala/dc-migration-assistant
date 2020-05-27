@@ -16,6 +16,7 @@
 package com.atlassian.migration.datacenter.api.aws
 
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService
 import javax.ws.rs.Consumes
 import javax.ws.rs.GET
 import javax.ws.rs.Path
@@ -24,7 +25,8 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/aws/global-infrastructure")
-class AWSGlobalInfrastructureEndpoint(private val globalInfrastructure: GlobalInfrastructure) {
+class AWSGlobalInfrastructureEndpoint(private val globalInfrastructure: GlobalInfrastructure,
+                                      private val atlassianInfrastructureService: AtlassianInfrastructureService) {
     /**
      * @return A response with all AWS regions
      */
@@ -37,5 +39,19 @@ class AWSGlobalInfrastructureEndpoint(private val globalInfrastructure: GlobalIn
         return Response
             .ok(regions)
             .build()
+    }
+
+    @GET
+    @Path("/asi")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getAvailableASIs(): Response {
+        val stacks = atlassianInfrastructureService.findASIs()
+        val asis = stacks.map {
+            mapOf(
+                    "name" to it.stackName(),
+                    "id" to it.stackId()
+            )}
+        return Response.ok(asis).build()
     }
 }

@@ -6,7 +6,7 @@ import software.amazon.awssdk.services.cloudformation.model.Stack
 /**
  * Encapsulates some higher-level operations relating to Atlassian-defined VPC stacks (ASIs).
  */
-class AtlassianInfrastructureService(val cfnApi: CfnApi) {
+class AtlassianInfrastructureService(private val cfnApi: CfnApi) {
 
     fun findASIs() : List<Stack> {
         val stacks = cfnApi.listStacksFull();
