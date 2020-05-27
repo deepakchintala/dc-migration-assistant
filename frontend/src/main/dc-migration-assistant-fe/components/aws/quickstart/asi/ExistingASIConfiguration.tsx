@@ -105,6 +105,7 @@ export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfiguratio
                 options={radioValues}
                 defaultValue={radioValues[0].value}
                 onChange={(event): void => {
+                    handleASIPrefixSet('');
                     setUseExisting(event.currentTarget.value === 'existing');
                 }}
             />

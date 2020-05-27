@@ -56,7 +56,7 @@ const saveAWSCredentials: CredSubmitFun = creds => {
 export const AWSRoutes: FunctionComponent = () => (
     <Switch>
         <Route exact path={asiConfigurationPath}>
-            <ASIConfiguration ASIExists={false} />
+            <ASIConfiguration ASIExists={true} />
         </Route>
         <Route exact path={quickstartPath}>
             <QuickStartDeploy />

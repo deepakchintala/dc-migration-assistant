@@ -2,9 +2,11 @@ import React, { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 import { ButtonGroup } from '@atlaskit/button';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
+import { Redirect } from 'react-router-dom';
 import { ExistingASIConfiguration, ASISelector } from './ExistingASIConfiguration';
 import { I18n } from '../../../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../../../shared/CancelButton';
+import { quickstartPath } from '../../../../utils/RoutePaths';
 
 type ASIConfigurationProps = {
     ASIExists: boolean;
@@ -31,12 +33,18 @@ const ButtonRow = styled.div`
 
 export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ ASIExists }) => {
     const [prefix, setPrefix] = useState<string>('');
+    const [readyToTransition, setReadyToTransition] = useState<boolean>(false);
 
     const handleSubmit = (): void => {
         console.log(`Prefix is ${prefix}`);
+        setReadyToTransition(true);
     };
 
     const updatePRefix = (newPrefix: string): void => setPrefix(newPrefix);
+
+    if (readyToTransition) {
+        return <Redirect to={quickstartPath} push />;
+    }
 
     return (
         <ContentContainer>
@@ -59,6 +67,7 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ ASI
                         onClick={handleSubmit}
                         type="submit"
                         appearance="primary"
+                        isDisabled={prefix?.length === 0}
                         data-test="asi-submit"
                     >
                         {I18n.getText('atlassian.migration.datacenter.generic.next')}
