@@ -10,6 +10,7 @@ import { quickstartPath } from '../../../../utils/RoutePaths';
 
 type ASIConfigurationProps = {
     ASIExists: boolean;
+    updateASIPrefix: (prefix: string) => void;
 };
 
 const ContentContainer = styled.div`
@@ -31,12 +32,15 @@ const ButtonRow = styled.div`
     margin: 30px 0px 0px 0px;
 `;
 
-export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ ASIExists }) => {
+export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
+    ASIExists,
+    updateASIPrefix,
+}) => {
     const [prefix, setPrefix] = useState<string>('');
     const [readyToTransition, setReadyToTransition] = useState<boolean>(false);
 
     const handleSubmit = (): void => {
-        console.log(`Prefix is ${prefix}`);
+        updateASIPrefix(prefix);
         setReadyToTransition(true);
     };
 

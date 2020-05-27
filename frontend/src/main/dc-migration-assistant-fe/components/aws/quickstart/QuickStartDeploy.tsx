@@ -100,43 +100,47 @@ const StackNameField = (): ReactElement => {
     );
 };
 
-const renderFormSection = (group: QuickstartParameterGroup): ReactFragment => {
-    const getFormSectionFragment = (props = {}): ReactFragment => {
-        return (
-            <FormSection key={group.groupLabel} {...props}>
-                {group.parameters.map(parameter => {
-                    const param = parameter;
-                    if (parameter.paramKey === 'ExportPrefix') {
-                        param.paramProperties.Default = 'OVER-';
-                    }
-                    return createQuickstartFormField(param);
-                })}
-            </FormSection>
-        );
-    };
-
-    if (group.shouldExpandGroupOnLoad) {
-        return getFormSectionFragment({ title: group.groupLabel });
-    }
-    return (
-        <PanelContainer key={`${group.groupLabel}-panelContainer`}>
-            <Panel
-                header={group.groupLabel}
-                key={`${group.groupLabel}-panel`}
-                isDefaultExpanded={group.shouldExpandGroupOnLoad}
-            >
-                {getFormSectionFragment()}
-            </Panel>
-        </PanelContainer>
-    );
-};
-
 type QuickstartFormProps = {
     paramGroups: Array<QuickstartParameterGroup>;
     onSubmit: (data: Record<string, any>) => Promise<void>;
+    ASIPrefixOverride?: string;
 };
 
-const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({ paramGroups, onSubmit }) => {
+const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({
+    paramGroups,
+    onSubmit,
+    ASIPrefixOverride,
+}) => {
+    const renderFormSection = (group: QuickstartParameterGroup): ReactFragment => {
+        const getFormSectionFragment = (props = {}): ReactFragment => {
+            return (
+                <FormSection key={group.groupLabel} {...props}>
+                    {group.parameters.map(parameter => {
+                        const param = parameter;
+                        if (ASIPrefixOverride && parameter.paramKey === 'ExportPrefix') {
+                            param.paramProperties.Default = ASIPrefixOverride;
+                        }
+                        return createQuickstartFormField(param);
+                    })}
+                </FormSection>
+            );
+        };
+
+        if (group.shouldExpandGroupOnLoad) {
+            return getFormSectionFragment({ title: group.groupLabel });
+        }
+        return (
+            <PanelContainer key={`${group.groupLabel}-panelContainer`}>
+                <Panel
+                    header={group.groupLabel}
+                    key={`${group.groupLabel}-panel`}
+                    isDefaultExpanded={group.shouldExpandGroupOnLoad}
+                >
+                    {getFormSectionFragment()}
+                </Panel>
+            </PanelContainer>
+        );
+    };
     const [submitLoading, setSubmitLoading] = useState<boolean>(false);
 
     const doSubmit = (data: Record<string, any>): void => {
@@ -219,7 +223,13 @@ const quickstartParametersTemplateLocation = () => {
         : parametersUrlFromEnv;
 };
 
-export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
+type QuickStartDeployProps = {
+    ASIPrefix?: string;
+};
+
+export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
+    ASIPrefix,
+}): ReactElement => {
     const [params, setParams] = useState<Array<QuickstartParameterGroup>>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
@@ -276,7 +286,11 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
             {loading ? (
                 <Spinner />
             ) : (
-                <QuickstartForm paramGroups={params} onSubmit={onSubmitQuickstartForm} />
+                <QuickstartForm
+                    paramGroups={params}
+                    onSubmit={onSubmitQuickstartForm}
+                    ASIPrefixOverride={ASIPrefix}
+                />
             )}
         </QuickStartDeployContainer>
     );
