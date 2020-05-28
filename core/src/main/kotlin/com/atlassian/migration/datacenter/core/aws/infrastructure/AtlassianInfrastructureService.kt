@@ -13,12 +13,15 @@ class AtlassianInfrastructureService(private val cfnApi: CfnApi) {
         // Rough heuristic to find candidates for ASIs
         val matching = stacks
                 .filter {
-                    it.outputs()
-                            .map { it.outputKey() }
-                            .containsAll(setOf(
-                                    "VPCID",
-                                    "PrivateSubnets",
-                                    "PublicSubnets"))
+                    val pkeys = it.parameters().map { it.parameterKey() }
+                    val okeys = it.outputs().map { it.outputKey() }
+
+                    okeys.containsAll(setOf(
+                            "VPCID",
+                            "PrivateSubnets",
+                            "PublicSubnets"))
+                            &&
+                            pkeys.contains("ExportPrefix")
                 }
         return matching
     }

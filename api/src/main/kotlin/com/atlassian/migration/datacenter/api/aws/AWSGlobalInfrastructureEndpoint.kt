@@ -48,9 +48,13 @@ class AWSGlobalInfrastructureEndpoint(private val globalInfrastructure: GlobalIn
     fun getAvailableASIs(): Response {
         val stacks = atlassianInfrastructureService.findASIs()
         val asis = stacks.map {
+            val pmap = it.parameters()
+                    .map { it.parameterKey() to it.parameterValue() }
+                    .toMap()
             mapOf(
-                    "name" to it.stackName(),
-                    "id" to it.stackId()
+                    "name" to it.stackName()!!,
+                    "id" to it.stackId()!!,
+                    "prefix" to pmap["ExportPrefix"]
             )}
         return Response.ok(asis).build()
     }
