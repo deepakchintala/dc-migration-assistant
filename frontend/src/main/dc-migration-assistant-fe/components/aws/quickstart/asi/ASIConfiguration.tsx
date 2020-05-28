@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { FunctionComponent, useState, useEffect } from 'react';
+import React, { FunctionComponent, useState, useEffect, ReactNode } from 'react';
 import styled from 'styled-components';
 import { ButtonGroup } from '@atlaskit/button';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
@@ -75,6 +75,17 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ upd
         return <Redirect to={quickstartPath} push />;
     }
 
+    const renderASISelector = (): ReactNode => {
+        return existingASIPrefixes.length !== 0 ? (
+            <ExistingASIConfiguration
+                handlePrefixUpdated={updatePRefix}
+                existingASIs={existingASIPrefixes}
+            />
+        ) : (
+            <ASISelector existingASIs={[]} useExisting={false} handlePrefixUpdated={updatePRefix} />
+        );
+    };
+
     return (
         <ContentContainer>
             <h1>{I18n.getText('atlassian.migration.datacenter.provision.aws.asi.title')}</h1>
@@ -85,19 +96,7 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ upd
                 </a>
             </Description>
 
-            {loadingPrefixes && <Spinner />}
-            {!loadingPrefixes && existingASIPrefixes.length !== 0 ? (
-                <ExistingASIConfiguration
-                    handlePrefixUpdated={updatePRefix}
-                    existingASIs={existingASIPrefixes}
-                />
-            ) : (
-                <ASISelector
-                    existingASIs={[]}
-                    useExisting={false}
-                    handlePrefixUpdated={updatePRefix}
-                />
-            )}
+            {loadingPrefixes ? <Spinner /> : renderASISelector()}
             <ButtonRow>
                 <ButtonGroup>
                     <Button
