@@ -50,26 +50,39 @@ const ASISelectorContainer = styled.div`
 `;
 
 type ExistingASIConfigurationProps = {
-    handleASIPrefixSet: (prefix: string) => void;
-    existingASIPrefixes: Array<string>;
-};
-
-type ASISelectorProps = {
-    useExisting: boolean;
     handlePrefixUpdated: (prefix: string) => void;
-    existingASIPrefixes: Array<string>;
+    existingASIs: Array<ASIDescription>;
 };
 
-const ASIPrefixOptionsFromList = (prefixes: Array<string>): Array<OptionType> => {
-    if (prefixes.length === 0) return [];
+export type ASIDescription = {
+    prefix: string;
+    stackName: string;
+};
 
-    return prefixes.map(prefix => ({ label: prefix, value: prefix, key: prefix }));
+type ASISelectorPropsBase = {
+    useExisting: boolean;
+};
+
+type ASISelectorProps = ASISelectorPropsBase & ExistingASIConfigurationProps;
+
+const ASIPrefixOptionsFromList = (ASIs: Array<ASIDescription>): Array<OptionType> => {
+    if (ASIs.length === 0) return [];
+
+    const asiToOptionValue = (asi: ASIDescription): string =>
+        `${asi.prefix}   (${I18n.getText(
+            'atlassian.migration.datacenter.provision.aws.asi.belongsTo'
+        )}: ${asi.stackName})`;
+    return ASIs.map(asi => ({
+        label: asiToOptionValue(asi),
+        value: asiToOptionValue(asi),
+        key: asi.prefix,
+    }));
 };
 
 export const ASISelector: FunctionComponent<ASISelectorProps> = ({
     useExisting,
     handlePrefixUpdated,
-    existingASIPrefixes,
+    existingASIs,
 }) => {
     return (
         <ASISelectorContainer>
@@ -82,7 +95,7 @@ export const ASISelector: FunctionComponent<ASISelectorProps> = ({
                     className="asi-select"
                     cacheOptions
                     defaultOptions
-                    options={ASIPrefixOptionsFromList(existingASIPrefixes)}
+                    options={ASIPrefixOptionsFromList(existingASIs)}
                     data-test="asi-select"
                     onChange={(event: OptionType): void =>
                         handlePrefixUpdated(event.value.toString())
@@ -103,8 +116,8 @@ export const ASISelector: FunctionComponent<ASISelectorProps> = ({
 };
 
 export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfigurationProps> = ({
-    handleASIPrefixSet,
-    existingASIPrefixes,
+    handlePrefixUpdated,
+    existingASIs,
 }) => {
     const [useExisting, setUseExisting] = useState<boolean>(true);
 
@@ -123,14 +136,14 @@ export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfiguratio
                 options={radioValues}
                 defaultValue={radioValues[0].value}
                 onChange={(event): void => {
-                    handleASIPrefixSet('');
+                    handlePrefixUpdated('');
                     setUseExisting(event.currentTarget.value === 'existing');
                 }}
             />
             <ASISelector
                 useExisting={useExisting}
-                handlePrefixUpdated={handleASIPrefixSet}
-                existingASIPrefixes={existingASIPrefixes}
+                handlePrefixUpdated={handlePrefixUpdated}
+                existingASIs={existingASIs}
             />
         </>
     );

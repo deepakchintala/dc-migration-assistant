@@ -18,7 +18,7 @@ import styled from 'styled-components';
 import { ButtonGroup } from '@atlaskit/button';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 import { Redirect } from 'react-router-dom';
-import { ExistingASIConfiguration, ASISelector } from './ExistingASIConfiguration';
+import { ExistingASIConfiguration, ASISelector, ASIDescription } from './ExistingASIConfiguration';
 import { I18n } from '../../../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../../../shared/CancelButton';
 import { quickstartPath } from '../../../../utils/RoutePaths';
@@ -53,7 +53,10 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
 }) => {
     const [prefix, setPrefix] = useState<string>('');
     const [readyToTransition, setReadyToTransition] = useState<boolean>(false);
-    const [existingASIPrefixes, setexistingASIPrefixes] = useState<Array<string>>([]);
+    const [existingASIPrefixes, setexistingASIPrefixes] = useState<Array<ASIDescription>>([
+        { prefix: 'ATL-', stackName: 'Atlassian Standard Infrastructure' },
+        { prefix: 'BP-', stackName: 'BenPartridge-ASI' },
+    ]);
     const [loadingPrefixes, setloadingPrefixes] = useState<boolean>(false);
 
     const handleSubmit = (): void => {
@@ -79,12 +82,12 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
 
             {ASIExists ? (
                 <ExistingASIConfiguration
-                    handleASIPrefixSet={updatePRefix}
-                    existingASIPrefixes={existingASIPrefixes}
+                    handlePrefixUpdated={updatePRefix}
+                    existingASIs={existingASIPrefixes}
                 />
             ) : (
                 <ASISelector
-                    existingASIPrefixes={[]}
+                    existingASIs={[]}
                     useExisting={false}
                     handlePrefixUpdated={updatePRefix}
                 />
