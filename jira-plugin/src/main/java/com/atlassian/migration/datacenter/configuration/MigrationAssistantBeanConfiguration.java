@@ -44,6 +44,7 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreSta
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
@@ -278,5 +279,10 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public AttachmentSyncManager attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService) {
         return new DefaultAttachmentSyncManager(activeObjects, migrationService);
+    }
+
+    @Bean
+    public AtlassianInfrastructureService atlassianInfrastructureService(CfnApi cfnApi) {
+        return new AtlassianInfrastructureService(cfnApi);
     }
 }
