@@ -26,7 +26,6 @@ import { quickstartPath } from '../../../../utils/RoutePaths';
 import { provisioning } from '../../../../api/provisioning';
 
 type ASIConfigurationProps = {
-    ASIExists: boolean;
     updateASIPrefix: (prefix: string) => void;
 };
 
@@ -49,10 +48,7 @@ const ButtonRow = styled.div`
     margin: 30px 0px 0px 0px;
 `;
 
-export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
-    ASIExists,
-    updateASIPrefix,
-}) => {
+export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ updateASIPrefix }) => {
     const [prefix, setPrefix] = useState<string>('');
     const [readyToTransition, setReadyToTransition] = useState<boolean>(false);
     const [existingASIPrefixes, setExistingASIPrefixes] = useState<Array<ASIDescription>>([]);
