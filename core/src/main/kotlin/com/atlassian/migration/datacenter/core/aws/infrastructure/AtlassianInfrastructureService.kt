@@ -6,19 +6,22 @@ import software.amazon.awssdk.services.cloudformation.model.Stack
 /**
  * Encapsulates some higher-level operations relating to Atlassian-defined VPC stacks (ASIs).
  */
-class AtlassianInfrastructureService(val cfnApi: CfnApi) {
+class AtlassianInfrastructureService(private val cfnApi: CfnApi) {
 
     fun findASIs() : List<Stack> {
         val stacks = cfnApi.listStacksFull();
         // Rough heuristic to find candidates for ASIs
         val matching = stacks
                 .filter {
-                    it.outputs()
-                            .map { it.outputKey() }
-                            .containsAll(setOf(
-                                    "VPCID",
-                                    "PrivateSubnets",
-                                    "PublicSubnets"))
+                    val pkeys = it.parameters().map { it.parameterKey() }
+                    val okeys = it.outputs().map { it.outputKey() }
+
+                    okeys.containsAll(setOf(
+                            "VPCID",
+                            "PrivateSubnets",
+                            "PublicSubnets"))
+                            &&
+                            pkeys.contains("ExportPrefix")
                 }
         return matching
     }
