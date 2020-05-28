@@ -22,10 +22,10 @@ import { I18n } from '@atlassian/wrm-react-i18n';
 import { Redirect } from 'react-router-dom';
 import { AsyncSelect, OptionType } from '@atlaskit/select';
 
-import { quickstartPath } from '../../../utils/RoutePaths';
+import styled from 'styled-components';
+import { asiConfigurationPath } from '../../../utils/RoutePaths';
 import { ErrorFlag } from '../../shared/ErrorFlag';
 import { CancelButton } from '../../shared/CancelButton';
-import styled from 'styled-components';
 
 export type AWSCreds = {
     accessKeyId: string;
@@ -119,7 +119,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
 
     return (
         <AuthenticationContainer>
-            {readyForNextStep && <Redirect to={quickstartPath} push />}
+            {readyForNextStep && <Redirect to={asiConfigurationPath} push />}
             <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.title')}</h1>
             <p>
                 {I18n.getText('atlassian.migration.datacenter.authenticate.aws.description')}{' '}

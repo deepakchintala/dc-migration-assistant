@@ -31,6 +31,7 @@ const routePrefix = ((): string => {
 export const homePath = `${routePrefix}/home`;
 
 export const awsBasePath = `${routePrefix}/aws`;
+export const asiConfigurationPath = `${awsBasePath}/asi`;
 export const quickstartPath = `${awsBasePath}/provision`;
 export const quickstartStatusPath = `${awsBasePath}/provision/status`;
 export const awsAuthPath = `${awsBasePath}/auth`;

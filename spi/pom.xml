@@ -22,10 +22,14 @@
             <artifactId>atlassian-scheduler-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- Review if this is needed in SPI?       -->
+
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-xml</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
 
         <dependency>
@@ -33,7 +37,6 @@
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
-
 
         <dependency>
             <groupId>org.junit.vintage</groupId>
@@ -60,7 +63,5 @@
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
-
 </project>
