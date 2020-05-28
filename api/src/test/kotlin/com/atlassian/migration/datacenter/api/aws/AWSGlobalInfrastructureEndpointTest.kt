@@ -16,6 +16,7 @@
 package com.atlassian.migration.datacenter.api.aws
 
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -31,6 +32,8 @@ import javax.ws.rs.core.Response
 class AWSGlobalInfrastructureEndpointTest {
     @MockK
     lateinit var mockGlobalInfrastructure: GlobalInfrastructure
+    @MockK
+    lateinit var ais: AtlassianInfrastructureService
 
     @InjectMockKs
     lateinit var sut: AWSGlobalInfrastructureEndpoint
