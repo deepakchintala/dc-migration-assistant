@@ -26,6 +26,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import software.amazon.awssdk.services.cloudformation.model.Output
+import software.amazon.awssdk.services.cloudformation.model.Parameter
+import software.amazon.awssdk.services.cloudformation.model.Stack
 import javax.ws.rs.core.Response
 
 @ExtendWith(MockKExtension::class)
@@ -33,7 +36,7 @@ class AWSGlobalInfrastructureEndpointTest {
     @MockK
     lateinit var mockGlobalInfrastructure: GlobalInfrastructure
     @MockK
-    lateinit var ais: AtlassianInfrastructureService
+    lateinit var mockAIS: AtlassianInfrastructureService
 
     @InjectMockKs
     lateinit var sut: AWSGlobalInfrastructureEndpoint
@@ -60,5 +63,45 @@ class AWSGlobalInfrastructureEndpointTest {
 
         assertEquals(Response.Status.OK.statusCode, res.status)
         assertEquals(listOf(regionOne, regionTwo), res.entity)
+    }
+
+
+    val vpcid = Output.builder()
+            .outputKey("VPCID")
+            .outputValue("vpcval")
+            .build()
+    val privatesn = Output.builder()
+            .outputKey("PrivateSubnets")
+            .outputValue("privval")
+            .build()
+    val publicsn = Output.builder()
+            .outputKey("PublicSubnets")
+            .outputValue("pubval")
+            .build()
+    val export = Parameter.builder()
+            .parameterKey("ExportPrefix")
+            .parameterValue("prefix")
+            .build()
+
+    @Test
+    fun itShouldConvertOutputsAndParams() {
+        every { mockAIS.findASIs() } returns listOf(
+                Stack.builder()
+                        .stackName("stackname")
+                        .stackId("stackid")
+                        .outputs(vpcid, privatesn, publicsn)
+                        .parameters(export)
+                        .build()
+        )
+
+        val res = sut.getAvailableASIs()
+        assertEquals(200, res.status)
+
+        val asis = res.entity as List<Map<String, String>>
+        assertEquals(1, asis.count())
+        val asi = asis[0]
+        assertEquals("prefix", asi["prefix"])
+        assertEquals("stackname", asi["name"])
+        assertEquals("stackid", asi["id"])
     }
 }
