@@ -53,6 +53,8 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
 }) => {
     const [prefix, setPrefix] = useState<string>('');
     const [readyToTransition, setReadyToTransition] = useState<boolean>(false);
+    const [existingASIPrefixes, setexistingASIPrefixes] = useState<Array<string>>([]);
+    const [loadingPrefixes, setloadingPrefixes] = useState<boolean>(false);
 
     const handleSubmit = (): void => {
         updateASIPrefix(prefix);
@@ -76,9 +78,16 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
             </Description>
 
             {ASIExists ? (
-                <ExistingASIConfiguration handleASIPrefixSet={updatePRefix} />
+                <ExistingASIConfiguration
+                    handleASIPrefixSet={updatePRefix}
+                    existingASIPrefixes={existingASIPrefixes}
+                />
             ) : (
-                <ASISelector useExisting={false} handlePrefixUpdated={updatePRefix} />
+                <ASISelector
+                    existingASIPrefixes={[]}
+                    useExisting={false}
+                    handlePrefixUpdated={updatePRefix}
+                />
             )}
             <ButtonRow>
                 <ButtonGroup>
