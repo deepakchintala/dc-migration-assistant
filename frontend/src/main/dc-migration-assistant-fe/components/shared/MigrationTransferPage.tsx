@@ -85,7 +85,7 @@ const TransferContentContainer = styled.div`
     flex-direction: column;
     padding-right: 30px;
 
-    padding-bottom: 5px;
+    padding-bottom: 30px;
 `;
 
 const TransferActionsContainer = styled.div`
