@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { ButtonGroup } from '@atlaskit/button';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 import { Redirect } from 'react-router-dom';
+import Spinner from '@atlaskit/spinner';
 import { ExistingASIConfiguration, ASISelector, ASIDescription } from './ExistingASIConfiguration';
 import { I18n } from '../../../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../../../shared/CancelButton';
 import { quickstartPath } from '../../../../utils/RoutePaths';
+import { provisioning } from '../../../../api/provisioning';
 
 type ASIConfigurationProps = {
     ASIExists: boolean;
@@ -53,11 +55,18 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
 }) => {
     const [prefix, setPrefix] = useState<string>('');
     const [readyToTransition, setReadyToTransition] = useState<boolean>(false);
-    const [existingASIPrefixes, setexistingASIPrefixes] = useState<Array<ASIDescription>>([
-        { prefix: 'ATL-', stackName: 'Atlassian Standard Infrastructure' },
-        { prefix: 'BP-', stackName: 'BenPartridge-ASI' },
-    ]);
-    const [loadingPrefixes, setloadingPrefixes] = useState<boolean>(false);
+    const [existingASIPrefixes, setExistingASIPrefixes] = useState<Array<ASIDescription>>([]);
+    const [loadingPrefixes, setLoadingPrefixes] = useState<boolean>(false);
+
+    useEffect(() => {
+        setLoadingPrefixes(true);
+        provisioning
+            .getASIs()
+            .then(asis => {
+                setExistingASIPrefixes(asis);
+            })
+            .finally(() => setLoadingPrefixes(false));
+    }, []);
 
     const handleSubmit = (): void => {
         updateASIPrefix(prefix);
@@ -80,7 +89,8 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
                 </a>
             </Description>
 
-            {ASIExists ? (
+            {loadingPrefixes && <Spinner />}
+            {ASIExists && !loadingPrefixes ? (
                 <ExistingASIConfiguration
                     handlePrefixUpdated={updatePRefix}
                     existingASIs={existingASIPrefixes}
