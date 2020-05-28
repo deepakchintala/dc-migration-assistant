@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, useEffect } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { MigrationTransferPage } from '../../shared/MigrationTransferPage';
@@ -22,8 +22,6 @@ import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
 import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
 import { MigrationStage } from '../../../api/migration';
 import { fsPath } from '../../../utils/RoutePaths';
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
 
 const getDeploymentProgress: ProgressCallback = () => {
     return provisioning
@@ -75,17 +73,13 @@ const inProgressStages = [
 ];
 
 export const ProvisioningStatusPage: FunctionComponent = () => {
-    
-  /*
-   * Pages that are navigated to from long content pages 
-   * stay scrolled down. 
-   * 
-   * Scroll the window up after render.
-   */
-    const { pathname } = useLocation();
+    /*
+     * Pages that are navigated to from long content pages
+     * stay scrolled down. Scroll the window up after render.
+     */
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, [pathname]);
+    });
 
     return (
         <MigrationTransferPage
