@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import software.amazon.awssdk.services.cloudformation.model.Output
+import software.amazon.awssdk.services.cloudformation.model.Parameter
 import kotlin.test.assertEquals
 
 @ExtendWith(MockKExtension::class)
@@ -45,11 +46,18 @@ internal class AtlassianInfrastructureServiceTest {
             .outputKey("DUMMY2")
             .outputValue("ANY")
             .build()
+    val export = Parameter.builder()
+            .parameterKey("ExportPrefix")
+            .parameterValue("ANY")
+            .build()
 
     @Test
     fun testSingleValid() {
         every { cfnApi.listStacksFull() } returns listOf(
-                Stack.builder().outputs(vpcid, privatesn, publicsn).build()
+                Stack.builder()
+                        .outputs(vpcid, privatesn, publicsn)
+                        .parameters(export)
+                        .build()
         )
         val asis = service.findASIs()
         assertEquals(asis.count(), 1)
@@ -67,8 +75,8 @@ internal class AtlassianInfrastructureServiceTest {
     @Test
     fun testSingleInMiddle() {
         every { cfnApi.listStacksFull() } returns listOf(
-                Stack.builder().outputs(dummy1).build(),
-                Stack.builder().outputs(vpcid, privatesn, publicsn).build(),
+                Stack.builder().outputs(dummy1).parameters(export).build(),
+                Stack.builder().outputs(vpcid, privatesn, publicsn).parameters(export).build(),
                 Stack.builder().outputs(vpcid, privatesn, dummy2).build()
         )
         val asis = service.findASIs()

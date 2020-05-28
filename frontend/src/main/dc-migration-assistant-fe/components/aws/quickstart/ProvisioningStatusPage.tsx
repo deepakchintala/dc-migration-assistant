@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, useEffect } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { MigrationTransferPage } from '../../shared/MigrationTransferPage';
@@ -73,6 +73,14 @@ const inProgressStages = [
 ];
 
 export const ProvisioningStatusPage: FunctionComponent = () => {
+    /*
+     * Pages that are navigated to from long content pages
+     * stay scrolled down. Scroll the window up after render.
+     */
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    });
+
     return (
         <MigrationTransferPage
             description={I18n.getText(
