@@ -90,7 +90,7 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
             </Description>
 
             {loadingPrefixes && <Spinner />}
-            {ASIExists && !loadingPrefixes ? (
+            {!loadingPrefixes && existingASIPrefixes.length !== 0 ? (
                 <ExistingASIConfiguration
                     handlePrefixUpdated={updatePRefix}
                     existingASIs={existingASIPrefixes}
