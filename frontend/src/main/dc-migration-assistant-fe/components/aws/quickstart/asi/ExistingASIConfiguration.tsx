@@ -18,19 +18,22 @@ import { HelperMessage } from '@atlaskit/form';
 import SectionMessage from '@atlaskit/section-message';
 import Select, { OptionType } from '@atlaskit/select';
 import TextField from '@atlaskit/textfield';
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import { DeploymentMode } from '../QuickstartRoutes';
 
+const EXISTING_VPC_OPTION = 'existing';
+const NEW_VPC_OPTION = 'new';
 const radioValues = [
     {
         name: 'deploymentMode',
-        value: 'existing',
+        value: EXISTING_VPC_OPTION,
         label: I18n.getText('atlassian.migration.datacenter.provision.aws.asi.option.existing'),
     },
     {
         name: 'deploymentMode',
-        value: 'new',
+        value: NEW_VPC_OPTION,
         label: I18n.getText('atlassian.migration.datacenter.provision.aws.asi.option.new'),
     },
 ];
@@ -49,21 +52,23 @@ const ASISelectorContainer = styled.div`
     margin-top: 15px;
 `;
 
-type ExistingASIConfigurationProps = {
+type ExistingASIPrefixManagementProps = {
     handlePrefixUpdated: (prefix: string) => void;
     existingASIs: Array<ASIDescription>;
 };
+
+type ExistingASIConfigurationProps = {
+    onSelectDeploymentMode: (mode: DeploymentMode) => void;
+} & ExistingASIPrefixManagementProps;
 
 export type ASIDescription = {
     prefix: string;
     stackName: string;
 };
 
-type ASISelectorPropsBase = {
+type ASISelectorProps = {
     useExisting: boolean;
-};
-
-type ASISelectorProps = ASISelectorPropsBase & ExistingASIConfigurationProps;
+} & ExistingASIPrefixManagementProps;
 
 const ASIPrefixOptionsFromList = (ASIs: Array<ASIDescription>): Array<OptionType> => {
     if (ASIs.length === 0) return [];
@@ -115,11 +120,24 @@ export const ASISelector: FunctionComponent<ASISelectorProps> = ({
     );
 };
 
+const defaultDeploymentOptionIndex = 0;
+const getDefaultDeploymentMode = (): DeploymentMode => {
+    return radioValues[defaultDeploymentOptionIndex].value === EXISTING_VPC_OPTION
+        ? 'standalone'
+        : 'with-vpc';
+};
+
 export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfigurationProps> = ({
     handlePrefixUpdated,
     existingASIs,
+    onSelectDeploymentMode,
 }) => {
     const [useExisting, setUseExisting] = useState<boolean>(true);
+
+    useEffect(() => {
+        // The default value of the radio button is existing VPC so we need to update the deployment mode based on that when first rendered
+        onSelectDeploymentMode(getDefaultDeploymentMode());
+    }, []);
 
     return (
         <>
@@ -137,7 +155,9 @@ export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfiguratio
                 defaultValue={radioValues[0].value}
                 onChange={(event): void => {
                     handlePrefixUpdated('');
-                    setUseExisting(event.currentTarget.value === 'existing');
+                    const selectedExisting = event.currentTarget.value === EXISTING_VPC_OPTION;
+                    setUseExisting(selectedExisting);
+                    onSelectDeploymentMode(selectedExisting ? 'standalone' : 'with-vpc');
                 }}
             />
             <ASISelector

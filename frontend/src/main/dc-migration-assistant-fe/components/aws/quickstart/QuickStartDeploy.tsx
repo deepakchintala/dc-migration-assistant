@@ -37,6 +37,7 @@ import {
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 import { quickstartStatusPath } from '../../../utils/RoutePaths';
 import { CancelButton } from '../../shared/CancelButton';
+import { DeploymentMode } from './QuickstartRoutes';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 
@@ -213,22 +214,44 @@ const QuickStartDeployContainer = styled.div`
     justify-items: center;
 `;
 
-const DEFAULT_QUICKSTART_PARAMETER_URL =
+const DEFAULT_QUICKSTART_WITH_VPC_PARAMETER_URL =
     'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.parameters.yaml';
 
-const quickstartParametersTemplateLocation = () => {
-    const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_PARAMETERS_URL;
+const quickstartWithVPCParametersTemplateLocation = (): string => {
+    const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_WITH_VPC_PARAMETER_URL;
     return parametersUrlFromEnv === undefined
-        ? DEFAULT_QUICKSTART_PARAMETER_URL
+        ? DEFAULT_QUICKSTART_WITH_VPC_PARAMETER_URL
         : parametersUrlFromEnv;
+};
+
+const DEFAULT_QUICKSTART_STANDALONE_PARAMETER_URL =
+    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc.template.parameters.yaml';
+
+const quickstartStandaloneParametersTemplateLocation = (): string => {
+    const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_STANDALONE_PARAMETER_URL;
+    return parametersUrlFromEnv === undefined
+        ? DEFAULT_QUICKSTART_STANDALONE_PARAMETER_URL
+        : parametersUrlFromEnv;
+};
+
+const templateForDeploymentMode = (mode: DeploymentMode): string => {
+    switch (mode) {
+        case 'standalone':
+            return quickstartStandaloneParametersTemplateLocation();
+        case 'with-vpc':
+        default:
+            return quickstartWithVPCParametersTemplateLocation();
+    }
 };
 
 type QuickStartDeployProps = {
     ASIPrefix?: string;
+    deploymentMode: DeploymentMode;
 };
 
 export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
     ASIPrefix,
+    deploymentMode,
 }): ReactElement => {
     const [params, setParams] = useState<Array<QuickstartParameterGroup>>([]);
     const [loading, setLoading] = useState<boolean>(false);
@@ -236,7 +259,7 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
 
     useEffect(() => {
         setLoading(true);
-        fetch(quickstartParametersTemplateLocation(), {
+        fetch(templateForDeploymentMode(deploymentMode), {
             method: 'GET',
         })
             .then(resp => resp.text())

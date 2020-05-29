@@ -24,9 +24,11 @@ import { I18n } from '../../../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../../../shared/CancelButton';
 import { quickstartPath } from '../../../../utils/RoutePaths';
 import { provisioning } from '../../../../api/provisioning';
+import { DeploymentMode } from '../QuickstartRoutes';
 
 type ASIConfigurationProps = {
     updateASIPrefix: (prefix: string) => void;
+    onSelectDeploymentMode: (mode: DeploymentMode) => void;
 };
 
 const ContentContainer = styled.div`
@@ -48,7 +50,10 @@ const ButtonRow = styled.div`
     margin: 30px 0px 0px 0px;
 `;
 
-export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ updateASIPrefix }) => {
+export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
+    updateASIPrefix,
+    onSelectDeploymentMode,
+}) => {
     const [prefix, setPrefix] = useState<string>('');
     const [readyToTransition, setReadyToTransition] = useState<boolean>(false);
     const [existingASIPrefixes, setExistingASIPrefixes] = useState<Array<ASIDescription>>([]);
@@ -80,6 +85,7 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ upd
             <ExistingASIConfiguration
                 handlePrefixUpdated={updatePRefix}
                 existingASIs={existingASIPrefixes}
+                onSelectDeploymentMode={onSelectDeploymentMode}
             />
         ) : (
             <ASISelector existingASIs={[]} useExisting={false} handlePrefixUpdated={updatePRefix} />
