@@ -28,6 +28,7 @@ export enum ProvisioningStatus {
 enum RestApiPathConstants {
     GetDeploymentStatusPath = 'aws/stack/status',
     GetASIInfoPath = `aws/global-infrastructure/asi`,
+    CreateStackPath = `aws/stack/create`,
 }
 
 type InfrastructureDeploymentState =
@@ -52,6 +53,31 @@ type ASIInfo = {
     name: string;
     id: string;
     prefix: string;
+};
+
+type DeploymentMode = 'STANDALONE' | 'WITH_NETWORK';
+
+type CreateStackInput = {
+    stackName: string;
+    params: DeploymentParameters;
+    deploymentMode: DeploymentMode;
+};
+
+type DeploymentParameters = Record<string, any>;
+
+const deployInfra = (
+    stackName: string,
+    params: DeploymentParameters,
+    mode: DeploymentMode
+): Promise<void> => {
+    const payload: CreateStackInput = {
+        stackName,
+        params,
+        deploymentMode: mode,
+    };
+    return callAppRest('POST', RestApiPathConstants.CreateStackPath, payload)
+        .then(() => Promise.resolve())
+        .catch(() => Promise.reject());
 };
 
 export const provisioning = {
@@ -113,4 +139,14 @@ export const provisioning = {
 
         return stackData.map(data => ({ prefix: data.prefix, stackName: data.name }));
     },
+    deployApplication: async (stackName: string, params: DeploymentParameters): Promise<void> => {
+        return deployInfra(stackName, params, 'STANDALONE');
+    },
+    deployApplicationWithNetwork: async (
+        stackName: string,
+        params: DeploymentParameters
+    ): Promise<void> => {
+        return deployInfra(stackName, params, 'WITH_NETWORK');
+    },
 };
+
