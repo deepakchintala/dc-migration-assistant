@@ -69,15 +69,13 @@ const deployInfra = (
     stackName: string,
     params: DeploymentParameters,
     mode: DeploymentMode
-): Promise<void> => {
+): Promise<Response> => {
     const payload: CreateStackInput = {
         stackName,
         params,
         deploymentMode: mode,
     };
-    return callAppRest('POST', RestApiPathConstants.CreateStackPath, payload)
-        .then(() => Promise.resolve())
-        .catch(() => Promise.reject());
+    return callAppRest('POST', RestApiPathConstants.CreateStackPath, payload);
 };
 
 export const provisioning = {
@@ -139,13 +137,16 @@ export const provisioning = {
 
         return stackData.map(data => ({ prefix: data.prefix, stackName: data.name }));
     },
-    deployApplication: async (stackName: string, params: DeploymentParameters): Promise<void> => {
+    deployApplication: async (
+        stackName: string,
+        params: DeploymentParameters
+    ): Promise<Response> => {
         return deployInfra(stackName, params, 'STANDALONE');
     },
     deployApplicationWithNetwork: async (
         stackName: string,
         params: DeploymentParameters
-    ): Promise<void> => {
+    ): Promise<Response> => {
         return deployInfra(stackName, params, 'WITH_NETWORK');
     },
 };
