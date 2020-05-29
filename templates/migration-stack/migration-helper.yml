@@ -68,6 +68,11 @@ Resources:
             Event: s3:ObjectCreated:*
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
+    PublicAccessBlockConfiguration:
+      BlockPublicAcls: true
+      BlockPublicPolicy: true
+      IgnorePublicAcls: true
+      RestrictPublicBuckets: true
 
   QueuePolicy:
     Type: AWS::SQS::QueuePolicy
