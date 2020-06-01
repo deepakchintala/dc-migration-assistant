@@ -16,6 +16,9 @@
 package com.atlassian.migration.datacenter.spi.infrastructure
 
 class ProvisioningConfig(val stackName: String, params: Map<String, Any>, val deploymentMode: DeploymentMode) {
+    // We need this unused constructor so that Jackson can deserialize JSON into the provisioning config
+    constructor() : this("", mapOf(), DeploymentMode.STANDALONE)
+
     var params = params.mapValues { it.value.toString() }
 
     enum class DeploymentMode {
