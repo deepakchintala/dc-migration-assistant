@@ -15,7 +15,6 @@
  */
 
 import React, { FunctionComponent, ReactElement, ReactFragment, useEffect, useState } from 'react';
-import yaml from 'yaml';
 import Form, { ErrorMessage, Field, FormHeader, FormSection, HelperMessage } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
 import Button, { ButtonGroup } from '@atlaskit/button';
@@ -27,18 +26,14 @@ import Panel from '@atlaskit/panel';
 import { Redirect } from 'react-router-dom';
 
 import { createQuickstartFormField } from './quickstartToAtlaskit';
-import {
-    QuickstartParameterGroup,
-    QuickStartParameterYamlNode,
-    QuickstartParamGroupYamlNode,
-    QuickstartParamLabelYamlNode,
-} from './QuickStartTypes';
+import { QuickstartParameterGroup, QuickstartTemplateForm } from './QuickStartTypes';
 
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 import { quickstartStatusPath } from '../../../utils/RoutePaths';
 import { CancelButton } from '../../shared/CancelButton';
 import { DeploymentMode } from './QuickstartRoutes';
 import { provisioning } from '../../../api/provisioning';
+import { yamlParse } from 'yaml-cfn';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 
@@ -185,11 +180,12 @@ const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({
     );
 };
 
-const buildQuickstartParams = (quickstartParamDoc: any): Array<QuickstartParameterGroup> => {
-    const params: Record<string, QuickStartParameterYamlNode> = quickstartParamDoc.Parameters;
-    const paramLabels: Record<string, QuickstartParamLabelYamlNode> =
-        quickstartParamDoc.ParameterLabels;
-    const paramGroups: Array<QuickstartParamGroupYamlNode> = quickstartParamDoc.ParameterGroups;
+const buildQuickstartParams = (
+    quickstartParamDoc: QuickstartTemplateForm
+): Array<QuickstartParameterGroup> => {
+    const params = quickstartParamDoc.Parameters;
+    const paramLabels = quickstartParamDoc.ParameterLabels;
+    const paramGroups = quickstartParamDoc.ParameterGroups;
 
     return paramGroups.map(group => {
         const { Label, Parameters } = group;
@@ -216,7 +212,7 @@ const QuickStartDeployContainer = styled.div`
 `;
 
 const DEFAULT_QUICKSTART_WITH_VPC_PARAMETER_URL =
-    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.parameters.yaml';
+    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.yaml';
 
 const quickstartWithVPCParametersTemplateLocation = (): string => {
     const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_WITH_VPC_PARAMETER_URL;
@@ -226,7 +222,7 @@ const quickstartWithVPCParametersTemplateLocation = (): string => {
 };
 
 const DEFAULT_QUICKSTART_STANDALONE_PARAMETER_URL =
-    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc.template.parameters.yaml';
+    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc.template.yaml';
 
 const quickstartStandaloneParametersTemplateLocation = (): string => {
     const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_STANDALONE_PARAMETER_URL;
@@ -250,6 +246,18 @@ type QuickStartDeployProps = {
     deploymentMode: DeploymentMode;
 };
 
+const buildQuickstartForm = (text: string): Promise<QuickstartTemplateForm> => {
+    const templateYaml = yamlParse(text);
+    const cfnMetadata = templateYaml.Metadata['AWS::CloudFormation::Interface'];
+    return new Promise<QuickstartTemplateForm>(resolve => {
+        return resolve({
+            Parameters: templateYaml.Parameters,
+            ParameterGroups: cfnMetadata.ParameterGroups,
+            ParameterLabels: cfnMetadata.ParameterLabels,
+        });
+    });
+};
+
 export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
     ASIPrefix,
     deploymentMode,
@@ -264,11 +272,9 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
             method: 'GET',
         })
             .then(resp => resp.text())
-            .then(text => {
-                const paramDoc = yaml.parse(text);
-
-                const groupedParameters = buildQuickstartParams(paramDoc);
-
+            .then(buildQuickstartForm)
+            .then(quickstartForm => {
+                const groupedParameters = buildQuickstartParams(quickstartForm);
                 setParams(groupedParameters);
                 setLoading(false);
             });
