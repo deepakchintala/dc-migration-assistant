@@ -32,6 +32,7 @@ import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 import { quickstartStatusPath } from '../../../utils/RoutePaths';
 import { CancelButton } from '../../shared/CancelButton';
 import { DeploymentMode } from './QuickstartRoutes';
+import { provisioning } from '../../../api/provisioning';
 import { yamlParse } from 'yaml-cfn';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
@@ -279,7 +280,7 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
             });
     }, []);
 
-    const onSubmitQuickstartForm = (data: Record<string, any>): Promise<void> => {
+    const onSubmitQuickstartForm = async (data: Record<string, any>): Promise<void> => {
         const transformedCfnParams = data;
         const stackNameValue = transformedCfnParams[STACK_NAME_FIELD_NAME];
         delete transformedCfnParams[STACK_NAME_FIELD_NAME];
@@ -294,10 +295,12 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
             }
         });
 
-        return callAppRest('POST', RestApiPathConstants.awsStackCreateRestPath, {
-            stackName: stackNameValue,
-            params: transformedCfnParams,
-        })
+        const request =
+            deploymentMode === 'standalone'
+                ? provisioning.deployApplication(stackNameValue, transformedCfnParams)
+                : provisioning.deployApplicationWithNetwork(stackNameValue, transformedCfnParams);
+
+        return request
             .then(response => {
                 if (response.status !== 202) {
                     throw Error('Stack provisioning failed');

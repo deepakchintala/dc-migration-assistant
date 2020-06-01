@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
 import javax.ws.rs.core.Response
-import kotlin.math.exp
 
 @ExtendWith(MockKExtension::class)
 internal class CloudFormationEndpointTest {
@@ -54,9 +53,9 @@ internal class CloudFormationEndpointTest {
     fun init() = MockKAnnotations.init(this)
 
     @Test
-    fun shouldAcceptRequestToProvisionCloudFormationStack() {
+    fun shouldDeployStandaloneStackWhenConfigSaysSo() {
         val stackName = "stack-name"
-        val provisioningConfig = ProvisioningConfig("url", stackName, HashMap())
+        val provisioningConfig = ProvisioningConfig(stackName, HashMap(), ProvisioningConfig.DeploymentMode.STANDALONE)
 
         val response = endpoint.provisionInfrastructure(provisioningConfig)
 
@@ -66,13 +65,25 @@ internal class CloudFormationEndpointTest {
     }
 
     @Test
+    fun shouldDeployWithVirtualNetworkWhenConfigSaysSo() {
+        val stackName = "stack-name"
+        val provisioningConfig = ProvisioningConfig(stackName, HashMap(), ProvisioningConfig.DeploymentMode.WITH_NETWORK)
+
+        val response = endpoint.provisionInfrastructure(provisioningConfig)
+
+        assertEquals(Response.Status.ACCEPTED.statusCode, response.status)
+        assertEquals(provisioningConfig.stackName, response.entity)
+        verify { deploymentService.deployApplicationWithNetwork(stackName, HashMap()) }
+    }
+
+    @Test
     fun shouldBeConflictWhenCurrentMigrationStageIsNotValid() {
-        val provisioningConfig = ProvisioningConfig("url", "stack-name", HashMap())
+        val provisioningConfig = ProvisioningConfig("stack-name", HashMap(), ProvisioningConfig.DeploymentMode.STANDALONE)
         val errorMessage = "migration status is FUBAR"
         every {
             deploymentService.deployApplication(
-                provisioningConfig.stackName!!,
-                provisioningConfig.params!!
+                provisioningConfig.stackName,
+                provisioningConfig.params
             )
         } throws InvalidMigrationStageError(errorMessage)
 

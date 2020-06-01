@@ -131,6 +131,16 @@ class QuickstartDeploymentServiceTest {
         deploySimpleStack();
 
         verify(mockCfnApi).provisionStack(
+                "https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc.template.yaml",
+                STACK_NAME, STACK_PARAMS);
+    }
+
+    @Test
+    void shouldDeployQuickStartWithVpc() throws InvalidMigrationStageError
+    {
+        deployWithVpcStack();
+
+        verify(mockCfnApi).provisionStack(
                 "https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.yaml",
                 STACK_NAME, STACK_PARAMS);
     }
@@ -235,5 +245,9 @@ class QuickstartDeploymentServiceTest {
 
     private void deploySimpleStack() throws InvalidMigrationStageError {
         deploymentService.deployApplication(STACK_NAME, STACK_PARAMS);
+    }
+
+    private void deployWithVpcStack() throws InvalidMigrationStageError {
+        deploymentService.deployApplicationWithNetwork(STACK_NAME, STACK_PARAMS);
     }
 }

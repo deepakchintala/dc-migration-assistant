@@ -18,6 +18,16 @@ package com.atlassian.migration.datacenter.spi.infrastructure
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 
 interface ApplicationDeploymentService : DeploymentService {
+
+    /**
+     * Deploys the application into an existing virtual network
+     */
     @Throws(InvalidMigrationStageError::class)
     fun deployApplication(deploymentId: String, params: Map<String, String>)
+
+    /**
+     * Deploys application in its own virtual network
+     */
+    @Throws(InvalidMigrationStageError::class)
+    fun deployApplicationWithNetwork(deploymentId: String, params: Map<String, String>)
 }

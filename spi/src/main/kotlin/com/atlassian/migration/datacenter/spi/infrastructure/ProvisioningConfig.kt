@@ -15,20 +15,13 @@
  */
 package com.atlassian.migration.datacenter.spi.infrastructure
 
-class ProvisioningConfig {
-    var templateUrl: String?
-    var stackName: String?
-    var params: Map<String, String>?
+class ProvisioningConfig(val stackName: String, params: Map<String, Any>, val deploymentMode: DeploymentMode) {
+    // We need this unused constructor so that Jackson can deserialize JSON into the provisioning config
+    constructor() : this("", mapOf(), DeploymentMode.STANDALONE)
 
-    constructor() {
-        templateUrl = null
-        stackName = null
-        params = null
-    }
+    var params = params.mapValues { it.value.toString() }
 
-    constructor (templateUrl: String, stackName: String, params: Map<String, Any>) {
-        this.templateUrl = templateUrl
-        this.stackName = stackName
-        this.params = params?.mapValues { it.value.toString() }
+    enum class DeploymentMode {
+        WITH_NETWORK, STANDALONE;
     }
 }

@@ -25,6 +25,7 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
@@ -42,9 +43,11 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     static final String SECURITY_GROUP_NAME_STACK_OUTPUT_KEY = "SGname";
 
     private final Logger logger = LoggerFactory.getLogger(QuickstartDeploymentService.class);
-    private static final String QUICKSTART_TEMPLATE_URL = "https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.yaml";
+    private static final String QUICKSTART_WITH_VPC_TEMPLATE_URL = "https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.yaml";
+    private static final String QUICKSTART_STANDALONE_TEMPLATE_URL = "https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc.template.yaml";
 
-    private static final String templateUrl = System.getProperty("quickstart.template.url", QUICKSTART_TEMPLATE_URL);
+    private static final String withVpcTemplateUrl = System.getProperty("quickstart.template.withVpc.url", QUICKSTART_WITH_VPC_TEMPLATE_URL);
+    private static final String standaloneTemplateUrl = System.getProperty("quickstart.template.standalone.url", QUICKSTART_STANDALONE_TEMPLATE_URL);
 
     private final MigrationService migrationService;
     private final TargetDbCredentialsStorageService dbCredentialsStorageService;
@@ -70,9 +73,20 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
      *                     should be the parameter value.
      */
     @Override
-    public void deployApplication(String deploymentId, Map<String, String> params) throws InvalidMigrationStageError
+    public void deployApplication(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError
     {
         logger.info("received request to deploy application");
+        deployQuickstart(deploymentId, standaloneTemplateUrl, params);
+    }
+
+    @Override
+    public void deployApplicationWithNetwork(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
+        logger.info("received request to deploy application and virtual network");
+
+        deployQuickstart(deploymentId, withVpcTemplateUrl, params);
+    }
+
+    private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
         migrationService.transition(MigrationStage.PROVISION_APPLICATION_WAIT);
 
         logger.info("deploying application stack");
