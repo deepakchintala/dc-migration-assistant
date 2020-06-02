@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.atlassian.migration.datacenter.api.db
+package com.atlassian.migration.datacenter.api
 
+import com.atlassian.migration.datacenter.api.db.DatabaseMigrationStatus
+import com.atlassian.migration.datacenter.api.db.stageToStatus
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
@@ -35,8 +37,8 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
-@Path("/migration/db")
-class DatabaseMigrationEndpoint(
+@Path("/migration/final-sync")
+class FinalSyncEndpoint(
         private val databaseMigrationService: DatabaseMigrationService,
         private val migrationService: MigrationService,
         private val ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService,
@@ -81,7 +83,7 @@ class DatabaseMigrationEndpoint(
                 .build()
     }
 
-    @Path("/report")
+    @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     fun getMigrationStatus(): Response {
@@ -124,7 +126,7 @@ class DatabaseMigrationEndpoint(
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/logs")
+    @Path("/db-logs")
     fun getCommandOutputs(): Response {
         return try {
             Response.ok(ssmPsqlDatabaseRestoreService.fetchCommandResult()).build()
