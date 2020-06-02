@@ -89,14 +89,17 @@ class FinalSyncEndpoint(
     fun getMigrationStatus(): Response {
         val elapsed = databaseMigrationService.elapsedTime
                 .orElse(Duration.ZERO)
-        val dto = DatabaseMigrationStatus(
+        val db = DatabaseMigrationStatus(
                 stageToStatus(migrationService.currentStage),
                 elapsed
         )
+        val fsSyncStatus = finalSyncService.getFinalSyncStatus()
+        val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount)
+        val status = FinalSyncStatus(db, fs)
 
         return try {
             Response
-                    .ok(mapper.writeValueAsString(dto))
+                    .ok(status)
                     .build()
         } catch (e: JsonProcessingException) {
             Response
@@ -136,4 +139,7 @@ class FinalSyncEndpoint(
                     .build()
         }
     }
+
+    data class FSSyncStatus(val uploaded: Int, val downloaded: Int)
+    data class FinalSyncStatus(val db: DatabaseMigrationStatus, val fs: FSSyncStatus)
 }
