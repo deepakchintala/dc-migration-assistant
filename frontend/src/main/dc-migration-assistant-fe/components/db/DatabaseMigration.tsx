@@ -28,7 +28,7 @@ import {
     dbLogsEndpoint,
     DBMigrationStatus,
     CommandDetails,
-} from '../../api/db';
+} from '../../api/final-sync';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
 

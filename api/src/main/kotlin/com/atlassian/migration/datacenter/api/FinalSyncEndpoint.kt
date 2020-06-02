@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.atlassian.migration.datacenter.api.db
+package com.atlassian.migration.datacenter.api
 
+import com.atlassian.migration.datacenter.api.db.DatabaseMigrationStatus
+import com.atlassian.migration.datacenter.api.db.stageToStatus
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
@@ -35,8 +37,8 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
-@Path("/migration/db")
-class DatabaseMigrationEndpoint(
+@Path("/migration/final-sync")
+class FinalSyncEndpoint(
         private val databaseMigrationService: DatabaseMigrationService,
         private val migrationService: MigrationService,
         private val ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService,
@@ -81,7 +83,7 @@ class DatabaseMigrationEndpoint(
                 .build()
     }
 
-    @Path("/report")
+    @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     fun getMigrationStatus(): Response {
@@ -99,7 +101,7 @@ class DatabaseMigrationEndpoint(
         } catch (e: JsonProcessingException) {
             Response
                     .serverError()
-                    .entity("Unable to get db migration status. Please contact support and show them this error: ${e.message}")
+                    .entity("Unable to get sync status. Please contact support and show them this error: ${e.message}")
                     .build()
         }
     }
@@ -110,21 +112,22 @@ class DatabaseMigrationEndpoint(
     fun abortMigration(): Response {
         return try {
             databaseMigrationService.abortMigration()
-            finalSyncService.abortMigration()
             Response
                     .ok(mapOf("cancelled" to true))
                     .build()
         } catch (e: InvalidMigrationStageError) {
             Response
                     .status(Response.Status.CONFLICT)
-                    .entity(mapOf("error" to "db migration is not in progress"))
+                    .entity(mapOf("error" to "sync is not in progress"))
                     .build()
+        } finally {
+            finalSyncService.abortMigration()
         }
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/logs")
+    @Path("/db-logs")
     fun getCommandOutputs(): Response {
         return try {
             Response.ok(ssmPsqlDatabaseRestoreService.fetchCommandResult()).build()
