@@ -202,6 +202,15 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             <TransferContentContainer>
                 <h1>{heading}</h1>
                 <p>{description}</p>
+                <a
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    href="https://console.aws.amazon.com/cloudformation"
+                >
+                    {I18n.getText(
+                        'atlassian.migration.datacenter.provision.aws.wait.description.link'
+                    )}
+                </a>
             </TransferContentContainer>
             {loading ? (
                 <Spinner />
