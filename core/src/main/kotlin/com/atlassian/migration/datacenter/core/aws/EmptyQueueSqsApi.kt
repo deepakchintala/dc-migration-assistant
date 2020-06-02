@@ -19,7 +19,7 @@ package com.atlassian.migration.datacenter.core.aws
 import java.util.Optional
 
 class EmptyQueueSqsApi : SqsApi {
-    override fun getQueueLength(queueName: String): Optional<Int> {
-        return Optional.of(0)
+    override fun getQueueLength(queueUrl: String): Int? {
+        return 0
     }
 }
