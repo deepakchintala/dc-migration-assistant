@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.api.db
+package com.atlassian.migration.datacenter.api
 
+import com.atlassian.migration.datacenter.api.db.DBMigrationStatus
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
 import com.atlassian.migration.datacenter.core.fs.captor.FinalFileSyncStatus
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -36,7 +34,7 @@ import java.util.Optional
 import kotlin.test.assertEquals
 
 @ExtendWith(MockKExtension::class)
-internal class DatabaseMigrationEndpointTest {
+internal class FinalSyncEndpointTest {
     @MockK
     lateinit var databaseMigrationService: DatabaseMigrationService
     @MockK
@@ -46,7 +44,7 @@ internal class DatabaseMigrationEndpointTest {
     @MockK
     lateinit var s3FinalSyncService: S3FinalSyncService
     @InjectMockKs
-    lateinit var sut: DatabaseMigrationEndpoint
+    lateinit var sut: FinalSyncEndpoint
 
     @Test
     fun shouldReportDbSyncStatus() {
@@ -55,7 +53,7 @@ internal class DatabaseMigrationEndpointTest {
         every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0)
 
         val resp = sut.getMigrationStatus()
-        val result = resp.entity as DatabaseMigrationEndpoint.FinalSyncStatus
+        val result = resp.entity as FinalSyncEndpoint.FinalSyncStatus
 
         assertEquals(20, result.db.elapsedTime.seconds)
         assertEquals(DBMigrationStatus.IMPORTING, result.db.status)
@@ -68,7 +66,7 @@ internal class DatabaseMigrationEndpointTest {
         every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50)
 
         val resp = sut.getMigrationStatus()
-        val result = resp.entity as DatabaseMigrationEndpoint.FinalSyncStatus
+        val result = resp.entity as FinalSyncEndpoint.FinalSyncStatus
 
         assertEquals(150, result.fs.uploaded)
         assertEquals(100, result.fs.downloaded)

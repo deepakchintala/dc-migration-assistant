@@ -53,6 +53,9 @@ class FinalSyncEndpoint(
         )
     }
 
+    data class FSSyncStatus(val uploaded: Int, val downloaded: Int)
+    data class FinalSyncStatus(val db: DatabaseMigrationStatus, val fs: FSSyncStatus)
+
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -139,7 +142,4 @@ class FinalSyncEndpoint(
                     .build()
         }
     }
-
-    data class FSSyncStatus(val uploaded: Int, val downloaded: Int)
-    data class FinalSyncStatus(val db: DatabaseMigrationStatus, val fs: FSSyncStatus)
 }
