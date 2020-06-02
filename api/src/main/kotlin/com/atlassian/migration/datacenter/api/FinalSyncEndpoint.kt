@@ -101,7 +101,7 @@ class FinalSyncEndpoint(
         } catch (e: JsonProcessingException) {
             Response
                     .serverError()
-                    .entity("Unable to get db migration status. Please contact support and show them this error: ${e.message}")
+                    .entity("Unable to get sync status. Please contact support and show them this error: ${e.message}")
                     .build()
         }
     }
@@ -112,15 +112,16 @@ class FinalSyncEndpoint(
     fun abortMigration(): Response {
         return try {
             databaseMigrationService.abortMigration()
-            finalSyncService.abortMigration()
             Response
                     .ok(mapOf("cancelled" to true))
                     .build()
         } catch (e: InvalidMigrationStageError) {
             Response
                     .status(Response.Status.CONFLICT)
-                    .entity(mapOf("error" to "db migration is not in progress"))
+                    .entity(mapOf("error" to "sync is not in progress"))
                     .build()
+        } finally {
+            finalSyncService.abortMigration()
         }
     }
 

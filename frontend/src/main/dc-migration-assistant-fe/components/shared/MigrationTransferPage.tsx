@@ -27,7 +27,7 @@ import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { migrationErrorPath } from '../../utils/RoutePaths';
-import { CommandDetails as CommandResult } from '../../api/db';
+import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
 
 const POLL_INTERVAL_MILLIS = 3000;
