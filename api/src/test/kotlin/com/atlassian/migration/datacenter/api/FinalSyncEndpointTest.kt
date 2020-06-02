@@ -23,6 +23,15 @@ import com.atlassian.migration.datacenter.core.fs.captor.FinalFileSyncStatus
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.databind.node.IntNode
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -33,8 +42,16 @@ import java.time.Duration
 import java.util.Optional
 import kotlin.test.assertEquals
 
+
 @ExtendWith(MockKExtension::class)
 internal class FinalSyncEndpointTest {
+
+    companion object {
+        val mapper = ObjectMapper()
+                .registerKotlinModule()
+                .registerModule(SimpleModule().addDeserializer(Duration::class.java, DurationDeserializer(null)))
+    }
+
     @MockK
     lateinit var databaseMigrationService: DatabaseMigrationService
     @MockK
@@ -46,6 +63,15 @@ internal class FinalSyncEndpointTest {
     @InjectMockKs
     lateinit var sut: FinalSyncEndpoint
 
+    class DurationDeserializer(t: Class<Duration>?) : StdDeserializer<Duration>(t) {
+        override fun deserialize(jp: JsonParser, ctx: DeserializationContext): Duration {
+            val node = jp.codec.readTree<JsonNode>(jp)
+            val duration = (node.get("seconds") as IntNode).numberValue() as Int
+
+            return Duration.ofSeconds(duration.toLong())
+        }
+    }
+
     @Test
     fun shouldReportDbSyncStatus() {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(20))
@@ -53,7 +79,9 @@ internal class FinalSyncEndpointTest {
         every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0)
 
         val resp = sut.getMigrationStatus()
-        val result = resp.entity as FinalSyncEndpoint.FinalSyncStatus
+        val json = resp.entity as String
+
+        val result = mapper.readValue<FinalSyncEndpoint.FinalSyncStatus>(json)
 
         assertEquals(20, result.db.elapsedTime.seconds)
         assertEquals(DBMigrationStatus.IMPORTING, result.db.status)
@@ -66,8 +94,9 @@ internal class FinalSyncEndpointTest {
         every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50)
 
         val resp = sut.getMigrationStatus()
-        val result = resp.entity as FinalSyncEndpoint.FinalSyncStatus
+        val json = resp.entity as String
 
+        val result = mapper.readValue<FinalSyncEndpoint.FinalSyncStatus>(json)
         assertEquals(150, result.fs.uploaded)
         assertEquals(100, result.fs.downloaded)
     }

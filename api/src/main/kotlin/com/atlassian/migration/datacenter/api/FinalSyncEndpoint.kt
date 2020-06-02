@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.google.common.collect.ImmutableMap
 import java.time.Duration
 import javax.ws.rs.Consumes
@@ -44,7 +45,7 @@ class FinalSyncEndpoint(
         private val ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService,
         private val finalSyncService: S3FinalSyncService
 ) {
-    private val mapper: ObjectMapper = ObjectMapper()
+    private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
 
     init {
         mapper.setVisibility(
@@ -102,7 +103,7 @@ class FinalSyncEndpoint(
 
         return try {
             Response
-                    .ok(status)
+                    .ok(mapper.writeValueAsString(status))
                     .build()
         } catch (e: JsonProcessingException) {
             Response
