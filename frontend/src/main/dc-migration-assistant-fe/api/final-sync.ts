@@ -49,6 +49,16 @@ export const statusToI18nString = (status: DBMigrationStatus): string => {
     }
 };
 
+export type FinalSyncStatus = {
+    db: DatabaseMigrationStatus;
+    fs: FinalFileSyncStatus;
+};
+
+export type FinalFileSyncStatus = {
+    uploaded: number;
+    downloaded: number;
+};
+
 // See DatabaseMigrationProgress.kt
 export type DatabaseMigrationStatus = {
     status: DBMigrationStatus;

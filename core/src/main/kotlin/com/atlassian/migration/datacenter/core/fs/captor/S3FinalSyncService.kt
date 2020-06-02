@@ -50,8 +50,8 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner, private v
     }
 
 
-    fun getFinalSyncStatus() : FinalSyncStatus {
-        return FinalSyncStatus(0,0)
+    fun getFinalSyncStatus() : FinalFileSyncStatus {
+        return FinalFileSyncStatus(0,0)
     }
 
     private fun getScheduledJobId(): JobId {
@@ -59,6 +59,6 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner, private v
     }
 }
 
-class FinalSyncStatus(private val uploadedFileCount: Int, private val enqueuedFileCount: Int) {
+class FinalFileSyncStatus(val uploadedFileCount: Int, val enqueuedFileCount: Int) {
 
 }

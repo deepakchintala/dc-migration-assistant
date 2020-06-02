@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.google.common.collect.ImmutableMap
 import java.time.Duration
 import javax.ws.rs.Consumes
@@ -44,7 +45,7 @@ class FinalSyncEndpoint(
         private val ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService,
         private val finalSyncService: S3FinalSyncService
 ) {
-    private val mapper: ObjectMapper = ObjectMapper()
+    private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
 
     init {
         mapper.setVisibility(
@@ -52,6 +53,9 @@ class FinalSyncEndpoint(
                 JsonAutoDetect.Visibility.ANY
         )
     }
+
+    data class FSSyncStatus(val uploaded: Int, val downloaded: Int)
+    data class FinalSyncStatus(val db: DatabaseMigrationStatus, val fs: FSSyncStatus)
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
@@ -89,14 +93,17 @@ class FinalSyncEndpoint(
     fun getMigrationStatus(): Response {
         val elapsed = databaseMigrationService.elapsedTime
                 .orElse(Duration.ZERO)
-        val dto = DatabaseMigrationStatus(
+        val db = DatabaseMigrationStatus(
                 stageToStatus(migrationService.currentStage),
                 elapsed
         )
+        val fsSyncStatus = finalSyncService.getFinalSyncStatus()
+        val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount)
+        val status = FinalSyncStatus(db, fs)
 
         return try {
             Response
-                    .ok(mapper.writeValueAsString(dto))
+                    .ok(mapper.writeValueAsString(status))
                     .build()
         } catch (e: JsonProcessingException) {
             Response
