@@ -94,6 +94,17 @@ export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ depl
     return (
         <MigrationTransferPage
             description={migrationTransferPageDescription}
+            infoLink={
+                <a
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    href="https://console.aws.amazon.com/cloudformation"
+                >
+                    {I18n.getText(
+                        'atlassian.migration.datacenter.provision.aws.wait.description.link'
+                    )}
+                </a>
+            }
             getProgress={getDeploymentProgress}
             inProgressStages={inProgressStages}
             heading={I18n.getText('atlassian.migration.datacenter.provision.aws.title')}

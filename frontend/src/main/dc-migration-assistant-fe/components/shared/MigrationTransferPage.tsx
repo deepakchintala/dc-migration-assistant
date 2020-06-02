@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState, useEffect } from 'react';
+import React, { FunctionComponent, useState, useEffect, ReactNode } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
@@ -41,6 +41,11 @@ export type MigrationTransferProps = {
      * A description for what the current transfer does. Will be rendered below the title
      */
     description: string;
+
+    /**
+     * An optional hyperlink that can be used to direct the user to more detail
+     */
+    infoLink?: ReactNode;
     /**
      * @see MigrationTransferActionsProps
      */
@@ -101,6 +106,7 @@ const TransferActionsContainer = styled.div`
 `;
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
+    infoLink,
     heading,
     nextText,
     nextRoute,
@@ -202,15 +208,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             <TransferContentContainer>
                 <h1>{heading}</h1>
                 <p>{description}</p>
-                <a
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    href="https://console.aws.amazon.com/cloudformation"
-                >
-                    {I18n.getText(
-                        'atlassian.migration.datacenter.provision.aws.wait.description.link'
-                    )}
-                </a>
+                {infoLink}
             </TransferContentContainer>
             {loading ? (
                 <Spinner />
