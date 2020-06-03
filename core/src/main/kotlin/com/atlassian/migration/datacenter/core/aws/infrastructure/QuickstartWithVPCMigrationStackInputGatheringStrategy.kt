@@ -16,10 +16,11 @@
 
 package com.atlassian.migration.datacenter.core.aws.infrastructure
 
+import com.atlassian.migration.datacenter.core.aws.CfnApi
 import software.amazon.awssdk.services.cloudformation.model.Stack
 
-interface MigrationStackInputGatheringStrategy {
-
-    fun gatherMigrationStackInputsFromApplicationStack(stackName: String): Map<String, String>
-
+class QuickstartWithVPCMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
+    override fun gatherMigrationStackInputsFromApplicationStack(stackName: String): Map<String, String> {
+        return mapOf()
+    }
 }
