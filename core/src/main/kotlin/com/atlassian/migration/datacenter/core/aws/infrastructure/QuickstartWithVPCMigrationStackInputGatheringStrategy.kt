@@ -17,10 +17,50 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
-import software.amazon.awssdk.services.cloudformation.model.Stack
+import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY
+import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.SECURITY_GROUP_NAME_STACK_OUTPUT_KEY
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
+import software.amazon.awssdk.services.cloudformation.model.Output
+import java.util.stream.Collectors
 
 class QuickstartWithVPCMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
     override fun gatherMigrationStackInputsFromApplicationStack(stackName: String): Map<String, String> {
-        return mapOf()
+
+        val maybeStack = cfnApi.getStack(stackName)
+        if (!maybeStack.isPresent) {
+            throw InfrastructureDeploymentError("could not get details of application stack after deploying it")
+        }
+
+        val applicationStack = maybeStack.get()
+        val applicationStackOutputsMap = applicationStack
+                .outputs()
+                .stream()
+                .collect(Collectors.toMap(Output::outputKey, Output::outputValue))
+
+        val exportPrefix = applicationStack.parameters().stream()
+                .filter { parameter -> parameter.parameterKey() == "ExportPrefix" }
+                .findFirst()
+                .map { it.parameterValue() }
+                .orElse("ATL-")
+
+        val cfnExports = cfnApi.exports
+
+        val applicationResources = cfnApi.getStackResources(stackName)
+
+        val jiraStack = applicationResources["JiraDCStack"]
+        val jiraStackName = jiraStack!!.physicalResourceId()
+
+        val jiraResources = cfnApi.getStackResources(jiraStackName)
+        val efsId = jiraResources["ElasticFileSystem"]!!.physicalResourceId()
+
+        return mapOf(
+                "NetworkPrivateSubnet" to cfnExports["${exportPrefix}PriNets"]!!.split(",")[0],
+                "EFSFileSystemId" to efsId,
+                "EFSSecurityGroup" to applicationStackOutputsMap[SECURITY_GROUP_NAME_STACK_OUTPUT_KEY]!!,
+                "RDSSecurityGroup" to applicationStackOutputsMap[SECURITY_GROUP_NAME_STACK_OUTPUT_KEY]!!,
+                "RDSEndpoint" to applicationStackOutputsMap[DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY]!!,
+                "HelperInstanceType" to "c5.large",
+                "HelperVpcId" to cfnExports["${exportPrefix}VPCID"]!!
+        )
     }
 }
