@@ -20,6 +20,6 @@ import software.amazon.awssdk.services.cloudformation.model.Stack
 
 interface MigrationStackInputGatheringStrategy {
 
-    fun gatherMigrationStackInputsFromApplicationStack(stackName: String): Map<String, String>
+    fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String>
 
 }

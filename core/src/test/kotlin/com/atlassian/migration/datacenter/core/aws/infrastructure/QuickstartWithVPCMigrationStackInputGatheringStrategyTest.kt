@@ -55,7 +55,7 @@ internal class QuickstartWithVPCMigrationStackInputGatheringStrategyTest {
             Output.builder().outputKey(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY).outputValue(testSg).build(),
             Output.builder().outputKey(DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY).outputValue(testDbEndpoint).build()
     )
-    private val stack = Stack.builder().outputs(mockOutputs).build()
+    private val stack = Stack.builder().outputs(mockOutputs).stackName(stackName).build()
 
     private val mockExportsDefaultPrefix = mapOf("ATL-PriNets" to "$testSubnet1,$testSubnet2", "ATL-VPCID" to testVpc)
 
@@ -71,7 +71,7 @@ internal class QuickstartWithVPCMigrationStackInputGatheringStrategyTest {
     fun shouldGatherInputsWithDefaultPrefix() {
         every { cfnApi.exports } returns mockExportsDefaultPrefix
 
-        val params = sut.gatherMigrationStackInputsFromApplicationStack(stackName)
+        val params = sut.gatherMigrationStackInputsFromApplicationStack(stack)
 
         val expectation = mapOf(
                 "NetworkPrivateSubnet" to testSubnet1,
