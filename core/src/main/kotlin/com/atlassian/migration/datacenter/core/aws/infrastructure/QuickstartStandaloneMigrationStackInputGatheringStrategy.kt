@@ -19,8 +19,28 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure
 import com.atlassian.migration.datacenter.core.aws.CfnApi
 import software.amazon.awssdk.services.cloudformation.model.Stack
 
-class QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
+class QuickstartStandaloneMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
     override fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+        val applicationStackOutputsMap = stack.outputs().associateBy({ it.outputKey() }, { it.outputValue() })
+
+        val exportPrefix = stack.parameters().stream()
+                .filter { parameter -> parameter.parameterKey() == "ExportPrefix" }
+                .findFirst()
+                .map { it.parameterValue() }
+                .orElse("ATL-")
+
+        val cfnExports = cfnApi.exports
+
+        val applicationResources = cfnApi.getStackResources(stack.stackName())
+        val efsId = applicationResources["ElasticFileSystem"]!!.physicalResourceId()
+
+        return mapOf(
+                "NetworkPrivateSubnet" to cfnExports["${exportPrefix}PriNets"]!!.split(",")[0],
+                "EFSFileSystemId" to efsId,
+                "EFSSecurityGroup" to applicationStackOutputsMap[QuickstartDeploymentService.SECURITY_GROUP_NAME_STACK_OUTPUT_KEY]!!,
+                "RDSSecurityGroup" to applicationStackOutputsMap[QuickstartDeploymentService.SECURITY_GROUP_NAME_STACK_OUTPUT_KEY]!!,
+                "RDSEndpoint" to applicationStackOutputsMap[QuickstartDeploymentService.DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY]!!,
+                "HelperInstanceType" to "c5.large",
+                "HelperVpcId" to cfnExports["${exportPrefix}VPCID"]!!
+        )    }
 }
