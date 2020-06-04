@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.captor;
+package com.atlassian.migration.datacenter.spi.infrastructure
 
-
-import java.nio.file.Path;
-
-@FunctionalInterface
-public interface AttachmentPathCaptor {
-    void captureAttachmentPath(Path attachmentPath);
+enum class InfrastructureCleanupStatus {
+    CLEANUP_NOT_STARTED, CLEANUP_IN_PROGRESS, CLEANUP_COMPLETE, CLEANUP_FAILED
 }

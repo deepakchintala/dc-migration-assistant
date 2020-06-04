@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.captor;
+package com.atlassian.migration.datacenter.spi.infrastructure
 
-import com.atlassian.migration.datacenter.dto.FileSyncRecord;
+interface MigrationInfrastructureCleanupService {
 
-import java.util.Set;
+    /**
+     * Schedules the cleanup of any infrastructure that is not required
+     * after the migration has been completed or failed
+     *
+     * @return true if the cleanup was scheduled successfully and false otherwise
+     */
+    fun scheduleMigrationInfrastructureCleanup(): Boolean
 
-public interface AttachmentSyncManager {
-    Set<FileSyncRecord> getCapturedAttachments();
+    fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus
 }

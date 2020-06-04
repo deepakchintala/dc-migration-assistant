@@ -16,9 +16,6 @@
 
 package com.atlassian.migration.datacenter.configuration;
 
-import java.nio.file.Paths;
-import java.util.function.Supplier;
-
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
@@ -28,6 +25,7 @@ import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
+import com.atlassian.migration.datacenter.core.aws.SqsApi;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
 import com.atlassian.migration.datacenter.core.aws.auth.EncryptedCredentialsStorage;
 import com.atlassian.migration.datacenter.core.aws.auth.ProbeAWSAuth;
@@ -44,6 +42,7 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreSta
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationInfrastructureCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
@@ -53,8 +52,6 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
-import com.atlassian.migration.datacenter.core.fs.S3UploadJobRunner;
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncRunner;
@@ -62,25 +59,29 @@ import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
-import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.jira.captor.AttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.jira.captor.DefaultAttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.scheduler.SchedulerService;
-
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
+
+import java.nio.file.Paths;
+import java.util.function.Supplier;
 
 @Configuration
 public class MigrationAssistantBeanConfiguration {
@@ -112,6 +113,13 @@ public class MigrationAssistantBeanConfiguration {
     @Bean Supplier<AutoScalingClient> autoScalingClient(AwsCredentialsProvider credentialsProvider, RegionService regionService) {
         return () -> AutoScalingClient.builder()
                 .credentialsProvider(credentialsProvider)
+                .region(Region.of(regionService.getRegion()))
+                .build();
+    }
+
+    @Bean Supplier<SqsAsyncClient> sqsAsyncClient(AwsCredentialsProvider awsCredentialsProvider, RegionService regionService){
+        return () -> SqsAsyncClient.builder()
+                .credentialsProvider(awsCredentialsProvider)
                 .region(Region.of(regionService.getRegion()))
                 .build();
     }
@@ -275,13 +283,18 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentPathCaptor attachmentPathCaptor, AttachmentStore attachmentStore) {
-        return new JiraIssueAttachmentListener(eventPublisher, attachmentPathCaptor, attachmentStore);
+    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
+        return new JiraIssueAttachmentListener(eventPublisher, attachmentCaptor);
     }
 
     @Bean
-    public AttachmentSyncManager attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService) {
+    public AttachmentSyncManager attachmentSyncManager(ActiveObjects activeObjects, MigrationService migrationService) {
         return new DefaultAttachmentSyncManager(activeObjects, migrationService);
+    }
+
+    @Bean
+    public AttachmentCaptor attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService, AttachmentStore attachmentStore) {
+        return new DefaultAttachmentCaptor(activeObjects, migrationService, attachmentStore);
     }
 
     @Bean
@@ -295,7 +308,17 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService) {
-        return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService);
+    public SqsApi emptyQueueSqsApi() {
+        return queueUrl -> 0;
+    }
+
+    @Bean
+    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi) {
+        return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi);
+    }
+
+    @Bean
+    public MigrationInfrastructureCleanupService awsMigrationInfrastructureCleanupService() {
+        return new AWSMigrationInfrastructureCleanupService();
     }
 }

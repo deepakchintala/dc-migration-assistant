@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.captor;
+package com.atlassian.migration.datacenter.core.fs.jira.captor;
 
-import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 
-import java.util.Set;
+import com.atlassian.jira.issue.attachment.Attachment;
 
-public interface AttachmentSyncManager {
-    Set<FileSyncRecord> getCapturedAttachments();
+@FunctionalInterface
+public interface AttachmentCaptor {
+    void captureAttachment(Attachment attachment);
 }

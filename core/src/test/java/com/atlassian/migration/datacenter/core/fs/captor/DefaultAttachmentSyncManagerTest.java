@@ -32,7 +32,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.nio.file.Paths;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -67,27 +66,6 @@ public class DefaultAttachmentSyncManagerTest {
     private void setupEntities() {
         ao.migrate(Migration.class);
         ao.migrate(FileSyncRecord.class);
-    }
-
-    @Test
-    public void shouldStorePathInActiveObjects() {
-        final String testPath = "hello-path";
-        sut.captureAttachmentPath(Paths.get(testPath));
-
-        FileSyncRecord record = ao.find(FileSyncRecord.class)[0];
-
-        assertEquals(testPath, record.getFilePath());
-    }
-
-    @Test
-    public void shouldStoreRecordAgainstCurrentMigration() {
-        Migration migration = givenMigrationExists();
-
-        sut.captureAttachmentPath(Paths.get("test"));
-
-        FileSyncRecord record = ao.find(FileSyncRecord.class)[0];
-
-        assertEquals(migration, record.getMigration());
     }
 
     @Test
