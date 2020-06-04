@@ -73,6 +73,7 @@ import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.scheduler.SchedulerService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -332,6 +333,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
+    @Primary
     public MigrationInfrastructureCleanupService awsMigrationInfrastructureCleanupService(AWSCleanupTaskFactory cleanupTaskFactory) {
         return new AWSMigrationInfrastructureCleanupService(cleanupTaskFactory);
     }
