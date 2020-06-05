@@ -1,4 +1,4 @@
-name: UploadJiraTemplates
+name: UploadYmlAssets
 
 on: [push]
 
@@ -14,7 +14,6 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: templates
     steps:
       - uses: actions/checkout@master
       - name: Upload Jira templates
@@ -30,6 +29,6 @@ jobs:
         with:
           args: --acl public-read --exclude "*" --include "migration-helper.yml"
         env:
-          SOURCE_DIR: 'migration-stack'      
+          SOURCE_DIR: './templates/migration-stack'      
 
       
