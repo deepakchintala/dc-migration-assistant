@@ -86,4 +86,5 @@ script `helpers/upload-plugin`.
 ## Continuous integration
 
 The basic smoke-test runs automatically in GitHub Actions on each push. See the
-file [Actions config](../.github/workflows/mvn_test.yml) for details.
+file [Actions config](../.github/workflows/mvn_test.yml) for details. The secret
+environment variables are set in the Github secrets under Settings.
