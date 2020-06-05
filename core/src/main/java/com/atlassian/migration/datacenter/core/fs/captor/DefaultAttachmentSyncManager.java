@@ -24,32 +24,18 @@ import net.java.ao.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultAttachmentSyncManager implements AttachmentSyncManager {
-
     private static final Logger logger = LoggerFactory.getLogger(DefaultAttachmentSyncManager.class);
-    private final ActiveObjects ao;
+    private final ActiveObjects activeObjects;
     private final MigrationService migrationService;
 
-    public DefaultAttachmentSyncManager(ActiveObjects ao, MigrationService migrationService) {
-        this.ao = ao;
+    public DefaultAttachmentSyncManager(ActiveObjects activeObjects, MigrationService migrationService) {
+        this.activeObjects = activeObjects;
         this.migrationService = migrationService;
-    }
-
-    @Override
-    public void captureAttachmentPath(Path attachmentPath) {
-        logger.debug("captured attachment for final sync: {}", attachmentPath.toString());
-
-        FileSyncRecord record = ao.create(FileSyncRecord.class);
-
-        record.setFilePath(attachmentPath.toString());
-        record.setMigration(migrationService.getCurrentMigration());
-
-        record.save();
     }
 
     @Override
@@ -61,7 +47,7 @@ public class DefaultAttachmentSyncManager implements AttachmentSyncManager {
             return Collections.emptySet();
         }
 
-        final FileSyncRecord[] recordsForCurrentMigration = ao.find(
+        final FileSyncRecord[] recordsForCurrentMigration = activeObjects.find(
                 FileSyncRecord.class,
                 Query.select().where("migration_id = ?", migration.getID()));
 

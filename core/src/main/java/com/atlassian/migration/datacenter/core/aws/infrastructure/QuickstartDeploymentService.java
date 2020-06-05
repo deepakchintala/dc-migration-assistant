@@ -28,9 +28,7 @@ import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeplo
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
-import software.amazon.awssdk.services.cloudformation.model.StackResource;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -74,8 +72,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
      *                     should be the parameter value.
      */
     @Override
-    public void deployApplication(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError
-    {
+    public void deployApplication(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
         logger.info("received request to deploy application");
         deployQuickstart(deploymentId, standaloneTemplateUrl, params);
     }
@@ -122,32 +119,9 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
 
             storeServiceURLInContext(applicationStackOutputsMap.get(SERVICE_URL_STACK_OUTPUT_KEY));
 
-            String exportPrefix = applicationStack.parameters().stream()
-                    .filter(parameter -> parameter.parameterKey().equals("ExportPrefix"))
-                    .findFirst()
-                    .map(Parameter::parameterValue)
-                    .orElse("ATL-");
-
-            Map<String, String> cfnExports = cfnApi.getExports();
-
-            Map<String, StackResource> applicationResources = cfnApi.getStackResources(applicationStackName);
-
-            StackResource jiraStack = applicationResources.get("JiraDCStack");
-            String jiraStackName = jiraStack.physicalResourceId();
-
-            Map<String, StackResource> jiraResources = cfnApi.getStackResources(jiraStackName);
-            String efsId = jiraResources.get("ElasticFileSystem").physicalResourceId();
-
-
-            HashMap<String, String> migrationStackParams = new HashMap<String, String>() {{
-               put("NetworkPrivateSubnet", cfnExports.get(exportPrefix + "PriNets").split(",")[0]);
-               put("EFSFileSystemId", efsId);
-               put("EFSSecurityGroup", applicationStackOutputsMap.get(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY));
-               put("RDSSecurityGroup", applicationStackOutputsMap.get(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY));
-               put("RDSEndpoint", applicationStackOutputsMap.get(DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY));
-               put("HelperInstanceType", "c5.large");
-               put("HelperVpcId", cfnExports.get(exportPrefix + "VPCID"));
-            }};
+            Map<String, String> migrationStackParams =
+                    new QuickstartWithVPCMigrationStackInputGatheringStrategy(cfnApi)
+                            .gatherMigrationStackInputsFromApplicationStack(applicationStack);
 
             migrationHelperDeploymentService.deployMigrationInfrastructure(migrationStackParams);
 

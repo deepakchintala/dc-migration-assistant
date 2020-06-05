@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.captor;
+package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
 
-import java.nio.file.Path;
+class AWSCleanupTaskFactory(private val secretCleanupService: DatabaseSecretCleanupService) {
 
-@FunctionalInterface
-public interface AttachmentPathCaptor {
-    void captureAttachmentPath(Path attachmentPath);
+    fun getCleanupTasks(): List<MigrationInfrastructureCleanupService> {
+        return listOf(secretCleanupService)
+    }
 }

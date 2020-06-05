@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         java: [ 8, 11 ]
-        profile: ['integration', '!integration']
+        profile: ['integration', '!integration', 'smoketest']
 
     steps:
       - name: Checkout code
@@ -44,8 +44,22 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+
       - name: Test with maven
+        if: matrix.profile != 'smoketest'
         run: mvn -B clean verify -P ${{ matrix.profile}}
+
+      - name: Smoke-test with production image
+        if: matrix.profile == 'smoketest'
+        env:
+          JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
+        run: |
+          mvn package -DskipTests
+          mv jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
+          cd jira-e2e-tests
+          ./postgres/inject-license
+          docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit
+
       - name: Upload
         if: github.ref == env.DOGFOODING_REF && matrix.profile == '!integration' && matrix.java == 11
         uses: actions/upload-artifact@v1
