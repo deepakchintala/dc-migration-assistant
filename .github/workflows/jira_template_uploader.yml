@@ -22,7 +22,7 @@ jobs:
         with:
           args: --acl public-read 
         env:
-          SOURCE_DIR: 'jira-stack'  
+          SOURCE_DIR: './templates/jira-stack'  
       - name: Generate migration stack template
         run: make rendertemplate -C migration-stack
       - name: Upload Migration stack template
