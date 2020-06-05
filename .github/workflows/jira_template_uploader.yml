@@ -24,7 +24,7 @@ jobs:
         env:
           SOURCE_DIR: 'jira-stack'  
       - name: Generate migration stack template
-          run: make rendertemplate -C migration-stack
+        run: make rendertemplate -C migration-stack
       - name: Upload Migration stack template
       - uses: actions/checkout@master
       - uses: jakejarvis/s3-sync-action@master
