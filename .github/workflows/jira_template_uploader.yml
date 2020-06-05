@@ -27,7 +27,7 @@ jobs:
       - name: Upload Migration stack template
         uses: jakejarvis/s3-sync-action@master
         with:
-          args: --acl public-read --recursive --exclude "*" --include "migration-helper.yml"
+          args: --acl public-read --exclude '*' --include 'migration-helper.yml'
         env:
           SOURCE_DIR: './templates/migration-stack'      
 
