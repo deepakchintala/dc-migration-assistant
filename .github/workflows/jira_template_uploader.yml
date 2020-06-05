@@ -2,19 +2,35 @@ name: UploadJiraTemplates
 
 on: [push]
 
+env:
+  AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: 'us-east-1'
+  
 jobs:
-  deploy:
+  upload:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./templates
     steps:
+      - name: Upload Jira templates
       - uses: actions/checkout@master
       - uses: jakejarvis/s3-sync-action@master
         with:
-          args: --acl public-read
+          args: --acl public-read 
         env:
-          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: 'us-east-1'   
-          SOURCE_DIR: 'templates/jira-stack'      
+          SOURCE_DIR: 'jira-stack'  
+      - name: Generate migration stack template
+          run: make rendertemplate -C migration-stack
+      - name: Upload Migration stack template
+      - uses: actions/checkout@master
+      - uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --exclude "*" --include "migration-helper.yml"
+        env:
+          SOURCE_DIR: 'migration-stack'      
 
       
