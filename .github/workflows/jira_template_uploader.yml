@@ -19,7 +19,8 @@ jobs:
       - name: Upload Jira templates
         uses: jakejarvis/s3-sync-action@master
         with:
-          args: --acl public-read 
+          #args: --acl public-read
+          args: --acl public-read --exclude '*' --include 'quickstart-jira-dc.template-FOR-TESTING.yaml'
         env:
           SOURCE_DIR: './templates/jira-stack'  
       - name: Generate migration stack template
