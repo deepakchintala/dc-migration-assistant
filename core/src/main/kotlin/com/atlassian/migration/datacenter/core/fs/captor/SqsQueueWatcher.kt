@@ -20,6 +20,7 @@ import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.MigrationStage.FINAL_SYNC_WAIT
+import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -31,11 +32,34 @@ class SqsQueueWatcher(private val sqsAPi: SqsApi,
 
     constructor(sqsAPi: SqsApi, migrationService: MigrationService) : this(sqsAPi, migrationService, 30)
 
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(SqsQueueWatcher::class.java)
+    }
+
     override fun awaitQueueDrain(): Boolean {
-        awaitRunnableToComplete(::checkForStateToBeInFsSyncAwait).get()
-        awaitRunnableToComplete(::checkForQueueToBeEmpty).get()
-        migrationService.transition(MigrationStage.VALIDATE)
-        return true
+        //TODO: Change from when complete to toAccept/toCombine idioms
+        try {
+            val completableFuture = this.awaitRunnableToComplete(::checkForStateToBeInFsSyncAwait)
+                    .whenComplete { _, _ ->
+                        run {
+                            awaitRunnableToComplete(::checkForQueueToBeEmpty).get()
+                        }
+                    }
+                    .whenComplete { _, _ ->
+                        run {
+                            migrationService.transition(MigrationStage.VALIDATE)
+                        }
+                    }
+
+            completableFuture.get()
+
+            logger.info("Successfully waited for queue to be drained. Transitioned state to {}", MigrationStage.VALIDATE)
+            return true
+        } catch (e: Exception) {
+            logger.error("Error while waiting for queue to be drained", e)
+        }
+        return false
     }
 
     private fun checkForQueueToBeEmpty(future: @ParameterName(name = "future") CompletableFuture<Unit>): Runnable {
