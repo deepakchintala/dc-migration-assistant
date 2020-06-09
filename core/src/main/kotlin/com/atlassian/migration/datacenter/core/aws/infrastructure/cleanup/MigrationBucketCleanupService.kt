@@ -33,9 +33,11 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
     }
 
     override fun startMigrationInfrastructureCleanup(): Boolean {
+        logger.info("got request to cleanup migration bucket")
         val bucket = migrationService.currentContext.migrationBucketName
 
         if (bucket.isNullOrEmpty()) {
+            logger.info("bucket is not in context, no cleanup necessary")
             return true
         }
 
@@ -46,6 +48,7 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
         var continuation = response.continuationToken()
         var retryCount = 0
 
+        logger.info("deleting all objects in migration bucket")
         while (contents.size != 0) {
             val lastSize = contents.size
             contents.forEach { obj ->
@@ -64,6 +67,7 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
                 retryCount++
             }
         }
+        logger.info("all objects in bucket deleted")
 
         return true
     }
