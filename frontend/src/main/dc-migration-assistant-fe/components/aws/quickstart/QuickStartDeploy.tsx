@@ -212,7 +212,7 @@ const QuickStartDeployContainer = styled.div`
 `;
 
 const DEFAULT_QUICKSTART_WITH_VPC_PARAMETER_URL =
-    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.yaml';
+    'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc-with-vpc.template.yaml';
 
 const quickstartWithVPCParametersTemplateLocation = (): string => {
     const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_WITH_VPC_PARAMETER_URL;
@@ -222,7 +222,7 @@ const quickstartWithVPCParametersTemplateLocation = (): string => {
 };
 
 const DEFAULT_QUICKSTART_STANDALONE_PARAMETER_URL =
-    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc.template.yaml';
+    'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc.template.yaml';
 
 const quickstartStandaloneParametersTemplateLocation = (): string => {
     const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_STANDALONE_PARAMETER_URL;

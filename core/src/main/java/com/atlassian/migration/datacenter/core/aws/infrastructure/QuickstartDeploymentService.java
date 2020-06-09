@@ -80,7 +80,6 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     @Override
     public void deployApplicationWithNetwork(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
         logger.info("received request to deploy application and virtual network");
-
         deployQuickstart(deploymentId, withVpcTemplateUrl, params);
     }
 
