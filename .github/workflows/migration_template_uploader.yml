@@ -15,6 +15,7 @@ jobs:
       run:
         shell: bash
     steps:
+      - uses: actions/checkout@master
       - name: Generate migration stack template
         run: make rendertemplate -C ./templates/migration-stack
       - name: Upload Migration stack template
