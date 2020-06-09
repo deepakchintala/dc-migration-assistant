@@ -131,7 +131,7 @@ class QuickstartDeploymentServiceTest {
         deploySimpleStack();
 
         verify(mockCfnApi).provisionStack(
-                "https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc.template.yaml",
+                "https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc.template.yaml",
                 STACK_NAME, STACK_PARAMS);
     }
 
@@ -141,7 +141,7 @@ class QuickstartDeploymentServiceTest {
         deployWithVpcStack();
 
         verify(mockCfnApi).provisionStack(
-                "https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.yaml",
+                "https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc-with-vpc.template.yaml",
                 STACK_NAME, STACK_PARAMS);
     }
 
