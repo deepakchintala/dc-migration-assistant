@@ -186,18 +186,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier) {
-        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier);
-    }
-
-    @Bean
     public DatabaseUploadStageTransitionCallback databaseUploadStageTransitionCallback(MigrationService migrationService) {
         return new DatabaseUploadStageTransitionCallback(migrationService);
     }
 
     @Bean
-    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
-        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService);
+    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier, DatabaseUploadStageTransitionCallback uploadStageTransitionCallback) {
+        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier, uploadStageTransitionCallback);
     }
 
     @Bean
@@ -206,25 +201,24 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseMigrationService databaseMigrationService(MigrationService databaseMigrationService,
+    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) {
+        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService, restoreStageTransitionCallback);
+    }
+
+    @Bean
+    public DatabaseMigrationService databaseMigrationService(MigrationService migrationService,
                                                              MigrationRunner migrationRunner,
                                                              DatabaseArchivalService databaseArchivalService,
-                                                             DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback,
                                                              DatabaseArtifactS3UploadService s3UploadService,
-                                                             DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
-                                                             SsmPsqlDatabaseRestoreService restoreService,
-                                                             DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+                                                             SsmPsqlDatabaseRestoreService restoreService, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         String tempDirectoryPath = System.getProperty("java.io.tmpdir");
         return new DatabaseMigrationService(
                 Paths.get(tempDirectoryPath),
-                databaseMigrationService,
+                migrationService,
                 migrationRunner,
                 databaseArchivalService,
-                archiveStageTransitionCallback,
                 s3UploadService,
-                uploadStageTransitionCallback,
                 restoreService,
-                restoreStageTransitionCallback,
                 migrationHelperDeploymentService);
     }
 
@@ -249,8 +243,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseArchivalService databaseArchivalService(DatabaseExtractor databaseExtractor) {
-        return new DatabaseArchivalService(databaseExtractor);
+    public DatabaseArchivalService databaseArchivalService(DatabaseExtractor databaseExtractor, DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback) {
+        return new DatabaseArchivalService(databaseExtractor, archiveStageTransitionCallback);
     }
 
     @Bean
@@ -324,8 +318,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService, QueueWatcher queueWatcher) {
-        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome, helperDeploymentService, queueWatcher);
+    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService, QueueWatcher queueWatcher, JiraIssueAttachmentListener attachmentListener) {
+        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome, helperDeploymentService, queueWatcher, attachmentListener);
     }
 
     @Bean
@@ -334,8 +328,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, QueueWatcher queueWatcher) {
-        return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi);
+    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, QueueWatcher queueWatcher, AttachmentSyncManager attachmentSyncManager) {
+        return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi, attachmentSyncManager);
     }
 
     @Bean
