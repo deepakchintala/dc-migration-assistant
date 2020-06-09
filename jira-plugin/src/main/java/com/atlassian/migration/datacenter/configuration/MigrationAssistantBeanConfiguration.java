@@ -46,7 +46,9 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSCle
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationInfrastructureCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationStackCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.DatabaseSecretCleanupService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.MigrationBucketCleanupService;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
@@ -56,8 +58,10 @@ import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
+import com.atlassian.migration.datacenter.core.fs.captor.QueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncRunner;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService;
+import com.atlassian.migration.datacenter.core.fs.captor.SqsQueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
@@ -79,11 +83,11 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
-import java.lang.annotation.Target;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
 
@@ -93,6 +97,14 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public Supplier<S3AsyncClient> s3AsyncClientSupplier(AwsCredentialsProvider credentialsProvider, RegionService regionService) {
         return () -> S3AsyncClient.builder()
+                .credentialsProvider(credentialsProvider)
+                .region(Region.of(regionService.getRegion()))
+                .build();
+    }
+
+    @Bean
+    public Supplier<S3Client> s3ClientSupplier(AwsCredentialsProvider credentialsProvider, RegionService regionService) {
+        return () -> S3Client.builder()
                 .credentialsProvider(credentialsProvider)
                 .region(Region.of(regionService.getRegion()))
                 .build();
@@ -307,8 +319,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService) {
-        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome, helperDeploymentService);
+    public QueueWatcher queueWatcher(MigrationService migrationService, SqsApi sqsApi) {
+        return new SqsQueueWatcher(sqsApi, migrationService);
+    }
+
+    @Bean
+    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService, QueueWatcher queueWatcher) {
+        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome, helperDeploymentService, queueWatcher);
     }
 
     @Bean
@@ -317,7 +334,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi) {
+    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, QueueWatcher queueWatcher) {
         return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi);
     }
 
@@ -328,8 +345,18 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AWSCleanupTaskFactory cleanupTaskFactory(DatabaseSecretCleanupService databaseSecretCleanupService) {
-        return new AWSCleanupTaskFactory(databaseSecretCleanupService);
+    public AWSMigrationStackCleanupService migrationStackCleanupService(CfnApi cfnApi, MigrationService migrationService) {
+        return new AWSMigrationStackCleanupService(cfnApi, migrationService);
+    }
+
+    @Bean
+    public MigrationBucketCleanupService bucketCleanupService(MigrationService migrationService, Supplier<S3Client> clientSupplier) {
+        return new MigrationBucketCleanupService(migrationService, clientSupplier);
+    }
+
+    @Bean
+    public AWSCleanupTaskFactory cleanupTaskFactory(DatabaseSecretCleanupService databaseSecretCleanupService, AWSMigrationStackCleanupService migrationStackCleanupService, MigrationBucketCleanupService bucketCleanupService) {
+        return new AWSCleanupTaskFactory(databaseSecretCleanupService, migrationStackCleanupService, bucketCleanupService);
     }
 
     @Bean
