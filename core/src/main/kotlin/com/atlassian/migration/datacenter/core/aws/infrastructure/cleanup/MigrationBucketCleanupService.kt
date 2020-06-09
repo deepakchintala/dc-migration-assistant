@@ -22,6 +22,7 @@ import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastruc
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 import java.util.function.Supplier
 
 class MigrationBucketCleanupService(private val migrationService: MigrationService, private val s3ClientSupplier: Supplier<S3Client>) : MigrationInfrastructureCleanupService {
@@ -75,7 +76,11 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
 
         if (!failedToEmpty) {
             logger.info("deleting migration bucket")
-            client.deleteBucket { it.bucket(bucket) }
+            try {
+                client.deleteBucket { it.bucket(bucket) }
+            } catch (e: NoSuchBucketException) {
+                logger.info("bucket already doesn't exist...")
+            }
         } else {
             logger.info("bucket emptying failed. Not deleting migration bucket")
         }
@@ -87,18 +92,18 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
     }
 
     override fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus {
-        return if (isCleaning) {
-            InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS
-        } else if (failedToEmpty) {
-            InfrastructureCleanupStatus.CLEANUP_FAILED
-        } else {
-            val bucket = migrationService.currentContext.migrationBucketName
-            val client = s3ClientSupplier.get()
-            val response = client.listObjectsV2 { it.bucket(bucket) }
-            if (response.contents().size > 0) {
-                InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
-            } else {
-                InfrastructureCleanupStatus.CLEANUP_COMPLETE
+        return when {
+            isCleaning -> InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS
+            failedToEmpty -> InfrastructureCleanupStatus.CLEANUP_FAILED
+            else -> {
+                val bucket = migrationService.currentContext.migrationBucketName
+                val client = s3ClientSupplier.get()
+                return try {
+                    client.headBucket {it.bucket(bucket)}
+                    InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
+                } catch (e: NoSuchBucketException) {
+                    InfrastructureCleanupStatus.CLEANUP_COMPLETE
+                }
             }
         }
     }

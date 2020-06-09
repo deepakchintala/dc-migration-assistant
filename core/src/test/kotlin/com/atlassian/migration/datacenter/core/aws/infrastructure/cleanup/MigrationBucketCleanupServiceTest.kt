@@ -31,8 +31,11 @@ import software.amazon.awssdk.services.s3.model.DeleteBucketRequest
 import software.amazon.awssdk.services.s3.model.DeleteBucketResponse
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.DeleteObjectResponse
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest
+import software.amazon.awssdk.services.s3.model.HeadBucketResponse
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 import software.amazon.awssdk.services.s3.model.S3Object
 import java.util.concurrent.Executors
 import java.util.function.Consumer
@@ -74,9 +77,9 @@ internal class MigrationBucketCleanupServiceTest {
     }
 
     @Test
-    fun shouldReturnCleanupCompleteWhenBucketIsEmpty() {
+    fun shouldReturnCleanupCompleteWhenBucketDoesNotExist() {
         givenBucketNameIsInMigrationContext()
-        givenObjectsAreInBucket(0)
+        givenBucketDoesNotExist()
 
         assertEquals(InfrastructureCleanupStatus.CLEANUP_COMPLETE, sut.getMigrationInfrastructureCleanupStatus())
     }
@@ -120,7 +123,12 @@ internal class MigrationBucketCleanupServiceTest {
         }
     }
 
+    private fun givenBucketDoesNotExist() {
+        every { s3Client.headBucket(any<Consumer<HeadBucketRequest.Builder>>()) } throws NoSuchBucketException.builder().build()
+    }
+
     private fun givenObjectsAreInBucket(numObjects: Int) {
+        every { s3Client.headBucket(any<Consumer<HeadBucketRequest.Builder>>()) } returns HeadBucketResponse.builder().build()
         val objects = mutableListOf<S3Object>()
         for (i in 1..numObjects) {
             objects.add(S3Object.builder().build())
