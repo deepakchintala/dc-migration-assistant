@@ -27,6 +27,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest
+import software.amazon.awssdk.services.s3.model.DeleteBucketResponse
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.DeleteObjectResponse
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
@@ -61,10 +63,8 @@ internal class MigrationBucketCleanupServiceTest {
         val numObjects = 3
         givenBucketNameIsInMigrationContext()
         givenObjectsAreInBucket(numObjects)
-
-        every {
-            s3Client.deleteObject(any<Consumer<DeleteObjectRequest.Builder>>())
-        } returns DeleteObjectResponse.builder().build()
+        andObjectsWillBeDeleted()
+        andBucketWillBeDeleted()
 
         sut.startMigrationInfrastructureCleanup()
 
@@ -93,10 +93,8 @@ internal class MigrationBucketCleanupServiceTest {
     fun shouldReturnCleanupInProgressWhileEmptyingBucket() {
         givenBucketNameIsInMigrationContext()
         givenObjectsAreInBucket(1000)
-
-        every {
-            s3Client.deleteObject(any<Consumer<DeleteObjectRequest.Builder>>())
-        } returns DeleteObjectResponse.builder().build()
+        andObjectsWillBeDeleted()
+        andBucketWillBeDeleted()
 
         val future = Executors.newSingleThreadExecutor().submit {
             sut.startMigrationInfrastructureCleanup()
@@ -109,6 +107,18 @@ internal class MigrationBucketCleanupServiceTest {
         future.get()
     }
 
+    @Test
+    fun shouldDeleteBucketIfItExists() {
+        givenBucketNameIsInMigrationContext()
+        givenObjectsAreInBucket(0)
+        andBucketWillBeDeleted()
+
+        sut.startMigrationInfrastructureCleanup()
+
+        verify(exactly = 1) {
+            s3Client.deleteBucket(any<Consumer<DeleteBucketRequest.Builder>>())
+        }
+    }
 
     private fun givenObjectsAreInBucket(numObjects: Int) {
         val objects = mutableListOf<S3Object>()
@@ -122,6 +132,19 @@ internal class MigrationBucketCleanupServiceTest {
                         .contents(objects)
                         .build(),
                         ListObjectsV2Response.builder().build())
+    }
+
+
+    private fun andObjectsWillBeDeleted() {
+        every {
+            s3Client.deleteObject(any<Consumer<DeleteObjectRequest.Builder>>())
+        } returns DeleteObjectResponse.builder().build()
+    }
+
+    private fun andBucketWillBeDeleted() {
+        every {
+            s3Client.deleteBucket(any<Consumer<DeleteBucketRequest.Builder>>())
+        } returns DeleteBucketResponse.builder().build()
     }
 
     private fun givenBucketNameIsInMigrationContext() {

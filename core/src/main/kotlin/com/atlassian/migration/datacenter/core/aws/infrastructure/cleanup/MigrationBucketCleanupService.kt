@@ -72,6 +72,16 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
             }
         }
         logger.info("all objects in bucket deleted")
+
+        if (!failedToEmpty) {
+            logger.info("deleting migration bucket")
+            client.deleteBucket { it.bucket(bucket) }
+        } else {
+            logger.info("bucket emptying failed. Not deleting migration bucket")
+        }
+
+        logger.info("migration bucket cleanup complete")
+
         isCleaning = false
         return true
     }
