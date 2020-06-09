@@ -28,6 +28,8 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
 
     private var failedToEmpty = false
 
+    private var isCleaning = false
+
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(MigrationBucketCleanupService::class.java)
     }
@@ -40,6 +42,8 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
             logger.info("bucket is not in context, no cleanup necessary")
             return true
         }
+
+        isCleaning = true
 
         val client = s3ClientSupplier.get()
 
@@ -68,11 +72,24 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
             }
         }
         logger.info("all objects in bucket deleted")
-
+        isCleaning = false
         return true
     }
 
     override fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return if (isCleaning) {
+            InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS
+        } else if (failedToEmpty) {
+            InfrastructureCleanupStatus.CLEANUP_FAILED
+        } else {
+            val bucket = migrationService.currentContext.migrationBucketName
+            val client = s3ClientSupplier.get()
+            val response = client.listObjectsV2 { it.bucket(bucket) }
+            if (response.contents().size > 0) {
+                InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
+            } else {
+                InfrastructureCleanupStatus.CLEANUP_COMPLETE
+            }
+        }
     }
 }

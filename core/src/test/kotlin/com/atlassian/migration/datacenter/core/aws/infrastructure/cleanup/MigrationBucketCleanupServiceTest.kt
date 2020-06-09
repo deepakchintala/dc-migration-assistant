@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
 import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -31,8 +32,10 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectResponse
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
 import software.amazon.awssdk.services.s3.model.S3Object
+import java.util.concurrent.Executors
 import java.util.function.Consumer
 import java.util.function.Supplier
+import kotlin.test.assertEquals
 
 @ExtendWith(MockKExtension::class)
 internal class MigrationBucketCleanupServiceTest {
@@ -70,13 +73,50 @@ internal class MigrationBucketCleanupServiceTest {
         }
     }
 
+    @Test
+    fun shouldReturnCleanupCompleteWhenBucketIsEmpty() {
+        givenBucketNameIsInMigrationContext()
+        givenObjectsAreInBucket(0)
+
+        assertEquals(InfrastructureCleanupStatus.CLEANUP_COMPLETE, sut.getMigrationInfrastructureCleanupStatus())
+    }
+
+    @Test
+    fun shouldReturnCleanupNotStartedWhenBucketIsNotEmptyAndCleanupNotInProgress() {
+        givenBucketNameIsInMigrationContext()
+        givenObjectsAreInBucket(3)
+
+        assertEquals(InfrastructureCleanupStatus.CLEANUP_NOT_STARTED, sut.getMigrationInfrastructureCleanupStatus())
+    }
+
+    @Test
+    fun shouldReturnCleanupInProgressWhileEmptyingBucket() {
+        givenBucketNameIsInMigrationContext()
+        givenObjectsAreInBucket(1000)
+
+        every {
+            s3Client.deleteObject(any<Consumer<DeleteObjectRequest.Builder>>())
+        } returns DeleteObjectResponse.builder().build()
+
+        val future = Executors.newSingleThreadExecutor().submit {
+            sut.startMigrationInfrastructureCleanup()
+        }
+
+        Thread.sleep(10)
+
+        assertEquals(InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS, sut.getMigrationInfrastructureCleanupStatus())
+
+        future.get()
+    }
+
+
     private fun givenObjectsAreInBucket(numObjects: Int) {
         val objects = mutableListOf<S3Object>()
         for (i in 1..numObjects) {
             objects.add(S3Object.builder().build())
         }
         every {
-            s3Client.listObjectsV2(any<Consumer<ListObjectsV2Request.Builder>>())
+            s3Client.listObjectsV2(any() as Consumer<ListObjectsV2Request.Builder>)
         } returnsMany
                 listOf(ListObjectsV2Response.builder()
                         .contents(objects)
