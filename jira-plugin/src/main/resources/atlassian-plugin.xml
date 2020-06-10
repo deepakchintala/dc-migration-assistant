@@ -21,7 +21,7 @@
         <vendor name="${project.organization.name}" url="${project.organization.url}"/>
     </plugin-info>
 
-    <analytics-whitelist key="troubleshooting-stp-whitelist" resource="whitelist/analytics_whitelist.json"/>
+    <analytics-whitelist key="analytics-whitelist" resource="whitelist/analytics_whitelist.json"/>
 
     <ao key="ao-module">
         <description>The module configuring the Active Objects service used by this plugin</description>
