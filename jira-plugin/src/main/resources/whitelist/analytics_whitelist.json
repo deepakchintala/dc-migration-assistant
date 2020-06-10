@@ -1,0 +1,12 @@
+{
+  "atl.dc.migration.started":[
+    "pluginVersion"
+  ],
+  "atl.dc.migration.complete": [
+    "pluginVersion"
+  ],
+  "atl.dc.migration.failed": [
+    "pluginVersion",
+    "failedStage"
+  ]
+}
