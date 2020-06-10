@@ -72,6 +72,14 @@
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.1-901-1.jdbc4</version>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>
@@ -125,6 +133,28 @@
                         </Import-Package>
                     </instructions>
                     <products>
+                        <product>
+                            <id>jira88-pg</id>
+                            <version>${amps.jira.version}</version>
+                            <productDataVersion>${amps.jira.version}</productDataVersion>
+                            <dataPath>${basedir}/src/main/resources/jira-home</dataPath>
+                            <dataSources>
+                                <dataSource>
+                                    <jndi>jdbc/DefaultDS</jndi>
+                                    <url>jdbc:postgresql://localhost:5432/jiradb</url>
+                                    <driver>org.postgresql.Driver</driver>
+                                    <username>jiradb</username>
+                                    <password>password</password>
+                                    <libArtifacts>
+                                        <libArtifact>
+                                            <groupId>postgresql</groupId>
+                                            <artifactId>postgresql</artifactId>
+                                            <version>9.1-901-1.jdbc4</version>
+                                        </libArtifact>
+                                    </libArtifacts>
+                                </dataSource>
+                            </dataSources>
+                        </product>
                         <product>
                             <id>jira</id>
                             <version>${amps.jira.version}</version>

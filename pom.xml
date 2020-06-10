@@ -182,6 +182,12 @@
                 <version>${jackson.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>9.1-901-1.jdbc4</version>
+            </dependency>
+
             <!-- Test Dependencies. Scope is not required in the dependencyManagement section -->
             <dependency>
                 <groupId>org.mockito</groupId>
