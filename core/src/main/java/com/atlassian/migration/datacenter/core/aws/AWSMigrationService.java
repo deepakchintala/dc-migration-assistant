@@ -17,7 +17,9 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
@@ -34,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
-import java.util.Optional;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
@@ -48,14 +49,16 @@ public class AWSMigrationService implements MigrationService {
     private ActiveObjects ao;
     private ApplicationConfiguration applicationConfiguration;
     private JiraHome jiraHome;
+    private EventPublisher eventPublisher;
 
     /**
      * Creates a new, unstarted AWS Migration
      */
-    public AWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome) {
+    public AWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome, EventPublisher eventPublisher) {
         this.ao = requireNonNull(ao);
         this.applicationConfiguration = applicationConfiguration;
         this.jiraHome = jiraHome;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -63,6 +66,7 @@ public class AWSMigrationService implements MigrationService {
     {
         Migration migration = findFirstOrCreateMigration();
         if (migration.getStage().equals(NOT_STARTED)) {
+            eventPublisher.publish(new MigrationCreatedEvent(applicationConfiguration.getPluginVersion()));
             return migration;
         }
         throw new MigrationAlreadyExistsException(String.format("Found existing migration in Stage - `%s`", migration.getStage()));
