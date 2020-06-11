@@ -139,14 +139,16 @@ public class AWSMigrationService implements MigrationService {
         MigrationContext context = getCurrentContext();
 
         MigrationStage failStage = context.getMigration().getStage();
-        Long runTime = (System.currentTimeMillis() / 1000L) - context.getStartEpoch();
+        Long now = System.currentTimeMillis() / 1000L;
 
         setCurrentStage(migration, ERROR);
         context.setErrorMessage(message);
+        context.setEndEpoch(now);
         context.save();
 
         eventPublisher.publish(new MigrationFailedEvent(applicationConfiguration.getPluginVersion(),
-                                                        failStage.toString(), message, runTime));
+                                                        failStage.toString(), message,
+                                                        now - context.getStartEpoch()));
     }
 
     @Override
@@ -161,13 +163,15 @@ public class AWSMigrationService implements MigrationService {
     {
         // TODO: This may require additional operations
 
+        Long now = System.currentTimeMillis() / 1000L;
         transition(MigrationStage.FINISHED);
 
         MigrationContext context = getCurrentContext();
-        Long runTime = (System.currentTimeMillis() / 1000L) - context.getStartEpoch();
+        context.setEndEpoch(now);
+        context.save();
 
         eventPublisher.publish(new MigrationCompleteEvent(applicationConfiguration.getPluginVersion(),
-                                                          runTime));
+                                                          now - context.getStartEpoch()));
     }
 
     protected synchronized void setCurrentStage(Migration migration, MigrationStage stage) {

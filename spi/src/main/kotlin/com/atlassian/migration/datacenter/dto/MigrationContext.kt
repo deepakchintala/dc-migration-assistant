@@ -28,6 +28,7 @@ interface MigrationContext : Entity {
     var deploymentMode: ProvisioningConfig.DeploymentMode
 
     var startEpoch: Long
+    var endEpoch: Long
 
     var rdsRestoreSsmDocument: String
     var fsRestoreSsmDocument: String
