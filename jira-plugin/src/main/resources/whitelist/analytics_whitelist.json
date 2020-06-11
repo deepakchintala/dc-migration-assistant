@@ -3,10 +3,13 @@
     "pluginVersion"
   ],
   "atl.dc.migration.complete": [
-    "pluginVersion"
+    "pluginVersion",
+    "runTimeSeconds"
   ],
   "atl.dc.migration.failed": [
     "pluginVersion",
-    "failedStage"
+    "failedStage",
+    "error",
+    "runTimeSeconds"
   ]
 }
