@@ -83,8 +83,8 @@ class MigrationBucketCleanupServiceIT {
 
         sut.startMigrationInfrastructureCleanup()
 
-        val objectsAfter = client.listObjects { it.bucket(bucket) }
-        assertEquals(0, objectsAfter.contents().size)
+        val bucketsAfter = client.listBuckets()
+        assertEquals(0, bucketsAfter.buckets().size)
 
         dummyFile.delete()
     }
