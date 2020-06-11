@@ -136,13 +136,17 @@ public class AWSMigrationService implements MigrationService {
     @Override
     public void error(String message) {
         Migration migration = findFirstOrCreateMigration();
-        setCurrentStage(migration, ERROR);
         MigrationContext context = getCurrentContext();
+
+        MigrationStage failStage = context.getMigration().getStage();
+        Long runTime = (System.currentTimeMillis() / 1000L) - context.getStartEpoch();
+
+        setCurrentStage(migration, ERROR);
         context.setErrorMessage(message);
         context.save();
 
         eventPublisher.publish(new MigrationFailedEvent(applicationConfiguration.getPluginVersion(),
-                                                        message));
+                                                        failStage.toString(), message, runTime));
     }
 
     @Override
@@ -159,7 +163,11 @@ public class AWSMigrationService implements MigrationService {
 
         transition(MigrationStage.FINISHED);
 
-        eventPublisher.publish(new MigrationCompleteEvent(applicationConfiguration.getPluginVersion()));
+        MigrationContext context = getCurrentContext();
+        Long runTime = (System.currentTimeMillis() / 1000L) - context.getStartEpoch();
+
+        eventPublisher.publish(new MigrationCompleteEvent(applicationConfiguration.getPluginVersion(),
+                                                          runTime));
     }
 
     protected synchronized void setCurrentStage(Migration migration, MigrationStage stage) {
@@ -181,6 +189,7 @@ public class AWSMigrationService implements MigrationService {
 
             MigrationContext context = ao.create(MigrationContext.class);
             context.setMigration(migration);
+            context.setStartEpoch(System.currentTimeMillis() / 1000L);
             context.save();
 
             return migration;

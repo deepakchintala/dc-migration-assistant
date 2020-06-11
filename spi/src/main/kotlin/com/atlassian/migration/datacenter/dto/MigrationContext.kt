@@ -26,6 +26,9 @@ interface MigrationContext : Entity {
     var errorMessage: String
 
     var deploymentMode: ProvisioningConfig.DeploymentMode
+
+    var startEpoch: Long
+
     var rdsRestoreSsmDocument: String
     var fsRestoreSsmDocument: String
     var fsRestoreStatusSsmDocument: String
