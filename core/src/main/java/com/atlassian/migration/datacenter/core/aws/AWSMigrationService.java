@@ -21,6 +21,7 @@ import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
@@ -139,6 +140,9 @@ public class AWSMigrationService implements MigrationService {
         MigrationContext context = getCurrentContext();
         context.setErrorMessage(message);
         context.save();
+
+        eventPublisher.publish(new MigrationFailedEvent(applicationConfiguration.getPluginVersion(),
+                                                        message));
     }
 
     @Override
