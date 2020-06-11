@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
@@ -145,6 +146,16 @@ public class AWSMigrationService implements MigrationService {
     {
         error(e.getMessage());
         findFirstOrCreateMigration().getStage().setException(e);
+    }
+
+    @Override
+    public void finish() throws InvalidMigrationStageError
+    {
+        // TODO: This may require additional operations
+
+        transition(MigrationStage.FINISHED);
+
+        eventPublisher.publish(new MigrationCompleteEvent(applicationConfiguration.getPluginVersion()));
     }
 
     protected synchronized void setCurrentStage(Migration migration, MigrationStage stage) {
