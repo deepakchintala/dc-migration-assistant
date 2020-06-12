@@ -68,7 +68,6 @@ public class AWSMigrationService implements MigrationService {
     {
         Migration migration = findFirstOrCreateMigration();
         if (migration.getStage().equals(NOT_STARTED)) {
-            eventPublisher.publish(new MigrationCreatedEvent(applicationConfiguration.getPluginVersion()));
             return migration;
         }
         throw new MigrationAlreadyExistsException(String.format("Found existing migration in Stage - `%s`", migration.getStage()));
@@ -195,6 +194,8 @@ public class AWSMigrationService implements MigrationService {
             context.setMigration(migration);
             context.setStartEpoch(System.currentTimeMillis() / 1000L);
             context.save();
+
+            eventPublisher.publish(new MigrationCreatedEvent(applicationConfiguration.getPluginVersion()));
 
             return migration;
         } else {
