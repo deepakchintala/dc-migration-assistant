@@ -22,6 +22,8 @@ import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFailedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
@@ -113,11 +115,14 @@ public class AWSMigrationService implements MigrationService {
         Migration migration = findFirstOrCreateMigration();
         MigrationStage currentStage = migration.getStage();
 
-        // NOTE: This assumes that the state transitions from the start of the enum to the end.
         if (!currentStage.isValidTransition(to)) {
+            eventPublisher.publish(new MigrationTransitionFailedEvent(applicationConfiguration.getPluginVersion(),
+                                                                      currentStage.toString(), to.toString()));
             throw InvalidMigrationStageError.errorWithMessage(currentStage, to);
         }
         setCurrentStage(migration, to);
+        eventPublisher.publish(new MigrationTransitionEvent(applicationConfiguration.getPluginVersion(),
+                                                            currentStage.toString(), to.toString()));
     }
 
     @Override
