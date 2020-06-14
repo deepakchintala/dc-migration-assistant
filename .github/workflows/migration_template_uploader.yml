@@ -3,14 +3,15 @@ name: UploadMigrationTemplate
 on: [push]
 
 env:
+  MASTER_BRANCH: ${{ secrets.MASTER_BRANCH }}
   AWS_S3_BUCKET: ${{ secrets.S3_AWS_BUCKET }}
   AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: 'us-east-1'
+  AWS_REGION: 'us-east-1' 
   
 jobs:
   upload:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == env.MASTER_BRANCH
     runs-on: ubuntu-latest
     defaults:
       run:
