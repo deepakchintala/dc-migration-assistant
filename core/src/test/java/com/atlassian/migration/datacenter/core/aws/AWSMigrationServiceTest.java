@@ -18,7 +18,8 @@ package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
-import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.event.api.EventPublisher;
+import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
@@ -37,6 +38,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.nio.file.Paths;
+
 import static com.atlassian.migration.datacenter.spi.MigrationStage.AUTHENTICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
@@ -45,6 +48,9 @@ import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_AP
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 // We have to use the JUnit 4 API because there is no JUnit 5 active objects extension :(
@@ -66,14 +72,15 @@ public class AWSMigrationServiceTest {
     @Mock
     private ApplicationConfiguration applicationConfiguration;
     @Mock
-    private JiraHome jiraHome;
+    private EventPublisher eventPublisher;
 
     @Before
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao, applicationConfiguration, jiraHome);
+        sut = new AWSMigrationService(ao, applicationConfiguration, Paths.get("."), eventPublisher);
         setupEntities();
+        when(applicationConfiguration.getPluginVersion()).thenReturn("DUMMY");
     }
 
     @Test
@@ -111,6 +118,7 @@ public class AWSMigrationServiceTest {
     @Test
     public void shouldCreateMigrationInNotStarted() throws MigrationAlreadyExistsException {
         Migration migration = sut.createMigration();
+        verify(eventPublisher).publish(any(MigrationCreatedEvent.class));
 
         assertEquals(NOT_STARTED, migration.getStage());
     }

@@ -76,6 +76,7 @@ import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
+import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.scheduler.SchedulerService;
 import org.springframework.context.annotation.Bean;
@@ -150,7 +151,7 @@ public class MigrationAssistantBeanConfiguration {
 
     @Bean
     public EncryptionManager encryptionManager(JiraHome jiraHome) {
-        return new EncryptionManager(jiraHome);
+        return new EncryptionManager(jiraHome.getHome().toPath());
     }
 
     @Bean
@@ -179,8 +180,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public JiraConfiguration jiraConfiguration(JiraHome jiraHome) {
-        return new JiraConfiguration(jiraHome);
+    public JiraConfiguration jiraConfiguration(JiraHome jiraHome, PluginAccessor pluginAccessor) {
+        return new JiraConfiguration(jiraHome, pluginAccessor);
     }
 
     @Bean
@@ -226,8 +227,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome) {
-        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, jiraHome);
+    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome, EventPublisher eventPublisher) {
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, jiraHome.getHome().toPath(), eventPublisher);
     }
 
     @Bean
@@ -282,7 +283,7 @@ public class MigrationAssistantBeanConfiguration {
 
     @Bean
     public S3BulkCopy s3BulkCopy(Supplier<S3AsyncClient> clientSupplier, AWSMigrationHelperDeploymentService helperDeploymentService, JiraHome jiraHome) {
-        return new S3BulkCopy(clientSupplier, helperDeploymentService, jiraHome);
+        return new S3BulkCopy(clientSupplier, helperDeploymentService, jiraHome.getHome().toPath());
     }
 
     @Bean
@@ -327,7 +328,7 @@ public class MigrationAssistantBeanConfiguration {
 
     @Bean
     public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService, QueueWatcher queueWatcher, JiraIssueAttachmentListener attachmentListener) {
-        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome, helperDeploymentService, queueWatcher, attachmentListener);
+        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome.getHome().toPath(), helperDeploymentService, queueWatcher, attachmentListener);
     }
 
     @Bean
