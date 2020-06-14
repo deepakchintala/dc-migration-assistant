@@ -7,7 +7,7 @@ env:
   AWS_S3_BUCKET: ${{ secrets.S3_AWS_BUCKET }}
   AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: 'us-east-1' 
+  AWS_REGION: 'us-east-1'
   
 jobs:
   upload:
