@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
+import com.atlassian.migration.datacenter.analytics.OsType;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent;
@@ -27,7 +28,6 @@ import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFa
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
-import com.atlassian.migration.datacenter.core.util.AnalyticsHelper;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationReadyStatus;
@@ -141,7 +141,7 @@ public class AWSMigrationService implements MigrationService {
 
         eventPublisher.publish(new MigrationPrerequisiteEvent(applicationConfiguration.getPluginVersion(),
                                                               db, applicationConfiguration.getDatabaseConfiguration().getType(),
-                                                              os, AnalyticsHelper.getOsType(),
+                                                              os, OsType.fromSystem(),
                                                               fs, size));
 
         return status;

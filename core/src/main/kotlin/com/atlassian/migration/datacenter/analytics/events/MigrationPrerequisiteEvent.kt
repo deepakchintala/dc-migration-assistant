@@ -1,8 +1,8 @@
 package com.atlassian.migration.datacenter.analytics.events
 
 import com.atlassian.analytics.api.annotations.EventName
+import com.atlassian.migration.datacenter.analytics.OsType
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration
-import com.atlassian.migration.datacenter.core.util.AnalyticsHelper
 
 @EventName("atl.dc.migration.prerequisites")
 data class MigrationPrerequisiteEvent(
@@ -11,7 +11,7 @@ data class MigrationPrerequisiteEvent(
         val dbCompatible: Boolean,
         val dbType: DatabaseConfiguration.DBType,
         val osCompatible: Boolean,
-        val osType: AnalyticsHelper.OsType,
+        val osType: OsType,
         val fsSizeCompatible: Boolean,
         val fsSize: Long
 )
