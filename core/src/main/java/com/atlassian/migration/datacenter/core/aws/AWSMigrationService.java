@@ -119,12 +119,12 @@ public class AWSMigrationService implements MigrationService {
 
         if (!currentStage.isValidTransition(to)) {
             eventPublisher.publish(new MigrationTransitionFailedEvent(applicationConfiguration.getPluginVersion(),
-                                                                      currentStage.toString(), to.toString()));
+                                                                      currentStage, to));
             throw InvalidMigrationStageError.errorWithMessage(currentStage, to);
         }
         setCurrentStage(migration, to);
         eventPublisher.publish(new MigrationTransitionEvent(applicationConfiguration.getPluginVersion(),
-                                                            currentStage.toString(), to.toString()));
+                                                            currentStage, to));
     }
 
     @Override
@@ -140,8 +140,8 @@ public class AWSMigrationService implements MigrationService {
         MigrationReadyStatus status = new MigrationReadyStatus(db, os, fs);
 
         eventPublisher.publish(new MigrationPrerequisiteEvent(applicationConfiguration.getPluginVersion(),
-                                                              db, applicationConfiguration.getDatabaseConfiguration().getType().toString(),
-                                                              os, AnalyticsHelper.getOsType().toString(),
+                                                              db, applicationConfiguration.getDatabaseConfiguration().getType(),
+                                                              os, AnalyticsHelper.getOsType(),
                                                               fs, size));
 
         return status;
@@ -161,7 +161,7 @@ public class AWSMigrationService implements MigrationService {
         context.save();
 
         eventPublisher.publish(new MigrationFailedEvent(applicationConfiguration.getPluginVersion(),
-                                                        failStage.toString(), now - context.getStartEpoch()));
+                                                        failStage, now - context.getStartEpoch()));
     }
 
     @Override
