@@ -16,5 +16,5 @@
 package com.atlassian.migration.datacenter.spi.infrastructure
 
 interface DeploymentService {
-    val deploymentStatus: InfrastructureDeploymentStatus
+    val deploymentStatus: InfrastructureDeploymentState
 }

@@ -22,7 +22,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -90,7 +90,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
     @Override
     protected void handleSuccessfulDeployment() {
-        String stackId = getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getHelperStackDeploymentId(),"com.atlassian.migration.migrationStack.id");
+        String stackId = getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getHelperStackDeploymentId(), "com.atlassian.migration.migrationStack.id");
 
         Optional<Stack> maybeStack = cfnApi.getStack(stackId);
         if (!maybeStack.isPresent()) {
@@ -200,7 +200,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     }
 
     @Override
-    public InfrastructureDeploymentStatus getDeploymentStatus() {
+    public InfrastructureDeploymentState getDeploymentStatus() {
         return super.getDeploymentStatus(migrationService.getCurrentContext().getHelperStackDeploymentId());
     }
 

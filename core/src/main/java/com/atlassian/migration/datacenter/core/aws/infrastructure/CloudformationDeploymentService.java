@@ -18,10 +18,8 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -62,7 +60,7 @@ public abstract class CloudformationDeploymentService {
     /**
      * Method that will be called if the deployment succeeds
      */
-    protected abstract void handleFailedDeployment(String message);
+    protected abstract void handleFailedDeployment(String error);
 
     /**
      * Deploys a cloudformation stack and starts a thread to monitor the deployment.
@@ -76,13 +74,15 @@ public abstract class CloudformationDeploymentService {
         beginWatchingDeployment(stackName);
     }
 
-    protected InfrastructureDeploymentStatus getDeploymentStatus(String stackName) {
+    protected InfrastructureDeploymentState getDeploymentStatus(String stackName) {
         requireNonNull(stackName);
-        InfrastructureDeploymentStatus status = cfnApi.getStatus(stackName);
+        InfrastructureDeploymentState status = cfnApi.getStatus(stackName);
 
-        if (isFailedToCreateDeploymentState(status.getState())) {
-            logger.error("discovered that cloudformation stack deployment failed when getting status. Reason is: {}", status.getReason());
-            handleFailedDeployment(status.getReason());
+        if (isFailedToCreateDeploymentState(status)) {
+            //FIXME: implement getting a good error
+            String reason = "TODO";
+            logger.error("discovered that cloudformation stack deployment failed when getting status. Reason is: {}", reason);
+            handleFailedDeployment(reason);
             deploymentWatcher.cancel(true);
         }
 
@@ -94,15 +94,17 @@ public abstract class CloudformationDeploymentService {
 
         final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         deploymentWatcher = scheduledExecutorService.scheduleAtFixedRate(() -> {
-            final InfrastructureDeploymentStatus status = cfnApi.getStatus(stackName);
-            if (status.getState().equals(InfrastructureDeploymentState.CREATE_COMPLETE)) {
+            final InfrastructureDeploymentState status = cfnApi.getStatus(stackName);
+            if (status.equals(InfrastructureDeploymentState.CREATE_COMPLETE)) {
                 logger.info("stack {} creation succeeded", stackName);
                 handleSuccessfulDeployment();
                 stackCompleteFuture.complete("");
             }
-            if (isFailedToCreateDeploymentState(status.getState())) {
-                logger.error("stack {} creation failed with reason {}", stackName, status.getReason());
-                handleFailedDeployment(status.getReason());
+            if (isFailedToCreateDeploymentState(status)) {
+                //FIXME: implement getting a good error
+                String reason = "TODO";
+                logger.error("stack {} creation failed with reason {}", stackName, reason);
+                handleFailedDeployment(reason);
                 stackCompleteFuture.complete("");
             }
         }, 0, deployStatusPollIntervalSeconds, TimeUnit.SECONDS);

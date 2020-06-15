@@ -22,7 +22,6 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -48,7 +47,7 @@ internal class AWSMigrationStackCleanupServiceTest {
     @InjectMockKs
     lateinit var sut: AWSMigrationStackCleanupService
 
-    val migrationStackName = "migrationstack"
+    private val migrationStackName = "migrationstack"
 
     @Test
     fun shouldReturnTrueWhenStackIsDeleted() {
@@ -69,7 +68,7 @@ internal class AWSMigrationStackCleanupServiceTest {
     @Test
     fun shouldReportDeletedWhenDeletionIsComplete() {
         givenMigrationStackNameIsInContext()
-        every { cfnApi.getStatus(migrationStackName) } returns InfrastructureDeploymentStatus(InfrastructureDeploymentState.DELETE_COMPLETE, "")
+        every { cfnApi.getStatus(migrationStackName) } returns InfrastructureDeploymentState.DELETE_COMPLETE
 
         assertEquals(InfrastructureCleanupStatus.CLEANUP_COMPLETE, sut.getMigrationInfrastructureCleanupStatus())
     }
@@ -85,7 +84,7 @@ internal class AWSMigrationStackCleanupServiceTest {
     @Test
     fun shouldReportDeleteInProgressWhenStackIsBeingDeleted() {
         givenMigrationStackNameIsInContext()
-        every { cfnApi.getStatus(migrationStackName) } returns InfrastructureDeploymentStatus(InfrastructureDeploymentState.DELETE_IN_PROGRESS, "")
+        every { cfnApi.getStatus(migrationStackName) } returns InfrastructureDeploymentState.DELETE_IN_PROGRESS
 
         assertEquals(InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS, sut.getMigrationInfrastructureCleanupStatus())
     }
@@ -93,7 +92,7 @@ internal class AWSMigrationStackCleanupServiceTest {
     @Test
     fun shouldReportDeleteFailedWhenDeleteFails() {
         givenMigrationStackNameIsInContext()
-        every { cfnApi.getStatus(migrationStackName) } returns InfrastructureDeploymentStatus(InfrastructureDeploymentState.DELETE_FAILED, "")
+        every { cfnApi.getStatus(migrationStackName) } returns InfrastructureDeploymentState.DELETE_FAILED
 
         assertEquals(InfrastructureCleanupStatus.CLEANUP_FAILED, sut.getMigrationInfrastructureCleanupStatus())
     }
@@ -102,7 +101,7 @@ internal class AWSMigrationStackCleanupServiceTest {
     @EnumSource(value = InfrastructureDeploymentState::class, names = ["CREATE_COMPLETE", "CREATE_IN_PROGRESS", "CREATE_FAILED"])
     fun shouldReportNotStartedWhenStackIsNotBeingDeletedAndExists(state: InfrastructureDeploymentState) {
         givenMigrationStackNameIsInContext()
-        every { cfnApi.getStatus(migrationStackName) } returns InfrastructureDeploymentStatus(state, "")
+        every { cfnApi.getStatus(migrationStackName) } returns state
 
         assertEquals(InfrastructureCleanupStatus.CLEANUP_NOT_STARTED, sut.getMigrationInfrastructureCleanupStatus())
     }

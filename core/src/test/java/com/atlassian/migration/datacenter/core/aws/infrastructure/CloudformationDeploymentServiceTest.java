@@ -19,15 +19,11 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
 import java.util.Collections;
 import java.util.Map;
@@ -76,21 +72,19 @@ class CloudformationDeploymentServiceTest {
     }
 
     @Test
-    void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError
-    {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_IN_PROGRESS, ""));
+    void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError {
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_IN_PROGRESS);
 
         deploySimpleStack();
 
-        InfrastructureDeploymentStatus status = sut.getDeploymentStatus(STACK_NAME);
-        assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, status.getState());
-        assertEquals("", status.getReason());
+        InfrastructureDeploymentState state = sut.getDeploymentStatus(STACK_NAME);
+        assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, state);
     }
 
     @Test
     void shouldCallHandleFailedDeploymentWhenDeploymentFails() throws InterruptedException {
         final String badStatus = "it broke";
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_FAILED, badStatus));
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
 
         deploySimpleStack();
 
@@ -100,15 +94,14 @@ class CloudformationDeploymentServiceTest {
         assertFalse(deploymentSucceeded);
 
 
-        InfrastructureDeploymentStatus status = sut.getDeploymentStatus(STACK_NAME);
-        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, status.getState());
-        assertEquals(badStatus, status.getReason());
+        InfrastructureDeploymentState state = sut.getDeploymentStatus(STACK_NAME);
+        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, state);
     }
 
     @Test
     void shouldBeFailedWhenStatusIsDeleted() throws InterruptedException {
         final String badStatus = "it broke";
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.DELETE_IN_PROGRESS, badStatus));
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.DELETE_IN_PROGRESS);
 
         deploySimpleStack();
 
@@ -118,14 +111,13 @@ class CloudformationDeploymentServiceTest {
         assertFalse(deploymentSucceeded);
 
 
-        InfrastructureDeploymentStatus status = sut.getDeploymentStatus(STACK_NAME);
-        assertEquals(InfrastructureDeploymentState.DELETE_IN_PROGRESS, status.getState());
-        assertEquals(badStatus, status.getReason());
+        InfrastructureDeploymentState state = sut.getDeploymentStatus(STACK_NAME);
+        assertEquals(InfrastructureDeploymentState.DELETE_IN_PROGRESS, state);
     }
 
     @Test
     void shouldCallHandleSuccessfulDeploymentWhenDeploymentFails() throws InterruptedException {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_COMPLETE, ""));
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_COMPLETE);
 
         deploySimpleStack();
 
