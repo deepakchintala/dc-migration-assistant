@@ -21,11 +21,13 @@ import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationPrerequisiteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFailedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
+import com.atlassian.migration.datacenter.core.util.AnalyticsHelper;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationReadyStatus;
@@ -131,10 +133,18 @@ public class AWSMigrationService implements MigrationService {
         long MAX_FS_SIZE = 1024L * 1024L * 1024L * 400L;
         long size = FileUtils.sizeOfDirectory(localHome.toFile());
 
+
         Boolean fs = size < MAX_FS_SIZE;
         Boolean db = applicationConfiguration.getDatabaseConfiguration().getType() == DatabaseConfiguration.DBType.POSTGRESQL;
         Boolean os = SystemUtils.IS_OS_LINUX;
-        return new MigrationReadyStatus(db, os, fs);
+        MigrationReadyStatus status = new MigrationReadyStatus(db, os, fs);
+
+        eventPublisher.publish(new MigrationPrerequisiteEvent(applicationConfiguration.getPluginVersion(),
+                                                              db, applicationConfiguration.getDatabaseConfiguration().getType().toString(),
+                                                              os, AnalyticsHelper.getOsType().toString(),
+                                                              fs, size));
+
+        return status;
     }
 
     @Override
@@ -151,8 +161,7 @@ public class AWSMigrationService implements MigrationService {
         context.save();
 
         eventPublisher.publish(new MigrationFailedEvent(applicationConfiguration.getPluginVersion(),
-                                                        failStage.toString(), message,
-                                                        now - context.getStartEpoch()));
+                                                        failStage.toString(), now - context.getStartEpoch()));
     }
 
     @Override
