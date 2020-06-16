@@ -96,8 +96,8 @@ internal class CloudFormationEndpointTest {
 
     @Test
     fun shouldGetCurrentProvisioningStatusForGivenStackId() {
-        val expectedStatus = InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_IN_PROGRESS, "")
-        every { deploymentService.deploymentStatus } returns expectedStatus
+        val expectedState = InfrastructureDeploymentState.CREATE_IN_PROGRESS
+        every { deploymentService.deploymentStatus } returns expectedState
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_APPLICATION_WAIT
 
         val response = endpoint.infrastructureStatus()
@@ -121,10 +121,10 @@ internal class CloudFormationEndpointTest {
 
     @Test
     fun shouldReturnMigrationStackDeploymentStatusWhenItIsBeingDeployed() {
-        val expectedStatus = InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_IN_PROGRESS, "")
-        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_COMPLETE, "")
+        val expectedState = InfrastructureDeploymentState.CREATE_IN_PROGRESS
+        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentState.CREATE_COMPLETE
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK_WAIT
-        every { helperDeploymentService.deploymentStatus } returns expectedStatus
+        every { helperDeploymentService.deploymentStatus } returns expectedState
 
         val response = endpoint.infrastructureStatus()
 
@@ -146,7 +146,7 @@ internal class CloudFormationEndpointTest {
 
     @Test
     fun shouldReturnCompleteAfterProvisioningPhase() {
-        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_COMPLETE, "")
+        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentState.CREATE_COMPLETE
         every { migrationSerivce.currentStage } returns MigrationStage.FS_MIGRATION_COPY
 
         val response = endpoint.infrastructureStatus()
@@ -162,16 +162,16 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        val typeRef: TypeReference<HashMap<String, ProvisioningStatusResponse>> = object : TypeReference<HashMap<String, ProvisioningStatusResponse>>() {}
+        val typeRef: TypeReference<HashMap<String, String>> = object : TypeReference<HashMap<String, String>>() {}
         val readValue = ObjectMapper().readValue(response.entity as String, typeRef)
 
-        assertThat(readValue["status"]!!.state, equalTo(expectedStatus));
+        assertThat(readValue["status"]!!, equalTo(expectedStatus))
     }
 
     @Test
     fun shouldReturnApplicationAsPhaseWhenApplicationStackIsBeingDeployed() {
         val expectedPhase = "app_infra"
-        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_IN_PROGRESS, "")
+        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentState.CREATE_IN_PROGRESS
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_APPLICATION_WAIT
 
         val response = endpoint.infrastructureStatus()
@@ -183,7 +183,7 @@ internal class CloudFormationEndpointTest {
     @Test
     fun shouldReturnMigrationAsPhaseWhenMigrationStackIsBeingDeployed() {
         val expectedPhase = "migration_infra"
-        every { helperDeploymentService.deploymentStatus } returns InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_IN_PROGRESS, "")
+        every { helperDeploymentService.deploymentStatus } returns InfrastructureDeploymentState.CREATE_IN_PROGRESS
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK_WAIT
 
         val response = endpoint.infrastructureStatus()
@@ -194,8 +194,7 @@ internal class CloudFormationEndpointTest {
 
     @Test
     fun shouldReturnReasonWhenDeploymentFails() {
-        val failedStatusMessage = "it failed"
-        val expectedStatus = InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_FAILED, failedStatusMessage)
+        val expectedStatus = InfrastructureDeploymentState.CREATE_FAILED
         every { helperDeploymentService.deploymentStatus } returns expectedStatus
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK_WAIT
 
@@ -203,7 +202,6 @@ internal class CloudFormationEndpointTest {
 
         assertEquals(Response.Status.OK.statusCode, response.status)
 
-        assertThat(response.entity as String, containsString(failedStatusMessage))
         assertThat(response.entity as String, containsString("CREATE_FAILED"))
     }
 

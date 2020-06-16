@@ -25,7 +25,7 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -184,7 +184,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     }
 
     @Override
-    public InfrastructureDeploymentStatus getDeploymentStatus() {
+    public InfrastructureDeploymentState getDeploymentStatus() {
         return super.getDeploymentStatus(migrationService.getCurrentContext().getApplicationDeploymentId());
     }
 }

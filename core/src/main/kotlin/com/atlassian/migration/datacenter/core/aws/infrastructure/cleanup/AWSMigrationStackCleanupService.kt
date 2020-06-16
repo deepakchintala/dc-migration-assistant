@@ -53,7 +53,7 @@ class AWSMigrationStackCleanupService(private val cfnApi: CfnApi, private val mi
         logger.info("request for cleanup status of stack $migrationStack")
 
         return try {
-            when (cfnApi.getStatus(migrationStack).state) {
+            when (cfnApi.getStatus(migrationStack)) {
                 InfrastructureDeploymentState.DELETE_COMPLETE -> InfrastructureCleanupStatus.CLEANUP_COMPLETE
                 InfrastructureDeploymentState.DELETE_IN_PROGRESS -> InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS
                 InfrastructureDeploymentState.DELETE_FAILED -> InfrastructureCleanupStatus.CLEANUP_FAILED

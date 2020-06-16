@@ -16,11 +16,9 @@
 
 package com.atlassian.migration.datacenter.core.aws;
 
-import com.atlassian.core.exception.InfrastructureException;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -96,7 +94,7 @@ public class CfnApi {
 
     }
 
-    public InfrastructureDeploymentStatus getStatus(String stackName) {
+    public InfrastructureDeploymentState getStatus(String stackName) {
         Optional<Stack> stack = getStack(stackName);
         if (!stack.isPresent()) {
             throw StackInstanceNotFoundException
@@ -105,28 +103,20 @@ public class CfnApi {
                     .build();
         }
         Stack theStack = stack.get();
-        InfrastructureDeploymentState deploymentState;
         switch (theStack.stackStatus()) {
             case CREATE_COMPLETE:
-                deploymentState = InfrastructureDeploymentState.CREATE_COMPLETE;
-                break;
+                return InfrastructureDeploymentState.CREATE_COMPLETE;
             case CREATE_IN_PROGRESS:
-                deploymentState = InfrastructureDeploymentState.CREATE_IN_PROGRESS;
-                break;
+                return InfrastructureDeploymentState.CREATE_IN_PROGRESS;
             case DELETE_IN_PROGRESS:
-                deploymentState = InfrastructureDeploymentState.DELETE_IN_PROGRESS;
-                break;
+                return InfrastructureDeploymentState.DELETE_IN_PROGRESS;
             case DELETE_COMPLETE:
-                deploymentState = InfrastructureDeploymentState.DELETE_COMPLETE;
-                break;
+                return InfrastructureDeploymentState.DELETE_COMPLETE;
             case DELETE_FAILED:
-                deploymentState = InfrastructureDeploymentState.DELETE_FAILED;
-                break;
+                return InfrastructureDeploymentState.DELETE_FAILED;
             default:
-                deploymentState = InfrastructureDeploymentState.CREATE_FAILED;
-                break;
+                return InfrastructureDeploymentState.CREATE_FAILED;
         }
-        return new InfrastructureDeploymentStatus(deploymentState, theStack.stackStatusReason());
     }
 
     public Optional<String> provisionStack(String templateUrl, String stackName, Map<String, String> params) {
@@ -258,7 +248,7 @@ public class CfnApi {
                             .stackStatusFilters(
                                     StackStatus.CREATE_COMPLETE,
                                     StackStatus.UPDATE_COMPLETE)
-                    .build()).join();
+                            .build()).join();
         } catch (CompletionException | CancellationException e) {
             logger.error("Error getting stacks", e);
             return Collections.emptyList();

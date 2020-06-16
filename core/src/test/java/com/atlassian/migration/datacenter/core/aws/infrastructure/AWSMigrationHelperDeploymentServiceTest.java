@@ -22,17 +22,10 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
-import com.google.common.base.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -49,12 +42,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService.STACK_RESOURCE_DEAD_LETTER_QUEUE_NAME;
 import static com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService.STACK_RESOURCE_QUEUE_NAME;
-import static java.util.stream.Stream.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -132,7 +122,7 @@ class AWSMigrationHelperDeploymentServiceTest {
         givenMigrationStackHasStartedDeploying();
         givenMigrationStackNameHasBeenStoredInContext();
 
-        assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, sut.getDeploymentStatus().getState());
+        assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, sut.getDeploymentStatus());
     }
 
     @Test
@@ -143,7 +133,7 @@ class AWSMigrationHelperDeploymentServiceTest {
 
         Thread.sleep(100);
 
-        assertEquals(InfrastructureDeploymentState.CREATE_COMPLETE, sut.getDeploymentStatus().getState());
+        assertEquals(InfrastructureDeploymentState.CREATE_COMPLETE, sut.getDeploymentStatus());
     }
 
     @Test
@@ -154,9 +144,8 @@ class AWSMigrationHelperDeploymentServiceTest {
 
         Thread.sleep(100);
 
-        InfrastructureDeploymentStatus status = sut.getDeploymentStatus();
-        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, status.getState());
-        assertEquals(DEPLOYMENT_FAILURE_MESSAGE, status.getReason());
+        InfrastructureDeploymentState state = sut.getDeploymentStatus();
+        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, state);
     }
 
     @Test
@@ -217,12 +206,12 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     private void givenMigrationStackDeploymentWillBeInProgress() {
         givenContextContainsMigrationHelperStackId();
-        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_IN_PROGRESS, ""));
+        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(InfrastructureDeploymentState.CREATE_IN_PROGRESS);
     }
 
     private void givenMigrationStackDeploymentWillCompleteSuccessfully() {
         givenContextContainsMigrationHelperStackId();
-        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_COMPLETE, ""));
+        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(InfrastructureDeploymentState.CREATE_COMPLETE);
 
         Stack completedStack = Stack.builder()
                 .outputs(Output.builder().outputKey("DownloadSSMDocument").outputValue(FS_DOWNLOAD_DOC).build(),
@@ -291,7 +280,7 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     private void givenMigrationStackDeploymentWillFail() {
         givenContextContainsMigrationHelperStackId();
-        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_FAILED, DEPLOYMENT_FAILURE_MESSAGE));
+        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
     }
 
     private void givenContextContainsMigrationHelperStackId() {
