@@ -162,10 +162,10 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        val typeRef: TypeReference<HashMap<String, ProvisioningStatusResponse>> = object : TypeReference<HashMap<String, ProvisioningStatusResponse>>() {}
+        val typeRef: TypeReference<HashMap<String, String>> = object : TypeReference<HashMap<String, String>>() {}
         val readValue = ObjectMapper().readValue(response.entity as String, typeRef)
 
-        assertThat(readValue["status"]!!.state, equalTo(expectedStatus));
+        assertThat(readValue["status"]!!, equalTo(expectedStatus))
     }
 
     @Test
