@@ -52,28 +52,29 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
             return Optional.empty()
         }
 
-    fun getClientVersion(): SemVer? {
-        val pgdump = pgdumpPath
-                .orElseThrow { DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.") }
+    val clientVersion: SemVer?
+        get() {
+            val pgdump = pgdumpPath
+                    .orElseThrow { DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.") }
 
-        try {
-            val proc = ProcessBuilder(pgdump,
-                    "--version")
-                    .redirectOutput(ProcessBuilder.Redirect.PIPE)
-                    .redirectError(ProcessBuilder.Redirect.PIPE)
-                    .start()
+            try {
+                val proc = ProcessBuilder(pgdump,
+                        "--version")
+                        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                        .redirectError(ProcessBuilder.Redirect.PIPE)
+                        .start()
 
-            proc.waitFor(60, TimeUnit.SECONDS)
+                proc.waitFor(60, TimeUnit.SECONDS)
 
-            val message = proc.inputStream.bufferedReader().readText()
+                val message = proc.inputStream.bufferedReader().readText()
 
-            return parsePgDumpVersion(message)
+                return parsePgDumpVersion(message)
 
-        } catch (e: Exception) {
-            log.error("Failed to get pg_dump version from command-line")
-            return null
+            } catch (e: Exception) {
+                log.error("Failed to get pg_dump version from command-line")
+                return null
+            }
         }
-    }
 
     @Throws(DatabaseMigrationFailure::class)
     override fun startDatabaseDump(target: Path?): Process? {
