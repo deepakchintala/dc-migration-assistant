@@ -17,15 +17,32 @@ package com.atlassian.migration.datacenter.core.db
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
+import net.swiftzer.semver.SemVer
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class PostgresExtractor(private val applicationConfiguration: ApplicationConfiguration) : DatabaseExtractor {
+    companion object {
+        private val log = LoggerFactory.getLogger(PostgresExtractor::class.java)
+        private val pddumpPaths = arrayOf("/usr/bin/pg_dump", "/usr/local/bin/pg_dump")
+
+        private val versionPattern = Regex("^pg_dump\\s+\\([^\\)]+\\)\\s+(\\d[\\d\\.]+)")
+
+        @JvmStatic
+        fun parsePgDumpVersion(text: String): SemVer? {
+            val match = versionPattern.find(text) ?: return null
+            return SemVer.parse(match.groupValues[1])
+        }
+
+    }
+
     private val pgdumpPath: Optional<String>
-        private get() {
+        get() {
             for (path in pddumpPaths) {
                 val p = Paths.get(path)
                 if (Files.isReadable(p) && Files.isExecutable(p)) {
@@ -34,6 +51,29 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
             }
             return Optional.empty()
         }
+
+    fun getClientVersion(): SemVer? {
+        val pgdump = pgdumpPath
+                .orElseThrow { DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.") }
+
+        try {
+            val proc = ProcessBuilder(pgdump,
+                    "--version")
+                    .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                    .redirectError(ProcessBuilder.Redirect.PIPE)
+                    .start()
+
+            proc.waitFor(60, TimeUnit.SECONDS)
+
+            val message = proc.inputStream.bufferedReader().readText()
+
+            return parsePgDumpVersion(message)
+
+        } catch (e: Exception) {
+            log.error("Failed to get pg_dump version from command-line")
+            return null
+        }
+    }
 
     @Throws(DatabaseMigrationFailure::class)
     override fun startDatabaseDump(target: Path?): Process? {
@@ -55,10 +95,12 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
      */
     @Throws(DatabaseMigrationFailure::class)
     override fun startDatabaseDump(target: Path?, parallel: Boolean?): Process? {
+        val numJobs = if (parallel!!) 4 else 1 // Common-case for now, could be tunable or num-CPUs.
+
         val pgdump = pgdumpPath
                 .orElseThrow { DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.") }
-        val numJobs = if (parallel!!) 4 else 1 // Common-case for now, could be tunable or num-CPUs.
         val config = applicationConfiguration.databaseConfiguration
+
         val builder = ProcessBuilder(pgdump,
                 "--no-owner",
                 "--no-acl",
@@ -72,6 +114,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
                 "--username", config.username)
                 .inheritIO()
         builder.environment()["PGPASSWORD"] = config.password
+
         return try {
             builder.start()
         } catch (e: IOException) {
@@ -98,10 +141,6 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
         if (exit != 0) {
             throw DatabaseMigrationFailure("pg_dump process exited with non-zero status: $exit")
         }
-    }
-
-    companion object {
-        private val pddumpPaths = arrayOf("/usr/bin/pg_dump", "/usr/local/bin/pg_dump")
     }
 
 }
