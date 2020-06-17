@@ -31,7 +31,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
         private val log = LoggerFactory.getLogger(PostgresExtractor::class.java)
         private val pddumpPaths = arrayOf("/usr/bin/pg_dump", "/usr/local/bin/pg_dump")
 
-        private val versionPattern = Regex("^pg_dump\\s+\\([^\\)]+\\)\\s+(\\d[\\d\\.]+)")
+        private val versionPattern = Regex("^pg_dump\\s+\\([^\\)]+\\)\\s+(\\d[\\d\\.]+)[\\s$]")
 
         @JvmStatic
         fun parsePgDumpVersion(text: String): SemVer? {
