@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Jira / Confluence Server to DC (AWS) Helper
+
 Parameters:
   NetworkPrivateSubnet:
     Description: "Private SubnetId where Migration helper will be placed - Must have connection to desitnation Storage"
