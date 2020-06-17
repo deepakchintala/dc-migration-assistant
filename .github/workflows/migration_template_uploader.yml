@@ -3,7 +3,7 @@ name: UploadMigrationTemplate
 on: [push]
 
 env:
-  MASTER: refs/heads/hot-fix-migration-template-github-action
+  MASTER: refs/heads/master
   AWS_S3_BUCKET: trebuchet-public-resources
   AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_ACCESS_KEY }}
