@@ -15,10 +15,16 @@
  */
 package com.atlassian.migration.datacenter.api.aws
 
+import com.atlassian.migration.datacenter.core.aws.CfnApi
+import com.atlassian.migration.datacenter.core.aws.region.RegionService
+import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
-import com.atlassian.migration.datacenter.spi.infrastructure.*
+import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService
+import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.MockKAnnotations
@@ -27,13 +33,18 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import software.amazon.awssdk.services.cloudformation.model.Stack
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
+import java.util.Optional
 import javax.ws.rs.core.Response
 
 @ExtendWith(MockKExtension::class)
@@ -46,6 +57,15 @@ internal class CloudFormationEndpointTest {
 
     @MockK(relaxUnitFun = true)
     lateinit var migrationSerivce: MigrationService
+
+    @MockK
+    lateinit var context: MigrationContext
+
+    @MockK
+    lateinit var cfnApi: CfnApi
+
+    @MockK
+    lateinit var regionService: RegionService
 
     @InjectMockKs
     lateinit var endpoint: CloudFormationEndpoint
@@ -83,8 +103,8 @@ internal class CloudFormationEndpointTest {
         val errorMessage = "migration status is FUBAR"
         every {
             deploymentService.deployApplication(
-                provisioningConfig.stackName,
-                provisioningConfig.params
+                    provisioningConfig.stackName,
+                    provisioningConfig.params
             )
         } throws InvalidMigrationStageError(errorMessage)
 
@@ -108,15 +128,15 @@ internal class CloudFormationEndpointTest {
 
     @Test
     fun shouldGetHandleErrorWhenStatusCannotBeRetrieved() {
-        val expectedErrorMessage = "stack Id not found"
+        val expectedErrorMessage = "critical failure - infrastructure not found"
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_APPLICATION_WAIT
         every { deploymentService.deploymentStatus } throws StackInstanceNotFoundException.builder()
-            .message(expectedErrorMessage).build()
+                .message(expectedErrorMessage).build()
 
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.NOT_FOUND.statusCode, response.status)
-        assertEquals(expectedErrorMessage, (response.entity as Map<*, *>)["error"])
+        assertEquals(expectedErrorMessage, readResponseIntoMap(response)["error"])
     }
 
     @Test
@@ -162,10 +182,9 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        val typeRef: TypeReference<HashMap<String, String>> = object : TypeReference<HashMap<String, String>>() {}
-        val readValue = ObjectMapper().readValue(response.entity as String, typeRef)
+        val responseData = readResponseIntoMap(response)
 
-        assertThat(readValue["status"]!!, equalTo(expectedStatus))
+        assertThat(responseData["status"]!!, equalTo(expectedStatus))
     }
 
     @Test
@@ -198,11 +217,64 @@ internal class CloudFormationEndpointTest {
         every { helperDeploymentService.deploymentStatus } returns expectedStatus
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK_WAIT
 
+        every { migrationSerivce.currentContext } returns context
+        val helperDeploymentId = "helper-deployment"
+        every { context.helperStackDeploymentId } returns helperDeploymentId
+
+        val testRegion = "us-east-1"
+        every { regionService.region } returns testRegion
+        every { cfnApi.getStack(helperDeploymentId) } returns Optional.of(Stack.builder().stackId("arn:aws:cloudformation:$testRegion:887764444972:stack/$helperDeploymentId/cf721e30-aab0-11ea-8ca3-122e54527a47").build())
+
+        val permissionError = "you dont have permission"
+        every { cfnApi.getStackErrorRootCause(helperDeploymentId) } returns Optional.of(permissionError)
+
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
 
-        assertThat(response.entity as String, containsString("CREATE_FAILED"))
+        val responseData = readResponseIntoMap(response)
+
+        assertEquals(responseData["status"], "CREATE_FAILED")
+        assertEquals(responseData["error"], permissionError)
     }
 
+    @Test
+    fun failedStatusShouldIncludeDashboardURL() {
+        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentState.CREATE_FAILED
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_APPLICATION_WAIT
+        every { migrationSerivce.currentContext } returns context
+        val deploymentId = "tcat-per-jira-37c49438"
+        every { context.applicationDeploymentId } returns deploymentId
+        every { cfnApi.getStackErrorRootCause(deploymentId) } returns Optional.of("error")
+        val testRegion = "us-east-1"
+        every { regionService.region } returns testRegion
+        every { cfnApi.getStack(deploymentId) } returns Optional.of(Stack.builder().stackId("arn:aws:cloudformation:$testRegion:887764444972:stack/$deploymentId/cf721e30-aab0-11ea-8ca3-122e54527a47").build())
+
+        val response = endpoint.infrastructureStatus()
+        val responseData = readResponseIntoMap(response)
+
+        val urlEncodedColon = "%3A"
+        val urlEncodedSlash = "%2F"
+        assertEquals(
+                "https://console.aws.amazon.com/cloudformation/home?region=$testRegion#/stacks/stackinfo?filteringText=$deploymentId&filteringStatus=failed&viewNested=true&stackId=arn${urlEncodedColon}aws${urlEncodedColon}cloudformation$urlEncodedColon$testRegion${urlEncodedColon}887764444972${urlEncodedColon}stack$urlEncodedSlash$deploymentId${urlEncodedSlash}cf721e30-aab0-11ea-8ca3-122e54527a47",
+                responseData["stackUrl"]
+        )
+    }
+
+    @Test
+    fun successfulStatusShouldNotIncludeURLOrError() {
+        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentState.CREATE_IN_PROGRESS
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_APPLICATION_WAIT
+
+        val response = endpoint.infrastructureStatus()
+        val responseData = readResponseIntoMap(response)
+
+        assertFalse(responseData.containsKey("stackUrl"))
+        assertFalse(responseData.containsKey("error"))
+    }
+
+    private fun readResponseIntoMap(response: Response): HashMap<String, String> {
+        val typeRef: TypeReference<HashMap<String, String>> = object : TypeReference<HashMap<String, String>>() {}
+        return ObjectMapper().readValue(response.entity as String, typeRef)
+    }
 }
