@@ -589,4 +589,3 @@ Outputs:
   MigrationBucket:
     Description: "The name of the s3 bucket to be used for facilitating this migration"
     Value: !Ref MigrationBucket
-
