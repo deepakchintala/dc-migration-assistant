@@ -28,7 +28,7 @@ const getDeploymentProgress: ProgressCallback = async () => {
         .getProvisioningStatus()
         .then(result => {
             const builder = new ProgressBuilder();
-            switch (result) {
+            switch (result.status) {
                 case ProvisioningStatus.Complete:
                     builder.setPhase('Deployment Complete');
                     builder.setCompleteness(1);
