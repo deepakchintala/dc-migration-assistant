@@ -17,14 +17,14 @@ package com.atlassian.migration.datacenter.core.db
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
+import com.impossibl.postgres.jdbc.PGDriver
 import net.swiftzer.semver.SemVer
-import org.postgresql.core.ConnectionFactory
-import org.postgresql.util.HostSpec
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -81,23 +81,26 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
 
     override val serverVersion: SemVer?
         get() {
+            // NOTE: We use the NG Postgres driver here as the official
+            // one doesn't play well with OSGI.
             val config = applicationConfiguration.databaseConfiguration
-            val host = HostSpec(config.host, config.port)
+            val url = "jdbc:pgsql://${config.host}:${config.port}/${config.name}"
             val props = Properties().apply {
+                setProperty("user", config.username)
                 setProperty("password", config.password)
             }
 
             val conn = try {
-                ConnectionFactory.openConnection(arrayOf(host), config.username, config.name, props)
+                PGDriver().connect(url, props)
             } catch (e: SQLException) {
-                log.error("Exception opening DB connection for version")
+                log.error("Exception opening DB connection for version", e)
                 null
             } ?: return null
 
-            val version = conn.serverVersion
+            val meta = conn.metaData
             conn.close()
 
-            return SemVer.parse(version)
+            return SemVer.parse(meta.databaseProductVersion)
         }
 
     @Throws(DatabaseMigrationFailure::class)
