@@ -178,6 +178,14 @@ public class CfnApi {
         return earliestEventRef.get();
     }
 
+    /**
+     * Begins the provisioning of a cloudformation stack
+     * @param templateUrl S3 URL of the template to use for deployment
+     * @param stackName The name to give to the stack
+     * @param params any parameters for the quickstart form
+     * @return an optional containing the stack name when deployment is successful
+     * @throws InfrastructureDeploymentError if the deployment is not successful. Will contain the cause of the error.
+     */
     public Optional<String> provisionStack(String templateUrl, String stackName, Map<String, String> params) throws InfrastructureDeploymentError {
         logger.trace("received request to create stack {} from template {}", stackName, templateUrl);
         Set<Parameter> parameters = params.entrySet()
