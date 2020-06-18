@@ -279,7 +279,10 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
     }, []);
 
     const onSubmitQuickstartForm = async (data: Record<string, any>): Promise<void> => {
-        const transformedCfnParams = data;
+        // Deep copy structure so form state is not modified
+        const transformedCfnParams = {
+            ...data,
+        };
         const stackNameValue = transformedCfnParams[STACK_NAME_FIELD_NAME];
         delete transformedCfnParams[STACK_NAME_FIELD_NAME];
 
