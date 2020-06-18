@@ -166,6 +166,11 @@
             <artifactId>semver</artifactId>
             <version>1.1.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -244,11 +249,6 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
             <version>1.11.728</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

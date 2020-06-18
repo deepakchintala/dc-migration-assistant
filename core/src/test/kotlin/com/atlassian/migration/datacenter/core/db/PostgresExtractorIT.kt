@@ -19,6 +19,7 @@ import com.atlassian.migration.datacenter.core.application.ApplicationConfigurat
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
+import net.swiftzer.semver.SemVer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -39,13 +40,14 @@ import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.*
 import java.util.zip.GZIPInputStream
+import kotlin.test.assertEquals
 
 @Testcontainers
 @ExtendWith(MockitoExtension::class)
 internal class PostgresExtractorIT {
     companion object {
         @Container
-        val postgres = PostgreSQLContainer<Nothing>().apply {
+        val postgres = PostgreSQLContainer<Nothing>("postgres:9.6.18").apply {
             withDatabaseName("jira")
             withCopyFileToContainer(MountableFile.forClasspathResource("db/jira.sql"), "/docker-entrypoint-initdb.d/jira.sql")
         }
@@ -88,6 +90,12 @@ internal class PostgresExtractorIT {
         r.close()
         s.close()
         conn.close()
+    }
+
+    @Test
+    fun testServerVersion() {
+        val migration = PostgresExtractor(configuration!!)
+        assertEquals(SemVer(9, 6, 18), migration.serverVersion)
     }
 
     @Test

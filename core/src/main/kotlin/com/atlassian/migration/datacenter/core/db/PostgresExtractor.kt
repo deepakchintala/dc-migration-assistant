@@ -18,11 +18,14 @@ package com.atlassian.migration.datacenter.core.db
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
 import net.swiftzer.semver.SemVer
+import org.postgresql.core.ConnectionFactory
+import org.postgresql.util.HostSpec
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.sql.SQLException
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -74,6 +77,26 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
                 log.error("Failed to get pg_dump version from command-line")
                 return null
             }
+        }
+
+    val serverVersion: SemVer?
+        get() {
+            val config = applicationConfiguration.databaseConfiguration
+            val host = HostSpec(config.host, config.port)
+            val props = Properties()
+            props["password"] = config.password
+
+            val conn = try {
+                ConnectionFactory.openConnection(arrayOf(host), config.username, config.name, props)
+            } catch (e: SQLException) {
+                log.error("Exception opening DB connection for version")
+                null
+            } ?: return null
+
+            val version = conn.serverVersion
+            conn.close()
+
+            return SemVer.parse(version)
         }
 
     @Throws(DatabaseMigrationFailure::class)
