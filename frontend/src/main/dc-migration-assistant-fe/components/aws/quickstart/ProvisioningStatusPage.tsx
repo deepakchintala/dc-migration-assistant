@@ -79,7 +79,7 @@ const getDeploymentProgress: ProgressCallback = async () => {
             builder.setPhase(
                 I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
             );
-            builder.setError(err);
+            builder.setError(JSON.stringify(err));
             builder.setCompleteness(0);
             builder.setFailed(true);
             return builder.build();
