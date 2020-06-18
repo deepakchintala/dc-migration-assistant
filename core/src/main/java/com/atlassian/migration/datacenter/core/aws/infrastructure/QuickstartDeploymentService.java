@@ -168,6 +168,9 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         } catch (InvalidMigrationStageError invalidMigrationStageError) {
             logger.error("tried to transition migration from {} but got error: {}.", MigrationStage.PROVISION_APPLICATION_WAIT, invalidMigrationStageError.getMessage());
             migrationService.error(invalidMigrationStageError.getMessage());
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            logger.error("failed to deploy migration infrastructure", infrastructureDeploymentError);
+            migrationService.error(infrastructureDeploymentError.getMessage());
         }
     }
 
