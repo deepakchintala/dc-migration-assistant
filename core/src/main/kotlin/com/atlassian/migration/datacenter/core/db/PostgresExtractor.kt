@@ -55,7 +55,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
             return Optional.empty()
         }
 
-    val clientVersion: SemVer?
+    override val clientVersion: SemVer?
         get() {
             val pgdump = pgdumpPath
                     .orElseThrow { DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.") }
@@ -79,12 +79,13 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
             }
         }
 
-    val serverVersion: SemVer?
+    override val serverVersion: SemVer?
         get() {
             val config = applicationConfiguration.databaseConfiguration
             val host = HostSpec(config.host, config.port)
-            val props = Properties()
-            props["password"] = config.password
+            val props = Properties().apply {
+                setProperty("password", config.password)
+            }
 
             val conn = try {
                 ConnectionFactory.openConnection(arrayOf(host), config.username, config.name, props)

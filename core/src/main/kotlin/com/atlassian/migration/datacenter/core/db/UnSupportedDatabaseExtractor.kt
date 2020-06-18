@@ -12,9 +12,15 @@
 package com.atlassian.migration.datacenter.core.db
 
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
+import net.swiftzer.semver.SemVer
 import java.nio.file.Path
 
 class UnSupportedDatabaseExtractor : DatabaseExtractor {
+    override val clientVersion: SemVer?
+        get() = TODO("Not yet implemented")
+    override val serverVersion: SemVer?
+        get() = TODO("Not yet implemented")
+
     @Throws(DatabaseMigrationFailure::class)
     override fun startDatabaseDump(target: Path?): Process? {
         throw UnsupportedOperationException("Not implemented")

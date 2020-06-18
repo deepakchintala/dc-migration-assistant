@@ -16,9 +16,13 @@
 package com.atlassian.migration.datacenter.core.db
 
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
+import net.swiftzer.semver.SemVer
 import java.nio.file.Path
 
 interface DatabaseExtractor {
+    val clientVersion: SemVer?
+    val serverVersion: SemVer?
+
     @Throws(DatabaseMigrationFailure::class)
     fun startDatabaseDump(target: Path?): Process?
 
