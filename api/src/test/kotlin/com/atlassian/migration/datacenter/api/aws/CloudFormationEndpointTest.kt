@@ -33,9 +33,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.not
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -44,8 +42,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import software.amazon.awssdk.services.cloudformation.model.Stack
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
-import java.util.Optional
+import java.util.*
 import javax.ws.rs.core.Response
+import kotlin.collections.HashMap
+import kotlin.collections.Map
+import kotlin.collections.get
 
 @ExtendWith(MockKExtension::class)
 internal class CloudFormationEndpointTest {
@@ -236,6 +237,26 @@ internal class CloudFormationEndpointTest {
 
         assertEquals(responseData["status"], "CREATE_FAILED")
         assertEquals(responseData["error"], permissionError)
+    }
+
+    @Test
+    fun shouldBeOKGivenCurrentStageIsErrorWhenResetEndpointIsInvoked() {
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISIONING_ERROR
+        val response = endpoint.resetProvisioningStage()
+        assertEquals(Response.Status.OK.statusCode, response.status)
+        verify { migrationSerivce.transition(MigrationStage.PROVISION_APPLICATION) }
+    }
+
+    @Test
+    fun shouldBeBadRequestGivenCurrentStageIsNotErrorWhenResetEndpointIsInvoked() {
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK_WAIT
+        val response = endpoint.resetProvisioningStage()
+        assertEquals(Response.Status.BAD_REQUEST.statusCode, response.status)
+        assertEquals("Expected state to be ${MigrationStage.ERROR} but was ${MigrationStage.PROVISION_MIGRATION_STACK_WAIT}", (response.entity as Map<String, String>)["message"])
+    }
+
+    private fun responseEntityToMap(response: String): HashMap<String, String> {
+        return ObjectMapper().readValue(response, object : TypeReference<HashMap<String, String>>() {})
     }
 
     @Test

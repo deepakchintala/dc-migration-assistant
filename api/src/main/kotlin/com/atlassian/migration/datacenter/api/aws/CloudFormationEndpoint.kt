@@ -99,6 +99,21 @@ class CloudFormationEndpoint(
         }
     }
 
+    @POST
+    @Path("/reset")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun resetProvisioningStage(): Response {
+        return when (val currentStage = migrationService.currentStage) {
+            MigrationStage.ERROR, //Only until we change transitioning to errors in provisioning steps
+            MigrationStage.PROVISIONING_ERROR -> {
+                migrationService.transition(MigrationStage.PROVISION_APPLICATION)
+                Response.ok().build()
+            }
+            else -> Response.status(Response.Status.BAD_REQUEST).entity(mapOf("message" to "Expected state to be ${MigrationStage.ERROR} but was $currentStage")).build()
+        }
+    }
+
     private fun handleAnyProvisioningInProgress(currentMigrationStage: MigrationStage): Response {
         val phase = when (currentMigrationStage) {
             MigrationStage.PROVISION_APPLICATION_WAIT -> "app_infra"
@@ -143,6 +158,5 @@ class CloudFormationEndpoint(
                     .build()
         }
     }
-
 }
 
