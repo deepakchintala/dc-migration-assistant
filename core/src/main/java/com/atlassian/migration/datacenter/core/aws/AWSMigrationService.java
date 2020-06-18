@@ -142,7 +142,12 @@ public class AWSMigrationService implements MigrationService {
         SemVer pgDumpVer = databaseExtractor.getClientVersion();
         SemVer pgServerVer = databaseExtractor.getServerVersion();
         Boolean pgDumpAvail = pgDumpVer != null;
-        Boolean pgVerCompat = pgDumpAvail && pgDumpVer.compareTo(pgServerVer) >= 0;
+
+       // From the pg_dump manpage: "pg_dump cannot dump from PostgreSQL servers newer than its own
+       // major version; it will refuse to even try, rather than risk making an invalid dump. Also,
+       // it is not guaranteed that pg_dump's output can be loaded into a server of an older major
+       // version — not even if the dump was taken from a server of that version."
+        Boolean pgVerCompat = pgDumpAvail && pgServerVer != null && pgDumpVer.getMajor() >= pgServerVer.getMajor();
 
         MigrationReadyStatus status = new MigrationReadyStatus(db, os, pgDumpAvail, pgVerCompat);
 

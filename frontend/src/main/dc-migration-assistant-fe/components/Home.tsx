@@ -138,7 +138,7 @@ export const ReadyStatus: FunctionComponent = () => {
                     the <strong>pg_dump</strong> utility is compatible with the server version &nbsp; {readyString(ready?.pgDumpCompatible)}
                 </li>
                 <li>
-                    has a home directory <strong>under 400GB</strong> &nbsp; <Lozenge appearance="moved">User should confirm</Lozenge>
+                    has a home directory <strong>under 400GB</strong> &nbsp; <Lozenge appearance="moved">User should check</Lozenge>
                 </li>
             </ul>
         </SectionMessage>
