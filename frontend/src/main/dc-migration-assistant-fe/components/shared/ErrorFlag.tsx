@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import React, { FunctionComponent, ReactElement } from 'react';
 import Flag from '@atlaskit/flag';
 import ErrorIcon from '@atlaskit/icon/glyph/error';

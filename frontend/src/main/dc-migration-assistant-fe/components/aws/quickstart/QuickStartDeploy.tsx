@@ -25,6 +25,7 @@ import styled from 'styled-components';
 import Panel from '@atlaskit/panel';
 import { Redirect } from 'react-router-dom';
 
+import { yamlParse } from 'yaml-cfn';
 import { createQuickstartFormField } from './quickstartToAtlaskit';
 import { QuickstartParameterGroup, QuickstartTemplateForm } from './QuickStartTypes';
 
@@ -33,7 +34,7 @@ import { quickstartStatusPath } from '../../../utils/RoutePaths';
 import { CancelButton } from '../../shared/CancelButton';
 import { DeploymentMode } from './QuickstartRoutes';
 import { provisioning } from '../../../api/provisioning';
-import { yamlParse } from 'yaml-cfn';
+import { ErrorFlag } from '../../shared/ErrorFlag';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 
@@ -261,6 +262,7 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
     const [params, setParams] = useState<Array<QuickstartParameterGroup>>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
+    const [error, setError] = useState<string>();
 
     useEffect(() => {
         setLoading(true);
@@ -297,14 +299,15 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
                 : provisioning.deployApplicationWithNetwork(stackNameValue, transformedCfnParams);
 
         return request
-            .then(response => {
+            .then(async response => {
                 if (response.status !== 202) {
-                    throw Error('Stack provisioning failed');
+                    const json = await response.json();
+                    throw new Error(json.error);
                 }
                 setReadyForNextStep(true);
             })
             .catch(err => {
-                console.error(err);
+                setError(err.message);
             });
     };
 
@@ -314,11 +317,22 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
             {loading ? (
                 <Spinner />
             ) : (
-                <QuickstartForm
-                    paramGroups={params}
-                    onSubmit={onSubmitQuickstartForm}
-                    ASIPrefixOverride={ASIPrefix}
-                />
+                <>
+                    <ErrorFlag
+                        showError={error && error !== ''}
+                        dismissErrorFunc={(): void => setError('')}
+                        title={I18n.getText(
+                            'atlassian.migration.datacenter.provision.aws.quickstart.form.error'
+                        )}
+                        description={error}
+                        id={error}
+                    />
+                    <QuickstartForm
+                        paramGroups={params}
+                        onSubmit={onSubmitQuickstartForm}
+                        ASIPrefixOverride={ASIPrefix}
+                    />
+                </>
             )}
         </QuickStartDeployContainer>
     );
