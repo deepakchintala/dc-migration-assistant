@@ -50,6 +50,7 @@ const ErrorContainer = styled.div`
     left: 75%;
     right: 1%;
     overflow: inherit;
+    z-index: 1;
 `;
 
 export const ErrorFlag: FunctionComponent<AuthenticationErrorProps> = ({
