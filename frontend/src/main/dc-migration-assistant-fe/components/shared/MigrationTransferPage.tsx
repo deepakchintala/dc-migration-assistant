@@ -202,10 +202,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         return (): void => undefined;
     }, [started]);
 
-    if (progressList.some(progress => progress?.failed)) {
-        return <Redirect to={migrationErrorPath} push />;
-    }
-
     const transferError = progressList
         .filter(progress => progress?.errorMessage)
         .map(progress => {
