@@ -33,6 +33,10 @@ type HomeProps = {
     startButtonText: string;
 };
 
+type ReadyProps = {
+    ready: MigrationReadyStatus;
+};
+
 const HomeContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -59,6 +63,13 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState<boolean>(false);
     const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
+    const [ready, setReady] = useState<MigrationReadyStatus>();
+
+    useEffect(() => {
+        migration.getReadyStatus().then(status => {
+            setReady(status);
+        });
+    }, []);
 
     const createMigration = (): void => {
         setLoading(true);
@@ -87,10 +98,11 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
                 id="migration-creation-error"
             />
             <p>
-                <ReadyStatus />
+                <ReadyStatus ready={ready} />
             </p>
             <MigrationsContainer>
                 <Button
+                    isDisabled={!ready?.pgDumpAvailable || !ready?.pgDumpCompatible}
                     isLoading={loading}
                     appearance="primary"
                     onClick={createMigration}
@@ -103,8 +115,7 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
     );
 };
 
-export const ReadyStatus: FunctionComponent = () => {
-    const [ready, setReady] = useState<MigrationReadyStatus>();
+export const ReadyStatus: FunctionComponent<ReadyProps> = ({ ready }) => {
     const readyString = (state: boolean | undefined): ReactNode => {
         return state === undefined ? (
             <Spinner size="small" />
@@ -114,12 +125,6 @@ export const ReadyStatus: FunctionComponent = () => {
             <Lozenge appearance="removed">Incompatible</Lozenge>
         );
     };
-
-    useEffect(() => {
-        migration.getReadyStatus().then(status => {
-            setReady(status);
-        });
-    }, []);
 
     return (
         <SectionMessage appearance="info" {...InfoProps}>
