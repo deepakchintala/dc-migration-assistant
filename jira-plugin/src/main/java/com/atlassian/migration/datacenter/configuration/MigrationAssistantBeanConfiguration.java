@@ -73,6 +73,7 @@ import com.atlassian.migration.datacenter.core.fs.jira.captor.DefaultAttachmentC
 import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
+import com.atlassian.migration.datacenter.listener.MigrationTransitionEventListener;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
@@ -383,5 +384,10 @@ public class MigrationAssistantBeanConfiguration {
             QuickstartWithVPCMigrationStackInputGatheringStrategy withVpcStrategy,
             QuickstartStandaloneMigrationStackInputGatheringStrategy standaloneStrategy) {
         return new MigrationStackInputGatheringStrategyFactory(withVpcStrategy, standaloneStrategy);
+    }
+
+    @Bean
+    public MigrationTransitionEventListener migrationTransitionEventListener(EventPublisher eventPublisher){
+        return new MigrationTransitionEventListener(eventPublisher);
     }
 }
