@@ -132,13 +132,16 @@ export const ReadyStatus: FunctionComponent = () => {
                     is running on <strong>Linux</strong> &nbsp; {readyString(ready?.osCompatible)}
                 </li>
                 <li>
-                    <strong>pg_dump</strong> utility is available &nbsp; {readyString(ready?.pgDumpAvailable)}
+                    <strong>pg_dump</strong> utility is available &nbsp;{' '}
+                    {readyString(ready?.pgDumpAvailable)}
                 </li>
                 <li>
-                    the <strong>pg_dump</strong> utility is compatible with the server version &nbsp; {readyString(ready?.pgDumpCompatible)}
+                    the <strong>pg_dump</strong> utility is compatible with the server version
+                    &nbsp; {readyString(ready?.pgDumpCompatible)}
                 </li>
                 <li>
-                    has a home directory <strong>under 400GB</strong> &nbsp; <Lozenge appearance="moved">User should check</Lozenge>
+                    has a home directory <strong>under 400GB</strong> &nbsp;{' '}
+                    <Lozenge appearance="moved">User should check</Lozenge>
                 </li>
             </ul>
         </SectionMessage>
