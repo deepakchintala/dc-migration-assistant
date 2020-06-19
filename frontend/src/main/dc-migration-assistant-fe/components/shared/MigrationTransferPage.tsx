@@ -30,7 +30,7 @@ import { migrationErrorPath } from '../../utils/RoutePaths';
 import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
 
-const POLL_INTERVAL_MILLIS = 3000;
+const POLL_INTERVAL_MILLIS = 8000;
 
 export type MigrationTransferProps = {
     /**

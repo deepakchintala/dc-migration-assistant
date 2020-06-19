@@ -61,7 +61,9 @@ const getDeploymentProgress: ProgressCallback = async () => {
                     builder.setCompleteness(0.75);
                     break;
                 case ProvisioningStatus.Failed:
-                    builder.setPhase('atlassian.migration.datacenter.provision.aws.status.error');
+                    builder.setPhase(
+                        I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
+                    );
                     builder.setCompleteness(0);
                     builder.setFailed(true);
                     builder.setError(buildErrorFromMessageAndUrl(result.error, result.stackUrl));
@@ -92,6 +94,7 @@ const inProgressStages = [
     MigrationStage.PROVISION_APPLICATION_WAIT,
     MigrationStage.PROVISION_MIGRATION_STACK,
     MigrationStage.PROVISION_MIGRATION_STACK_WAIT,
+    MigrationStage.ERROR,
 ];
 
 type DeploymentMode = {
