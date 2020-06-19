@@ -197,8 +197,10 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier, DatabaseUploadStageTransitionCallback uploadStageTransitionCallback) {
-        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier, uploadStageTransitionCallback);
+    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier,
+                                                                           DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
+                                                                           FileSystemMigrationReportManager reportManager) {
+        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier, uploadStageTransitionCallback, reportManager);
     }
 
     @Bean
