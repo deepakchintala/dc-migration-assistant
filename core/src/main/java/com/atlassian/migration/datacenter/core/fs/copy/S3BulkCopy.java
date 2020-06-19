@@ -25,6 +25,7 @@ import com.atlassian.migration.datacenter.core.fs.ReportType;
 import com.atlassian.migration.datacenter.core.fs.S3UploadConfig;
 import com.atlassian.migration.datacenter.core.fs.S3Uploader;
 import com.atlassian.migration.datacenter.core.fs.Uploader;
+import com.atlassian.migration.datacenter.core.fs.UploaderFactory;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,20 +43,18 @@ public class S3BulkCopy {
     private static final String OVERRIDE_UPLOAD_DIRECTORY = System
             .getProperty("com.atlassian.migration.datacenter.fs.overrideJiraHome", "");
 
-    private final Supplier<S3AsyncClient> clientSupplier;
-    private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
     private final Path home;
     private final FileSystemMigrationReportManager reportManager;
     private FilesystemUploader fsUploader;
+    private UploaderFactory uploaderFactory;
 
     public S3BulkCopy(
-        Supplier<S3AsyncClient> clientSupplier,
-        AWSMigrationHelperDeploymentService migrationHelperDeploymentService,
         Path home,
-        FileSystemMigrationReportManager reportManager) {
-        this.clientSupplier = clientSupplier;
-        this.migrationHelperDeploymentService = migrationHelperDeploymentService;
+        UploaderFactory uploaderFactory,
+        FileSystemMigrationReportManager reportManager)
+    {
         this.home = home;
+        this.uploaderFactory = uploaderFactory;
         this.reportManager = reportManager;
     }
 
@@ -65,15 +64,12 @@ public class S3BulkCopy {
         if (report == null) {
             throw new FilesystemUploader.FileUploadException("No files system migration report bound to bulk copy operation");
         }
-        logger.trace("Beginning FS upload. Uploading shared home dir {} to S3 bucket {}", getSharedHomeDir(),
-                getS3Bucket());
         report.setStatus(UPLOADING);
 
+        Uploader s3Uploader = uploaderFactory.newUploader(report);
+
+        // TODO: These should probably be factories too
         Crawler homeCrawler = new DirectoryStreamCrawler(report);
-
-        S3UploadConfig s3UploadConfig = new S3UploadConfig(getS3Bucket(), clientSupplier.get(), getSharedHomeDir());
-        Uploader s3Uploader = new S3Uploader(s3UploadConfig, report);
-
         fsUploader = new FilesystemUploader(homeCrawler, s3Uploader);
 
         logger.info("commencing upload of shared home");
@@ -92,9 +88,6 @@ public class S3BulkCopy {
         fsUploader.abort();
     }
 
-    private String getS3Bucket() {
-        return migrationHelperDeploymentService.getMigrationS3BucketName();
-    }
 
     private Path getSharedHomeDir() {
         if (!OVERRIDE_UPLOAD_DIRECTORY.equals("")) {

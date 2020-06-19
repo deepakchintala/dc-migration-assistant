@@ -109,10 +109,8 @@ class S3FilesystemMigrationServiceTest {
         final String errorMessage = "Failed to migrate content. File not found: abc";
         when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
         doThrow(
-                new FilesystemUploader.FileUploadException(errorMessage)
-        )
-                .when(bulkCopy)
-                .copySharedHomeToS3();
+            new FilesystemUploader.FileUploadException(errorMessage)
+        ).when(bulkCopy).copySharedHomeToS3();
 
         fsService.startMigration();
 

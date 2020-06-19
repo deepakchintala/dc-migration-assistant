@@ -44,6 +44,8 @@ public class FilesystemUploader {
     }
 
     public void uploadDirectory(Path dir) throws FileUploadException {
+        logger.trace("Beginning FS upload. Uploading shared home dir {}", dir);
+
         ExecutorService pool = Executors.newFixedThreadPool(2);
         UploadQueue<Path> queue = new UploadQueue<>(uploader.maxConcurrent());
 

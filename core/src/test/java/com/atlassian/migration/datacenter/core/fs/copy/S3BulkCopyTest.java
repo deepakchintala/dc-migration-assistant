@@ -20,7 +20,8 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHe
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
+import com.atlassian.migration.datacenter.core.fs.Uploader;
+import com.atlassian.migration.datacenter.core.fs.UploaderFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,20 +44,23 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class S3BulkCopyTest {
 
-    @Mock
-    Supplier<S3AsyncClient> mockSupplier;
-
-    @Mock
-    AWSMigrationHelperDeploymentService helperDeploymentService;
+    @Mock(lenient = true)
+    Uploader uploader;
+    @Mock(lenient = true)
+    UploaderFactory uploaderFactory;
 
     FileSystemMigrationReportManager reportManager = new DefaultFileSystemMigrationReportManager();
 
+    @BeforeEach
+    void setup() {
+        when(uploader.maxConcurrent()).thenReturn(1);
+        when(uploaderFactory.newUploader(any())).thenReturn(uploader);
+    }
 
     @Test
     void shouldThrowWhenSharedHomeDirectoryIsInvalid() {
         Path fakeHome = givenSharedHomeDoesNotExist();
-        S3BulkCopy sut = new S3BulkCopy(mockSupplier, helperDeploymentService, fakeHome, reportManager);
-        givenHelperDeploymentBucketExists();
+        S3BulkCopy sut = new S3BulkCopy(fakeHome, uploaderFactory, reportManager);
 
         try {
             sut.copySharedHomeToS3();
@@ -68,7 +73,7 @@ class S3BulkCopyTest {
     @Test
     void shouldAbortRunningMigration() throws NoSuchFieldException {
         Path fakeHome = givenSharedHomeDoesNotExist();
-        S3BulkCopy sut = new S3BulkCopy(mockSupplier, helperDeploymentService, fakeHome, reportManager);
+        S3BulkCopy sut = new S3BulkCopy(fakeHome, uploaderFactory, reportManager);
         final FilesystemUploader uploader = mock(FilesystemUploader.class);
         FieldSetter.setField(sut, sut.getClass().getDeclaredField("fsUploader"), uploader);
 
@@ -82,7 +87,4 @@ class S3BulkCopyTest {
         return nonexistentDir;
     }
 
-    private void givenHelperDeploymentBucketExists() {
-        when(helperDeploymentService.getMigrationS3BucketName()).thenReturn("my-bucket");
-    }
 }

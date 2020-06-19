@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
@@ -77,6 +78,12 @@ class S3FilesystemMigrationServiceIT {
     @Mock
     S3SyncFileSystemDownloadManager fileSystemDownloader;
     @Mock JiraIssueAttachmentListener attachmentListener;
+
+    @Mock
+    Uploader uploader;
+    @Mock
+    UploaderFactory uploaderFactory;
+
     S3BulkCopy bulkCopy;
 
     FileSystemMigrationReportManager reportManager = new DefaultFileSystemMigrationReportManager();
@@ -105,8 +112,9 @@ class S3FilesystemMigrationServiceIT {
                 .build();
         CreateBucketResponse resp = s3AsyncClient.createBucket(req).get();
         assertTrue(resp.sdkHttpResponse().isSuccessful());
+        when(uploaderFactory.newUploader(any())).thenReturn(uploader);
 
-        bulkCopy = new S3BulkCopy(() -> s3AsyncClient, migrationHelperDeploymentService, dir, reportManager);
+        bulkCopy = new S3BulkCopy(dir, uploaderFactory, reportManager);
     }
 
     private Path genRandFile() throws IOException {
