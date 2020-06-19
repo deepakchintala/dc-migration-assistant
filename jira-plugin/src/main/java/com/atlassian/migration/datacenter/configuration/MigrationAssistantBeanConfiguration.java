@@ -286,13 +286,20 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public FilesystemMigrationService filesystemMigrationService(Environment environment, S3SyncFileSystemDownloadManager downloadManager, MigrationService migrationService, MigrationRunner migrationRunner, JiraIssueAttachmentListener attachmentListener, S3BulkCopy bulkCopy) {
-        return new S3FilesystemMigrationService(environment, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy);
+    public FilesystemMigrationService filesystemMigrationService(Environment environment,
+                                                                 S3SyncFileSystemDownloadManager downloadManager,
+                                                                 MigrationService migrationService,
+                                                                 MigrationRunner migrationRunner,
+                                                                 JiraIssueAttachmentListener attachmentListener,
+                                                                 S3BulkCopy bulkCopy,
+                                                                 FileSystemMigrationReportManager reportManager)
+    {
+        return new S3FilesystemMigrationService(environment, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy, reportManager);
     }
 
     @Bean
-    public S3BulkCopy s3BulkCopy(Supplier<S3AsyncClient> clientSupplier, AWSMigrationHelperDeploymentService helperDeploymentService, JiraHome jiraHome) {
-        return new S3BulkCopy(clientSupplier, helperDeploymentService, jiraHome.getHome().toPath());
+    public S3BulkCopy s3BulkCopy(Supplier<S3AsyncClient> clientSupplier, AWSMigrationHelperDeploymentService helperDeploymentService, JiraHome jiraHome, FileSystemMigrationReportManager reportManager) {
+        return new S3BulkCopy(clientSupplier, helperDeploymentService, jiraHome.getHome().toPath(), reportManager);
     }
 
     @Bean
