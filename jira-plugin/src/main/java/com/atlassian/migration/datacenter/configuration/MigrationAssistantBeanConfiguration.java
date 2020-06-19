@@ -343,8 +343,14 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService, QueueWatcher queueWatcher, JiraIssueAttachmentListener attachmentListener) {
-        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome.getHome().toPath(), helperDeploymentService, queueWatcher, attachmentListener);
+    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager,
+                                               Supplier<S3AsyncClient> s3ClientSupplier,
+                                               JiraHome jiraHome,
+                                               AWSMigrationHelperDeploymentService helperDeploymentService,
+                                               QueueWatcher queueWatcher,
+                                               JiraIssueAttachmentListener attachmentListener,
+                                               FileSystemMigrationReportManager reportManager) {
+        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome.getHome().toPath(), helperDeploymentService, queueWatcher, attachmentListener, reportManager);
     }
 
     @Bean
