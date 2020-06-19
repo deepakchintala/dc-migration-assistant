@@ -169,7 +169,7 @@ public class AWSMigrationService implements MigrationService {
 
         setCurrentStage(migration, ERROR);
         // We must truncate the error message to 450 characters so that it fits in the varchar(450) column
-        context.setErrorMessage(message.substring(0, 450));
+        context.setErrorMessage(message.substring(0, Math.min(450, message.length())));
         context.setEndEpoch(now);
         context.save();
 
