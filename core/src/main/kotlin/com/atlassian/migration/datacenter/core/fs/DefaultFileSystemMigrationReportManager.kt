@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class DefaultFileSystemMigrationReportManager : FileSystemMigrationReportManager {
-    private val logger = LoggerFactory.getLogger(javaClass)
 
     val reports: HashMap<ReportType, FileSystemMigrationReport> = hashMapOf(
             ReportType.Filesystem to DefaultFileSystemMigrationReport(),
