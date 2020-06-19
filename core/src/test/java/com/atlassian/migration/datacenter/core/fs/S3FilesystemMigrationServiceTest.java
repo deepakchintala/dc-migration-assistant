@@ -103,13 +103,14 @@ class S3FilesystemMigrationServiceTest {
     }
 
     @Test
-    void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError, FilesystemUploader.FileUploadException {
+    void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError, FileUploadException
+    {
         givenNoSpringProfileActive();
 
         final String errorMessage = "Failed to migrate content. File not found: abc";
         when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
         doThrow(
-            new FilesystemUploader.FileUploadException(errorMessage)
+            new FileUploadException(errorMessage)
         ).when(bulkCopy).copySharedHomeToS3();
 
         fsService.startMigration();

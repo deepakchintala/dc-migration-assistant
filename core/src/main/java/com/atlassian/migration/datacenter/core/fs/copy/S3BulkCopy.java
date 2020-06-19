@@ -16,24 +16,17 @@
 
 package com.atlassian.migration.datacenter.core.fs.copy;
 
-import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
-import com.atlassian.migration.datacenter.core.fs.Crawler;
-import com.atlassian.migration.datacenter.core.fs.DirectoryStreamCrawler;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.FileUploadException;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
+import com.atlassian.migration.datacenter.core.fs.FilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.ReportType;
-import com.atlassian.migration.datacenter.core.fs.S3UploadConfig;
-import com.atlassian.migration.datacenter.core.fs.S3Uploader;
-import com.atlassian.migration.datacenter.core.fs.Uploader;
-import com.atlassian.migration.datacenter.core.fs.UploaderFactory;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Supplier;
 
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.UPLOADING;
 
@@ -45,32 +38,30 @@ public class S3BulkCopy {
 
     private final Path home;
     private final FileSystemMigrationReportManager reportManager;
+    private final FilesystemUploaderFactory filesystemUploaderFactory;
+
     private FilesystemUploader fsUploader;
-    private UploaderFactory uploaderFactory;
 
     public S3BulkCopy(
         Path home,
-        UploaderFactory uploaderFactory,
+        FilesystemUploaderFactory filesystemUploaderFactory,
         FileSystemMigrationReportManager reportManager)
     {
         this.home = home;
-        this.uploaderFactory = uploaderFactory;
         this.reportManager = reportManager;
+        this.filesystemUploaderFactory = filesystemUploaderFactory;
     }
 
-    public void copySharedHomeToS3() throws FilesystemUploader.FileUploadException {
+    public void copySharedHomeToS3() throws FileUploadException
+    {
         FileSystemMigrationReport report = reportManager.getCurrentReport(ReportType.Filesystem);
 
         if (report == null) {
-            throw new FilesystemUploader.FileUploadException("No files system migration report bound to bulk copy operation");
+            throw new FileUploadException("No files system migration report bound to bulk copy operation");
         }
         report.setStatus(UPLOADING);
 
-        Uploader s3Uploader = uploaderFactory.newUploader(report);
-
-        // TODO: These should probably be factories too
-        Crawler homeCrawler = new DirectoryStreamCrawler(report);
-        fsUploader = new FilesystemUploader(homeCrawler, s3Uploader);
+        fsUploader = filesystemUploaderFactory.newUploader(report);
 
         logger.info("commencing upload of shared home");
 

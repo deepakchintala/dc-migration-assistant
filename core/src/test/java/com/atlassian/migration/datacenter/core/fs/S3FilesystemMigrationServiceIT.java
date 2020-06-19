@@ -83,6 +83,8 @@ class S3FilesystemMigrationServiceIT {
     Uploader uploader;
     @Mock
     UploaderFactory uploaderFactory;
+    @Mock
+    FilesystemUploaderFactory filesystemUploaderFactory;
 
     S3BulkCopy bulkCopy;
 
@@ -114,7 +116,7 @@ class S3FilesystemMigrationServiceIT {
         assertTrue(resp.sdkHttpResponse().isSuccessful());
         when(uploaderFactory.newUploader(any())).thenReturn(uploader);
 
-        bulkCopy = new S3BulkCopy(dir, uploaderFactory, reportManager);
+        bulkCopy = new S3BulkCopy(dir, filesystemUploaderFactory, reportManager);
     }
 
     private Path genRandFile() throws IOException {

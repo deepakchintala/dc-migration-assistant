@@ -16,26 +16,22 @@
 
 package com.atlassian.migration.datacenter.core.fs.copy;
 
-import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploader;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
-import com.atlassian.migration.datacenter.core.fs.Uploader;
-import com.atlassian.migration.datacenter.core.fs.UploaderFactory;
+import com.atlassian.migration.datacenter.core.fs.FilesystemUploaderFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
-import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -44,37 +40,24 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class S3BulkCopyTest {
 
+    @Mock
+    FilesystemUploader filesystemUploader;
     @Mock(lenient = true)
-    Uploader uploader;
-    @Mock(lenient = true)
-    UploaderFactory uploaderFactory;
+    FilesystemUploaderFactory filesystemUploaderFactory;
 
     FileSystemMigrationReportManager reportManager = new DefaultFileSystemMigrationReportManager();
 
     @BeforeEach
     void setup() {
-        when(uploader.maxConcurrent()).thenReturn(1);
-        when(uploaderFactory.newUploader(any())).thenReturn(uploader);
+        when(filesystemUploaderFactory.newUploader(any())).thenReturn(filesystemUploader);
     }
 
-    @Test
-    void shouldThrowWhenSharedHomeDirectoryIsInvalid() {
-        Path fakeHome = givenSharedHomeDoesNotExist();
-        S3BulkCopy sut = new S3BulkCopy(fakeHome, uploaderFactory, reportManager);
-
-        try {
-            sut.copySharedHomeToS3();
-            fail();
-        } catch (FilesystemUploader.FileUploadException e) {
-            assertEquals("Failed to migrate content. File not found: " + fakeHome.toString(), e.getMessage());
-        }
-    }
 
     @Test
     void shouldAbortRunningMigration() throws NoSuchFieldException {
         Path fakeHome = givenSharedHomeDoesNotExist();
-        S3BulkCopy sut = new S3BulkCopy(fakeHome, uploaderFactory, reportManager);
-        final FilesystemUploader uploader = mock(FilesystemUploader.class);
+        S3BulkCopy sut = new S3BulkCopy(fakeHome, filesystemUploaderFactory, reportManager);
+        final FilesystemUploader uploader = mock(DefaultFilesystemUploader.class);
         FieldSetter.setField(sut, sut.getClass().getDeclaredField("fsUploader"), uploader);
 
         sut.abortCopy();
