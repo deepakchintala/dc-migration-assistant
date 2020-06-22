@@ -30,7 +30,7 @@ import { migrationErrorPath } from '../../utils/RoutePaths';
 import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
 
-const POLL_INTERVAL_MILLIS = 3000;
+const POLL_INTERVAL_MILLIS = 8000;
 
 export type MigrationTransferProps = {
     /**
@@ -201,10 +201,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         }
         return (): void => undefined;
     }, [started]);
-
-    if (progressList.some(progress => progress?.failed)) {
-        return <Redirect to={migrationErrorPath} push />;
-    }
 
     const transferError = progressList
         .filter(progress => progress?.errorMessage)
