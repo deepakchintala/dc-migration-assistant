@@ -59,8 +59,13 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
+import com.atlassian.migration.datacenter.core.fs.FilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
+import com.atlassian.migration.datacenter.core.fs.S3UploaderFactory;
+import com.atlassian.migration.datacenter.core.fs.UploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.QueueWatcher;
@@ -298,8 +303,18 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3BulkCopy s3BulkCopy(Supplier<S3AsyncClient> clientSupplier, AWSMigrationHelperDeploymentService helperDeploymentService, JiraHome jiraHome, FileSystemMigrationReportManager reportManager) {
-        return new S3BulkCopy(clientSupplier, helperDeploymentService, jiraHome.getHome().toPath(), reportManager);
+    public UploaderFactory uploaderFactory(AWSMigrationHelperDeploymentService helperDeploymentService, Supplier<S3AsyncClient> clientSupplier, JiraHome jiraHome) {
+        return new S3UploaderFactory(helperDeploymentService, clientSupplier, jiraHome.getHome().toPath());
+    }
+
+    @Bean
+    public FilesystemUploaderFactory filesystemUploaderFactory(UploaderFactory uploaderFactory) {
+        return new DefaultFilesystemUploaderFactory(uploaderFactory);
+    }
+
+    @Bean
+    public S3BulkCopy s3BulkCopy(JiraHome jiraHome, FilesystemUploaderFactory filesystemUploaderFactory, FileSystemMigrationReportManager reportManager) {
+        return new S3BulkCopy(jiraHome.getHome().toPath(), filesystemUploaderFactory, reportManager);
     }
 
     @Bean

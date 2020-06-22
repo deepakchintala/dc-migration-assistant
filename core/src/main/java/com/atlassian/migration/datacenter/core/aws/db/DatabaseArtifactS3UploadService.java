@@ -18,13 +18,14 @@ package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.fs.Crawler;
+import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploader;
 import com.atlassian.migration.datacenter.core.fs.DirectoryStreamCrawler;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.FileUploadException;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
 import com.atlassian.migration.datacenter.core.fs.ReportType;
 import com.atlassian.migration.datacenter.core.fs.S3UploadConfig;
 import com.atlassian.migration.datacenter.core.fs.S3Uploader;
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -52,7 +53,8 @@ public class DatabaseArtifactS3UploadService {
         this.s3AsyncClient = this.s3AsyncClientSupplier.get();
     }
 
-    public FileSystemMigrationReport upload(Path target, String targetBucketName) throws InvalidMigrationStageError, FilesystemUploader.FileUploadException {
+    public FileSystemMigrationReport upload(Path target, String targetBucketName) throws InvalidMigrationStageError, FileUploadException
+    {
         s3AsyncClient = s3AsyncClientSupplier.get();
         this.migrationStageCallback.assertInStartingStage();
 
@@ -71,6 +73,6 @@ public class DatabaseArtifactS3UploadService {
         S3UploadConfig config = new S3UploadConfig(targetBucketName, s3Client, target.getParent());
         S3Uploader uploader = new S3Uploader(config, migrationReport);
         Crawler crawler = new DirectoryStreamCrawler(migrationReport);
-        return new FilesystemUploader(crawler, uploader);
+        return new DefaultFilesystemUploader(crawler, uploader);
     }
 }
