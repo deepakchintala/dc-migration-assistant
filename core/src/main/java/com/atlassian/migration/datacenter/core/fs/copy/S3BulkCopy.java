@@ -19,7 +19,9 @@ package com.atlassian.migration.datacenter.core.fs.copy;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.fs.Crawler;
 import com.atlassian.migration.datacenter.core.fs.DirectoryStreamCrawler;
+import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
+import com.atlassian.migration.datacenter.core.fs.ReportType;
 import com.atlassian.migration.datacenter.core.fs.S3UploadConfig;
 import com.atlassian.migration.datacenter.core.fs.S3Uploader;
 import com.atlassian.migration.datacenter.core.fs.Uploader;
@@ -40,22 +42,26 @@ public class S3BulkCopy {
     private static final String OVERRIDE_UPLOAD_DIRECTORY = System
             .getProperty("com.atlassian.migration.datacenter.fs.overrideJiraHome", "");
 
-    private FileSystemMigrationReport report;
     private final Supplier<S3AsyncClient> clientSupplier;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
     private final Path home;
+    private final FileSystemMigrationReportManager reportManager;
     private FilesystemUploader fsUploader;
 
     public S3BulkCopy(
-            Supplier<S3AsyncClient> clientSupplier,
-            AWSMigrationHelperDeploymentService migrationHelperDeploymentService,
-            Path home) {
+        Supplier<S3AsyncClient> clientSupplier,
+        AWSMigrationHelperDeploymentService migrationHelperDeploymentService,
+        Path home,
+        FileSystemMigrationReportManager reportManager) {
         this.clientSupplier = clientSupplier;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
         this.home = home;
+        this.reportManager = reportManager;
     }
 
     public void copySharedHomeToS3() throws FilesystemUploader.FileUploadException {
+        FileSystemMigrationReport report = reportManager.getCurrentReport(ReportType.Filesystem);
+
         if (report == null) {
             throw new FilesystemUploader.FileUploadException("No files system migration report bound to bulk copy operation");
         }
@@ -84,10 +90,6 @@ public class S3BulkCopy {
 
         logger.warn("Aborting running filesystem migration");
         fsUploader.abort();
-    }
-
-    public void bindMigrationReport(FileSystemMigrationReport report) {
-        this.report = report;
     }
 
     private String getS3Bucket() {

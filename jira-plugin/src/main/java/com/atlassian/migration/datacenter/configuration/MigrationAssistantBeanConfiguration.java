@@ -58,6 +58,8 @@ import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
@@ -195,8 +197,15 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier, DatabaseUploadStageTransitionCallback uploadStageTransitionCallback) {
-        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier, uploadStageTransitionCallback);
+    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier,
+                                                                           DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
+                                                                           FileSystemMigrationReportManager reportManager) {
+        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier, uploadStageTransitionCallback, reportManager);
+    }
+
+    @Bean
+    public FileSystemMigrationReportManager fileSystemMigrationReportManager() {
+        return new DefaultFileSystemMigrationReportManager();
     }
 
     @Bean
@@ -277,13 +286,20 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public FilesystemMigrationService filesystemMigrationService(Environment environment, S3SyncFileSystemDownloadManager downloadManager, MigrationService migrationService, MigrationRunner migrationRunner, JiraIssueAttachmentListener attachmentListener, S3BulkCopy bulkCopy) {
-        return new S3FilesystemMigrationService(environment, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy);
+    public FilesystemMigrationService filesystemMigrationService(Environment environment,
+                                                                 S3SyncFileSystemDownloadManager downloadManager,
+                                                                 MigrationService migrationService,
+                                                                 MigrationRunner migrationRunner,
+                                                                 JiraIssueAttachmentListener attachmentListener,
+                                                                 S3BulkCopy bulkCopy,
+                                                                 FileSystemMigrationReportManager reportManager)
+    {
+        return new S3FilesystemMigrationService(environment, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy, reportManager);
     }
 
     @Bean
-    public S3BulkCopy s3BulkCopy(Supplier<S3AsyncClient> clientSupplier, AWSMigrationHelperDeploymentService helperDeploymentService, JiraHome jiraHome) {
-        return new S3BulkCopy(clientSupplier, helperDeploymentService, jiraHome.getHome().toPath());
+    public S3BulkCopy s3BulkCopy(Supplier<S3AsyncClient> clientSupplier, AWSMigrationHelperDeploymentService helperDeploymentService, JiraHome jiraHome, FileSystemMigrationReportManager reportManager) {
+        return new S3BulkCopy(clientSupplier, helperDeploymentService, jiraHome.getHome().toPath(), reportManager);
     }
 
     @Bean
@@ -327,8 +343,14 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService, QueueWatcher queueWatcher, JiraIssueAttachmentListener attachmentListener) {
-        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome.getHome().toPath(), helperDeploymentService, queueWatcher, attachmentListener);
+    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager,
+                                               Supplier<S3AsyncClient> s3ClientSupplier,
+                                               JiraHome jiraHome,
+                                               AWSMigrationHelperDeploymentService helperDeploymentService,
+                                               QueueWatcher queueWatcher,
+                                               JiraIssueAttachmentListener attachmentListener,
+                                               FileSystemMigrationReportManager reportManager) {
+        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome.getHome().toPath(), helperDeploymentService, queueWatcher, attachmentListener, reportManager);
     }
 
     @Bean

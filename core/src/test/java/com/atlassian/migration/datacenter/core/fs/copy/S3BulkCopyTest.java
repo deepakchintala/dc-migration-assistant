@@ -17,6 +17,8 @@
 package com.atlassian.migration.datacenter.core.fs.copy;
 
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,12 +48,13 @@ class S3BulkCopyTest {
     @Mock
     AWSMigrationHelperDeploymentService helperDeploymentService;
 
+    FileSystemMigrationReportManager reportManager = new DefaultFileSystemMigrationReportManager();
+
 
     @Test
     void shouldThrowWhenSharedHomeDirectoryIsInvalid() {
         Path fakeHome = givenSharedHomeDoesNotExist();
-        S3BulkCopy sut = new S3BulkCopy(mockSupplier, helperDeploymentService, fakeHome);
-        sut.bindMigrationReport(new DefaultFileSystemMigrationReport());
+        S3BulkCopy sut = new S3BulkCopy(mockSupplier, helperDeploymentService, fakeHome, reportManager);
         givenHelperDeploymentBucketExists();
 
         try {
@@ -65,7 +68,7 @@ class S3BulkCopyTest {
     @Test
     void shouldAbortRunningMigration() throws NoSuchFieldException {
         Path fakeHome = givenSharedHomeDoesNotExist();
-        S3BulkCopy sut = new S3BulkCopy(mockSupplier, helperDeploymentService, fakeHome);
+        S3BulkCopy sut = new S3BulkCopy(mockSupplier, helperDeploymentService, fakeHome, reportManager);
         final FilesystemUploader uploader = mock(FilesystemUploader.class);
         FieldSetter.setField(sut, sut.getClass().getDeclaredField("fsUploader"), uploader);
 

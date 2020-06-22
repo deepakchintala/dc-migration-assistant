@@ -25,6 +25,7 @@ import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSyst
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
+import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus;
 import com.atlassian.migration.datacenter.util.AwsCredentialsProviderShim;
 import org.junit.jupiter.api.Assertions;
@@ -78,6 +79,8 @@ class S3FilesystemMigrationServiceIT {
     @Mock JiraIssueAttachmentListener attachmentListener;
     S3BulkCopy bulkCopy;
 
+    FileSystemMigrationReportManager reportManager = new DefaultFileSystemMigrationReportManager();
+
     private S3AsyncClient s3AsyncClient;
     private String bucket = "trebuchet-testing";
 
@@ -103,7 +106,7 @@ class S3FilesystemMigrationServiceIT {
         CreateBucketResponse resp = s3AsyncClient.createBucket(req).get();
         assertTrue(resp.sdkHttpResponse().isSuccessful());
 
-        bulkCopy = new S3BulkCopy(() -> s3AsyncClient, migrationHelperDeploymentService, dir);
+        bulkCopy = new S3BulkCopy(() -> s3AsyncClient, migrationHelperDeploymentService, dir, reportManager);
     }
 
     private Path genRandFile() throws IOException {
@@ -122,11 +125,12 @@ class S3FilesystemMigrationServiceIT {
 
         Path file = genRandFile();
 
-        S3FilesystemMigrationService fsService = new S3FilesystemMigrationService(environment, fileSystemDownloader, migrationService, migrationRunner, attachmentListener, bulkCopy);
+        S3FilesystemMigrationService fsService = new S3FilesystemMigrationService(environment, fileSystemDownloader, migrationService, migrationRunner, attachmentListener, bulkCopy, reportManager);
 
         fsService.startMigration();
 
-        Assertions.assertNotEquals(FilesystemMigrationStatus.FAILED, fsService.getReport().getStatus());
+        FileSystemMigrationReport report = reportManager.getCurrentReport(ReportType.Filesystem);
+        Assertions.assertNotEquals(FilesystemMigrationStatus.FAILED, report.getStatus());
 
         HeadObjectRequest req = HeadObjectRequest.builder()
                 .bucket(bucket)
