@@ -88,6 +88,13 @@ class FinalSyncEndpoint(
                 .build()
     }
 
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/start/fs")
+    fun runFsSync(): Response {
+        return Response.accepted().build()
+    }
+
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     @GET

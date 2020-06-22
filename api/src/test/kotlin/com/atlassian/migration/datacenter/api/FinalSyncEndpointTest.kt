@@ -101,4 +101,9 @@ internal class FinalSyncEndpointTest {
         assertEquals(100, result.fs.downloaded)
     }
 
+    @Test
+    fun shouldStartFsSync() {
+        
+    }
+
 }
