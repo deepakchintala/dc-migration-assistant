@@ -14,21 +14,36 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useEffect } from 'react';
+import React, { FunctionComponent, useEffect, ReactNode } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { MigrationTransferPage } from '../../shared/MigrationTransferPage';
 import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
 import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
 import { MigrationStage } from '../../../api/migration';
-import { fsPath } from '../../../utils/RoutePaths';
+import { asiConfigurationPath, fsPath } from '../../../utils/RoutePaths';
+
+const buildErrorFromMessageAndUrl = (message: string, stackurl: string): ReactNode => {
+    return (
+        <>
+            <p>{I18n.getText('atlassian.migration.datacenter.provision.aws.error.header')}</p>
+            <p>{message}</p>
+            <p>
+                {I18n.getText('atlassian.migration.datacenter.provision.aws.error.callToConsole')}
+            </p>
+            <a href={stackurl} target="_blank" rel="noreferrer noopener">
+                {I18n.getText('atlassian.migration.datacenter.provision.aws.error.consoleLink')}
+            </a>
+        </>
+    );
+};
 
 const getDeploymentProgress: ProgressCallback = async () => {
     return provisioning
         .getProvisioningStatus()
         .then(result => {
             const builder = new ProgressBuilder();
-            switch (result) {
+            switch (result.status) {
                 case ProvisioningStatus.Complete:
                     builder.setPhase('Deployment Complete');
                     builder.setCompleteness(1);
@@ -45,6 +60,14 @@ const getDeploymentProgress: ProgressCallback = async () => {
                     builder.setPhase('Deploying migration infrastructure');
                     builder.setCompleteness(0.75);
                     break;
+                case ProvisioningStatus.Failed:
+                    builder.setPhase(
+                        I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
+                    );
+                    builder.setCompleteness(0);
+                    builder.setFailed(true);
+                    builder.setError(buildErrorFromMessageAndUrl(result.error, result.stackUrl));
+                    break;
                 default:
                     builder.setPhase(
                         I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
@@ -58,7 +81,7 @@ const getDeploymentProgress: ProgressCallback = async () => {
             builder.setPhase(
                 I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
             );
-            builder.setError(err.message);
+            builder.setError(JSON.stringify(err));
             builder.setCompleteness(0);
             builder.setFailed(true);
             return builder.build();
@@ -71,6 +94,7 @@ const inProgressStages = [
     MigrationStage.PROVISION_APPLICATION_WAIT,
     MigrationStage.PROVISION_MIGRATION_STACK,
     MigrationStage.PROVISION_MIGRATION_STACK_WAIT,
+    MigrationStage.ERROR,
 ];
 
 type DeploymentMode = {
@@ -113,6 +137,9 @@ export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ depl
             // This page is only rendered when provisioning has already started. The deployment will be started by the QuickstartDeploy page
             startMigrationPhase={Promise.resolve}
             nextRoute={fsPath}
+            onRetry={provisioning.retry}
+            retryText={I18n.getText('atlassian.migration.datacenter.provision.aws.retry.text')}
+            onRetryRoute={asiConfigurationPath}
         />
     );
 };
