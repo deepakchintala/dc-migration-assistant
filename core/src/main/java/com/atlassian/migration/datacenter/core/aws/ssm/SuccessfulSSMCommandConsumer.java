@@ -37,10 +37,16 @@ public abstract class SuccessfulSSMCommandConsumer<T> {
         this.instanceId = instanceId;
     }
 
+    public T handleCommandOutput() throws UnsuccessfulSSMCommandInvocationException, SSMCommandInvocationProcessingError {
+        return handleCommandOutput(0);
+    }
+
     public T handleCommandOutput(int maxCommandStatusRetries) throws UnsuccessfulSSMCommandInvocationException, SSMCommandInvocationProcessingError {
+        int attempt = 0;
         GetCommandInvocationResponse command = null;
-        for (int i = 0; i < maxCommandStatusRetries; i++) {
-            logger.debug("Checking delivery of s3 sync ssm command. Attempt {}", i);
+        do {
+            attempt++;
+            logger.debug("Checking delivery of s3 sync ssm command. Attempt {}", attempt);
 
             try {
                 command = ssmApi.getSSMCommand(commandId, instanceId);
@@ -50,6 +56,8 @@ public abstract class SuccessfulSSMCommandConsumer<T> {
 
                 if (status.equals(CommandInvocationStatus.SUCCESS)) {
                     return handleSuccessfulCommand(command);
+                } else if (status.equals(CommandInvocationStatus.FAILED)) {
+                    throw new UnsuccessfulSSMCommandInvocationException(String.format("SSM command %s failed with message: %s", commandId, command.statusDetails()));
                 }
             } catch (InvocationDoesNotExistException e) {
                 logger.debug("Command does not exist - maybe it hasn't reached the EC2 instance yet. Will continue retrying");
@@ -61,12 +69,20 @@ public abstract class SuccessfulSSMCommandConsumer<T> {
                 logger.error("interrupted while waiting for s3 sync ssm command to be delivered", e);
                 throw new UnsuccessfulSSMCommandInvocationException("Interrupted while waiting to check command status", e);
             }
-        }
+        } while (!isFinished(command.status()) || attempt == maxCommandStatusRetries);
+
         throw new UnsuccessfulSSMCommandInvocationException(
                 String.format(
                         "Command never completed successfully. Latest status is: %s. Latest response from SSM API is: %s",
                         command.status().toString(),
                         command.sdkHttpResponse().statusText()));
+    }
+
+    private boolean isFinished(CommandInvocationStatus status) {
+        return status.equals(CommandInvocationStatus.FAILED) ||
+                status.equals(CommandInvocationStatus.CANCELLED) ||
+                status.equals(CommandInvocationStatus.TIMED_OUT) ||
+                status.equals(CommandInvocationStatus.SUCCESS);
     }
 
     protected abstract T handleSuccessfulCommand(GetCommandInvocationResponse commandInvocation) throws SSMCommandInvocationProcessingError;
