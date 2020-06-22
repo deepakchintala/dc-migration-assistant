@@ -19,13 +19,14 @@ package com.atlassian.migration.datacenter.core.aws.db;
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.db.DatabaseMigrationJobRunner;
-import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
+import com.atlassian.migration.datacenter.core.fs.FileUploadException;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationErrorReport;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.scheduler.config.JobId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,11 +78,16 @@ public class DatabaseMigrationService {
 
         FileSystemMigrationErrorReport report;
 
-        String bucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
+        String bucketName = null;
+        try {
+            bucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            throw new DatabaseMigrationFailure("error getting migration bucket", infrastructureDeploymentError);
+        }
 
         try {
             report = s3UploadService.upload(pathToDatabaseFile, bucketName);
-        } catch (FilesystemUploader.FileUploadException e) {
+        } catch (FileUploadException e) {
             migrationService.error(e);
             throw new DatabaseMigrationFailure("Error when uploading database dump to S3", e);
         }

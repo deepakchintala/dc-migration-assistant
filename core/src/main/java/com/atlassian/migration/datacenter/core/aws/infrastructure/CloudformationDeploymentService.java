@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +69,9 @@ public abstract class CloudformationDeploymentService {
      * @param templateUrl the S3 url of the cloudformation template to deploy
      * @param stackName   the name for the cloudformation stack
      * @param params      the parameters for the cloudformation template
+     *
      */
-    protected void deployCloudformationStack(String templateUrl, String stackName, Map<String, String> params) {
+    protected void deployCloudformationStack(String templateUrl, String stackName, Map<String, String> params) throws InfrastructureDeploymentError {
         cfnApi.provisionStack(templateUrl, stackName, params);
         beginWatchingDeployment(stackName);
     }
@@ -77,14 +79,6 @@ public abstract class CloudformationDeploymentService {
     protected InfrastructureDeploymentState getDeploymentStatus(String stackName) {
         requireNonNull(stackName);
         InfrastructureDeploymentState status = cfnApi.getStatus(stackName);
-
-        if (isFailedToCreateDeploymentState(status)) {
-            //FIXME: implement getting a good error
-            String reason = cfnApi.getStackErrorRootCause(stackName).orElse("Deployment failed for unknown reason. Try checking the cloudformation console");
-            logger.error("discovered that cloudformation stack deployment failed when getting status. Reason is: {}", reason);
-            handleFailedDeployment(reason);
-            deploymentWatcher.cancel(true);
-        }
 
         return status;
     }

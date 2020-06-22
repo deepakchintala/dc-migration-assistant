@@ -22,14 +22,22 @@ export enum ProvisioningStatus {
     ProvisioningApplicationStack,
     PreProvisionMigrationStack,
     ProvisioningMigrationStack,
+    Failed,
     Complete,
 }
+
+type ProvisioningStatusResult = {
+    status: ProvisioningStatus;
+    error?: string;
+    stackUrl?: string;
+};
 
 enum RestApiPathConstants {
     GetDeploymentStatusPath = 'aws/stack/status',
     GetASIInfoPath = `aws/global-infrastructure/asi`,
     CreateStackPath = `aws/stack/create`,
     CleanupStackPath = `aws/cleanup`,
+    StackResetRestPath = `aws/stack/reset`,
 }
 
 type InfrastructureDeploymentState =
@@ -79,31 +87,37 @@ const deployInfra = (
 };
 
 export const provisioning = {
-    getProvisioningStatus: async (): Promise<ProvisioningStatus> => {
+    getProvisioningStatus: async (): Promise<ProvisioningStatusResult> => {
         return callAppRest('GET', RestApiPathConstants.GetDeploymentStatusPath)
             .then(resp => resp.json())
             .then(resp => {
                 if (resp.status) {
                     const statusResp = resp as StackStatusResponse;
-                    const { phase, status } = statusResp;
+                    const { phase, status, error, stackUrl } = statusResp;
                     switch (status) {
                         case 'PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT':
-                            return ProvisioningStatus.PreProvisionMigrationStack;
+                            return { status: ProvisioningStatus.PreProvisionMigrationStack };
                         case 'CREATE_IN_PROGRESS':
                             return phase === 'app_infra'
-                                ? ProvisioningStatus.ProvisioningApplicationStack
-                                : ProvisioningStatus.ProvisioningMigrationStack;
+                                ? { status: ProvisioningStatus.ProvisioningApplicationStack }
+                                : { status: ProvisioningStatus.ProvisioningMigrationStack };
                         case 'CREATE_COMPLETE':
                             if (phase === 'app_infra') {
-                                return ProvisioningStatus.PreProvisionMigrationStack;
+                                return { status: ProvisioningStatus.PreProvisionMigrationStack };
                             }
-                            return ProvisioningStatus.Complete;
+                            return { status: ProvisioningStatus.Complete };
                         case 'CREATE_FAILED':
-                            throw new Error(
-                                I18n.getText(
-                                    'atlassian.migration.datacenter.provision.aws.status.failed'
-                                )
-                            );
+                            return {
+                                status: ProvisioningStatus.Failed,
+                                error:
+                                    error ||
+                                    I18n.getText(
+                                        'atlassian.migration.datacenter.provision.aws.status.failed'
+                                    ),
+                                stackUrl:
+                                    stackUrl ||
+                                    'https://console.aws.amazon.com/cloudformation/home',
+                            };
                         default:
                             throw new Error(
                                 I18n.getText(
@@ -114,7 +128,7 @@ export const provisioning = {
                     }
                 }
                 if (resp.error) {
-                    // hanle error
+                    // handle error
                     const errorResponse = resp as StackStatusErrorResponse;
                     throw new Error(errorResponse.error);
                 }
@@ -155,5 +169,8 @@ export const provisioning = {
             }
             return Promise.reject();
         });
+    },
+    retry: async (): Promise<Response> => {
+        return callAppRest('POST', RestApiPathConstants.StackResetRestPath);
     },
 };
