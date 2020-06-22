@@ -21,7 +21,7 @@ import { MigrationTransferPage } from '../../shared/MigrationTransferPage';
 import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
 import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
 import { MigrationStage } from '../../../api/migration';
-import { fsPath } from '../../../utils/RoutePaths';
+import { asiConfigurationPath, fsPath } from '../../../utils/RoutePaths';
 
 const buildErrorFromMessageAndUrl = (message: string, stackurl: string): ReactNode => {
     return (
@@ -137,6 +137,9 @@ export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ depl
             // This page is only rendered when provisioning has already started. The deployment will be started by the QuickstartDeploy page
             startMigrationPhase={Promise.resolve}
             nextRoute={fsPath}
+            onRetry={provisioning.retry}
+            retryText={I18n.getText('atlassian.migration.datacenter.provision.aws.retry.text')}
+            onRetryRoute={asiConfigurationPath}
         />
     );
 };
