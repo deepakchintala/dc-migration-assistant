@@ -47,14 +47,14 @@ enum class MigrationStage {
         override val validAncestorStages = setOf(FS_MIGRATION_COPY)
     },
     FS_MIGRATION_ERROR {
-        override val validAncestorStages =  setOf(FS_MIGRATION_COPY, FS_MIGRATION_COPY_WAIT)
+        override val validAncestorStages = setOf(FS_MIGRATION_COPY, FS_MIGRATION_COPY_WAIT)
     },
     OFFLINE_WARNING {
         override val validAncestorStages = setOf(FS_MIGRATION_COPY_WAIT)
     },
 
     DB_MIGRATION_EXPORT {
-        override val validAncestorStages: Set<MigrationStage>
+        override val validAncestorStages
             get() = setOf(OFFLINE_WARNING, FINAL_SYNC_ERROR)
     },
     DB_MIGRATION_EXPORT_WAIT {
@@ -73,7 +73,8 @@ enum class MigrationStage {
         override val validAncestorStages = setOf(DATA_MIGRATION_IMPORT)
     },
     FINAL_SYNC_WAIT {
-        override val validAncestorStages = setOf(DATA_MIGRATION_IMPORT_WAIT)
+        override val validAncestorStages
+            get() = setOf(DATA_MIGRATION_IMPORT_WAIT, FINAL_SYNC_ERROR)
     },
     FINAL_SYNC_ERROR {
         override val validAncestorStages = setOf(DB_MIGRATION_EXPORT, DB_MIGRATION_EXPORT_WAIT, DB_MIGRATION_UPLOAD, DB_MIGRATION_UPLOAD_WAIT, DATA_MIGRATION_IMPORT, DATA_MIGRATION_IMPORT_WAIT, FINAL_SYNC_WAIT)
@@ -108,7 +109,6 @@ enum class MigrationStage {
     }
 
 
-
     fun isAfter(stage: MigrationStage): Boolean {
         return isAfter(stage, mutableSetOf())
     }
@@ -135,7 +135,7 @@ enum class MigrationStage {
             this.toString().startsWith("DB_")
 
     fun isErrorStage(): Boolean {
-        return when(this) {
+        return when (this) {
             ERROR, FS_MIGRATION_ERROR, PROVISIONING_ERROR, FINAL_SYNC_ERROR -> true
             else -> false
         }
