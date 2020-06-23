@@ -271,10 +271,10 @@ Resources:
                   SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
                   aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
                   echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
-                  PGPASSWORD=$SECRET_PASSWORD pg_restore -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
+                  PGPASSWORD=$SECRET_PASSWORD pg_restore -c --if-exists -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
                   PG_RESTORE_EXIT_CODE=$?
                   ERRORS_EXIST=`grep -qiE 'error|warning' $DB_DUMP_LOG_FILE && echo 'true' || echo 'false'`
-                  RESTORE_COMPLETE=`grep -qiE 'pg_restore: finished main parallel loop' $DB_DUMP_LOG_FILE && echo 'true' || echo 'false'`
+                  RESTORE_COMPLETE=`grep -qiE 'WARNING: errors ignored on restore:' $DB_DUMP_LOG_FILE && echo 'true' || echo 'false'`
                   echo -e "{\"is_restore_complete\":\""$RESTORE_COMPLETE"\",\"is_error_present\":\""$ERRORS_EXIST"\", "return_code":\""$PG_RESTORE_EXIT_CODE"\"}"
                 - {
                   SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password",
