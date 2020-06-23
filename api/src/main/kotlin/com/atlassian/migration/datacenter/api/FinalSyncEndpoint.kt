@@ -93,6 +93,7 @@ class FinalSyncEndpoint(
     fun retryFsSync(): Response {
         return when (migrationService.currentStage) {
             MigrationStage.FINAL_SYNC_ERROR -> {
+                migrationService.transition(MigrationStage.FINAL_SYNC_WAIT)
                 Response.status(if (finalSyncService.scheduleSync()) Response.Status.ACCEPTED else Response.Status.CONFLICT)
             }
             else -> Response.status(Response.Status.BAD_REQUEST)

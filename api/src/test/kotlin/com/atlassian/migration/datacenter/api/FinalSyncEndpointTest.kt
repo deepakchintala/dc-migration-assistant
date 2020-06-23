@@ -36,6 +36,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.justRun
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -114,6 +115,15 @@ internal class FinalSyncEndpointTest {
     }
 
     @Test
+    fun shouldTransitionToFinalSyncWaitWhenRestartingFSSync() {
+        givenFinalSyncHasFailed()
+        andFsRestartWillSucceed()
+        sut.retryFsSync()
+
+        verify { migrationService.transition(MigrationStage.FINAL_SYNC_WAIT) }
+    }
+
+    @Test
     fun shouldNotStartFsSyncWhenMigrationIsNotError() {
         every { migrationService.currentStage } returns MigrationStage.VALIDATE
 
@@ -144,6 +154,7 @@ internal class FinalSyncEndpointTest {
 
     private fun givenFinalSyncHasFailed() {
         every { migrationService.currentStage } returns MigrationStage.FINAL_SYNC_ERROR
+        justRun { migrationService.transition(MigrationStage.FINAL_SYNC_WAIT) }
     }
 
     private fun andFsRestartWillSucceed() {
