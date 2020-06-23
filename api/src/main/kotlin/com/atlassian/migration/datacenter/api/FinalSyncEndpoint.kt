@@ -89,7 +89,6 @@ class FinalSyncEndpoint(
     }
 
     @PUT
-    @Produces(MediaType.APPLICATION_JSON)
     @Path("/retry/fs")
     fun retryFsSync(): Response {
         return when (migrationService.currentStage) {
@@ -98,6 +97,13 @@ class FinalSyncEndpoint(
             }
             else -> Response.status(Response.Status.BAD_REQUEST)
         }.build()
+    }
+
+    @PUT
+    @Path("/retry/db")
+    fun retryDbMigration(): Response {
+        databaseMigrationService.scheduleMigration()
+        return Response.accepted().build()
     }
 
     @Path("/status")
