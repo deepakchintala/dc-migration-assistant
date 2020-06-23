@@ -92,8 +92,12 @@ class FinalSyncEndpoint(
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/retry/fs")
     fun retryFsSync(): Response {
-        finalSyncService.scheduleSync()
-        return Response.accepted().build()
+        return when (migrationService.currentStage) {
+            MigrationStage.FINAL_SYNC_ERROR -> {
+                Response.status(if (finalSyncService.scheduleSync()) Response.Status.ACCEPTED else Response.Status.CONFLICT)
+            }
+            else -> Response.status(Response.Status.BAD_REQUEST)
+        }.build()
     }
 
     @Path("/status")

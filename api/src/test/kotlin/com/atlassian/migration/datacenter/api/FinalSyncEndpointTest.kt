@@ -105,11 +105,46 @@ internal class FinalSyncEndpointTest {
 
     @Test
     fun shouldStartFsSync() {
-        every { s3FinalSyncService.scheduleSync() } returns true
+        givenFinalSyncHasFailed()
+        andFsRestartWillSucceed()
         val res = sut.retryFsSync()
-        assertEquals(Response.Status.ACCEPTED.statusCode, res.status)
+        assertResponseStatusIs(Response.Status.ACCEPTED, res)
 
         verify { s3FinalSyncService.scheduleSync() }
+    }
+
+    @Test
+    fun shouldNotStartFsSyncWhenMigrationIsNotError() {
+        every { migrationService.currentStage } returns MigrationStage.VALIDATE
+
+        val res = sut.retryFsSync()
+        assertResponseStatusIs(Response.Status.BAD_REQUEST, res)
+        verify(exactly = 0) { s3FinalSyncService.scheduleSync() }
+    }
+
+    @Test
+    fun shouldReturnConflictWhenFsSyncCantBeStarted() {
+        givenFinalSyncHasFailed()
+        andFsRestartWillFail()
+
+        val res = sut.retryFsSync()
+        assertResponseStatusIs(Response.Status.CONFLICT, res)
+    }
+
+    private fun givenFinalSyncHasFailed() {
+        every { migrationService.currentStage } returns MigrationStage.FINAL_SYNC_ERROR
+    }
+
+    private fun andFsRestartWillSucceed() {
+        every { s3FinalSyncService.scheduleSync() } returns true
+    }
+
+    private fun andFsRestartWillFail() {
+        every { s3FinalSyncService.scheduleSync() } returns false
+    }
+
+    private fun assertResponseStatusIs(status: Response.Status, res: Response) {
+        assertEquals(status.statusCode, res.status)
     }
 
 }
