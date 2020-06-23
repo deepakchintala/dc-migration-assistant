@@ -39,6 +39,8 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
+typealias MigrationOperation = () -> Boolean
+
 @Path("/migration/final-sync")
 class FinalSyncEndpoint(
         private val databaseMigrationService: DatabaseMigrationService,
@@ -91,25 +93,13 @@ class FinalSyncEndpoint(
     @PUT
     @Path("/retry/fs")
     fun retryFsSync(): Response {
-        return when (migrationService.currentStage) {
-            MigrationStage.FINAL_SYNC_ERROR -> {
-                migrationService.transition(MigrationStage.FINAL_SYNC_WAIT)
-                Response.status(if (finalSyncService.scheduleSync()) Response.Status.ACCEPTED else Response.Status.CONFLICT)
-            }
-            else -> Response.status(Response.Status.BAD_REQUEST)
-        }.build()
+        return retryMigrationOperation(finalSyncService::scheduleSync, MigrationStage.FINAL_SYNC_WAIT)
     }
 
     @PUT
     @Path("/retry/db")
     fun retryDbMigration(): Response {
-        return when (migrationService.currentStage) {
-            MigrationStage.FINAL_SYNC_ERROR -> {
-                migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT)
-                Response.status(if (databaseMigrationService.scheduleMigration()) Response.Status.ACCEPTED else Response.Status.CONFLICT)
-            }
-            else -> Response.status(Response.Status.BAD_REQUEST)
-        }.build()
+        return retryMigrationOperation(databaseMigrationService::scheduleMigration, MigrationStage.DB_MIGRATION_EXPORT)
     }
 
     @Path("/status")
@@ -170,5 +160,15 @@ class FinalSyncEndpoint(
             return Response.status(Response.Status.CONFLICT).entity(mapOf("error" to "SSM command wasn't executed"))
                     .build()
         }
+    }
+
+    private fun retryMigrationOperation(op: MigrationOperation, operationStartStage: MigrationStage): Response {
+        return when (migrationService.currentStage) {
+            MigrationStage.FINAL_SYNC_ERROR -> {
+                migrationService.transition(operationStartStage)
+                Response.status(if (op.invoke()) Response.Status.ACCEPTED else Response.Status.CONFLICT)
+            }
+            else -> Response.status(Response.Status.BAD_REQUEST)
+        }.build()
     }
 }
