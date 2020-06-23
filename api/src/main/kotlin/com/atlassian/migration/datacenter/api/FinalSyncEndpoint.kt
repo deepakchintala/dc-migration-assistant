@@ -90,8 +90,9 @@ class FinalSyncEndpoint(
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/start/fs")
-    fun runFsSync(): Response {
+    @Path("/retry/fs")
+    fun retryFsSync(): Response {
+        finalSyncService.scheduleSync()
         return Response.accepted().build()
     }
 

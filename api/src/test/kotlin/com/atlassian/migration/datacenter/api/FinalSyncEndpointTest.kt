@@ -36,10 +36,12 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Duration
 import java.util.Optional
+import javax.ws.rs.core.Response
 import kotlin.test.assertEquals
 
 
@@ -103,7 +105,11 @@ internal class FinalSyncEndpointTest {
 
     @Test
     fun shouldStartFsSync() {
-        
+        every { s3FinalSyncService.scheduleSync() } returns true
+        val res = sut.retryFsSync()
+        assertEquals(Response.Status.ACCEPTED.statusCode, res.status)
+
+        verify { s3FinalSyncService.scheduleSync() }
     }
 
 }
