@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws.db.restore;
 
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.ApplicationRestartService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
@@ -49,12 +50,15 @@ class SsmPsqlDatabaseRestoreServiceTest {
 
     @Mock
     AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    
+    @Mock
+    ApplicationRestartService applicationRestartService;        
 
     SsmPsqlDatabaseRestoreService sut;
 
     @BeforeEach
     void setUp() {
-        sut = new SsmPsqlDatabaseRestoreService(ssmApi, 1, migrationHelperDeploymentService, callback);
+        sut = new SsmPsqlDatabaseRestoreService(ssmApi, 1, migrationHelperDeploymentService, callback, applicationRestartService);
     }
 
     @Test

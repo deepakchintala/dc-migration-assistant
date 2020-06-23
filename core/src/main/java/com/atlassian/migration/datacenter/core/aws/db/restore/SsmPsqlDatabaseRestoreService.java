@@ -18,17 +18,18 @@ package com.atlassian.migration.datacenter.core.aws.db.restore;
 
 import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.ApplicationRestartService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.aws.ssm.SuccessfulSSMCommandConsumer;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.EnsureSuccessfulSSMCommandConsumer;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.exceptions.JiraRestartFailure;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
-
 import java.util.Collections;
 
 public class SsmPsqlDatabaseRestoreService {
@@ -40,21 +41,23 @@ public class SsmPsqlDatabaseRestoreService {
     private final SSMApi ssm;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
     private final MigrationStageCallback migrationStageCallback;
+    private final ApplicationRestartService applicationRestartService;
 
     private final String restoreDocumentName = "restoreDatabaseBackupToRDS";
     private String commandId;
 
     SsmPsqlDatabaseRestoreService(SSMApi ssm, int maxCommandRetries,
-                                  AWSMigrationHelperDeploymentService migrationHelperDeploymentService, MigrationStageCallback migrationStageCallback) {
+                                  AWSMigrationHelperDeploymentService migrationHelperDeploymentService, MigrationStageCallback migrationStageCallback, ApplicationRestartService applicationRestartService) {
         this.ssm = ssm;
         this.maxCommandRetries = maxCommandRetries;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
         this.migrationStageCallback = migrationStageCallback;
+        this.applicationRestartService = applicationRestartService;
     }
 
     public SsmPsqlDatabaseRestoreService(SSMApi ssm,
-                                         AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback migrationStageCallback) {
-        this(ssm, 10, migrationHelperDeploymentService, migrationStageCallback);
+                                         AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback migrationStageCallback, ApplicationRestartService applicationRestartService) {
+        this(ssm, 10, migrationHelperDeploymentService, migrationStageCallback, applicationRestartService);
     }
 
     public void restoreDatabase()
@@ -78,7 +81,13 @@ public class SsmPsqlDatabaseRestoreService {
 
         SuccessfulSSMCommandConsumer consumer = new EnsureSuccessfulSSMCommandConsumer(ssm, commandId,
                 migrationInstanceId);
-
+        
+        try {
+            applicationRestartService.restartJiraService();
+        } catch (JiraRestartFailure jiraRestartFailure) {
+            throw new JiraRestartFailure("Error when trying to restart Jira service", jiraRestartFailure);
+        }
+        
         migrationStageCallback.transitionToServiceWaitStage();
 
         try {
@@ -92,7 +101,8 @@ public class SsmPsqlDatabaseRestoreService {
             throw new DatabaseMigrationFailure(errorMessage, e);
         }
     }
-
+    
+    
     public SsmCommandResult fetchCommandResult() throws SsmCommandNotInitialisedException {
         if (getCommandId() == null) {
             throw new SsmCommandNotInitialisedException("SSM command was not executed");
