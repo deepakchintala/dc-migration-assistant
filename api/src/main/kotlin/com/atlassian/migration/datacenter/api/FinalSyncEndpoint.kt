@@ -105,6 +105,7 @@ class FinalSyncEndpoint(
     fun retryDbMigration(): Response {
         return when (migrationService.currentStage) {
             MigrationStage.FINAL_SYNC_ERROR -> {
+                migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT)
                 Response.status(if (databaseMigrationService.scheduleMigration()) Response.Status.ACCEPTED else Response.Status.CONFLICT)
             }
             else -> Response.status(Response.Status.BAD_REQUEST)

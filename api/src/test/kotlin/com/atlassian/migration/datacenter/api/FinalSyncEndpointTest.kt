@@ -153,6 +153,15 @@ internal class FinalSyncEndpointTest {
     }
 
     @Test
+    fun shouldTransitionToDbMigrationExportWhenRestartingDbMigration() {
+        givenFinalSyncHasFailed()
+        andDbRestartWillSucceed()
+
+        sut.retryDbMigration()
+        verify { migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT) }
+    }
+
+    @Test
     fun shouldNotStartDbMigrationWhenMigrationIsNotError() {
         givenMigrationHasSucceeded()
 
@@ -165,7 +174,7 @@ internal class FinalSyncEndpointTest {
     fun shouldReturnConflictWhenDbMigrationCantBeRestarted() {
         givenFinalSyncHasFailed()
         andDbRestartWillFail()
-        
+
         val res = sut.retryDbMigration()
         assertResponseStatusIs(Response.Status.CONFLICT, res)
     }
@@ -177,6 +186,7 @@ internal class FinalSyncEndpointTest {
     private fun givenFinalSyncHasFailed() {
         every { migrationService.currentStage } returns MigrationStage.FINAL_SYNC_ERROR
         justRun { migrationService.transition(MigrationStage.FINAL_SYNC_WAIT) }
+        justRun { migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT) }
     }
 
     private fun andFsRestartWillSucceed() {
