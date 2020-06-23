@@ -161,6 +161,15 @@ internal class FinalSyncEndpointTest {
         verify(exactly = 0) { databaseMigrationService.scheduleMigration() }
     }
 
+    @Test
+    fun shouldReturnConflictWhenDbMigrationCantBeRestarted() {
+        givenFinalSyncHasFailed()
+        andDbRestartWillFail()
+        
+        val res = sut.retryDbMigration()
+        assertResponseStatusIs(Response.Status.CONFLICT, res)
+    }
+
     private fun givenMigrationHasSucceeded() {
         every { migrationService.currentStage } returns MigrationStage.VALIDATE
     }
