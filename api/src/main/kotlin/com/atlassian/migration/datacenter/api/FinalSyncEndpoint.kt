@@ -103,8 +103,13 @@ class FinalSyncEndpoint(
     @PUT
     @Path("/retry/db")
     fun retryDbMigration(): Response {
-        databaseMigrationService.scheduleMigration()
-        return Response.accepted().build()
+        return when (migrationService.currentStage) {
+            MigrationStage.FINAL_SYNC_ERROR -> {
+                databaseMigrationService.scheduleMigration()
+                Response.status(Response.Status.ACCEPTED)
+            }
+            else -> Response.status(Response.Status.BAD_REQUEST)
+        }.build()
     }
 
     @Path("/status")

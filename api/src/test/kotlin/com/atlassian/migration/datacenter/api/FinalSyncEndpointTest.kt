@@ -125,7 +125,7 @@ internal class FinalSyncEndpointTest {
 
     @Test
     fun shouldNotStartFsSyncWhenMigrationIsNotError() {
-        every { migrationService.currentStage } returns MigrationStage.VALIDATE
+        givenMigrationHasSucceeded()
 
         val res = sut.retryFsSync()
         assertResponseStatusIs(Response.Status.BAD_REQUEST, res)
@@ -150,6 +150,19 @@ internal class FinalSyncEndpointTest {
 
         assertResponseStatusIs(Response.Status.ACCEPTED, res)
         verify { databaseMigrationService.scheduleMigration() }
+    }
+
+    @Test
+    fun shouldNotStartDbMigrationWhenMigrationIsNotError() {
+        givenMigrationHasSucceeded()
+
+        val res = sut.retryDbMigration()
+        assertResponseStatusIs(Response.Status.BAD_REQUEST, res)
+        verify(exactly = 0) { databaseMigrationService.scheduleMigration() }
+    }
+
+    private fun givenMigrationHasSucceeded() {
+        every { migrationService.currentStage } returns MigrationStage.VALIDATE
     }
 
     private fun givenFinalSyncHasFailed() {
