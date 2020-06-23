@@ -93,13 +93,21 @@ class FinalSyncEndpoint(
     @PUT
     @Path("/retry/fs")
     fun retryFsSync(): Response {
-        return retryMigrationOperation(finalSyncService::scheduleSync, MigrationStage.FINAL_SYNC_WAIT)
+        try {
+            finalSyncService.abortMigration()
+        } finally {
+            return retryMigrationOperation(finalSyncService::scheduleSync, MigrationStage.FINAL_SYNC_WAIT)
+        }
     }
 
     @PUT
     @Path("/retry/db")
     fun retryDbMigration(): Response {
-        return retryMigrationOperation(databaseMigrationService::scheduleMigration, MigrationStage.DB_MIGRATION_EXPORT)
+        try {
+            databaseMigrationService.abortMigration()
+        } finally {
+            return retryMigrationOperation(databaseMigrationService::scheduleMigration, MigrationStage.DB_MIGRATION_EXPORT)
+        }
     }
 
     @Path("/status")
