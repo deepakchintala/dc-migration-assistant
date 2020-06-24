@@ -25,7 +25,7 @@ class RemoteInstanceCommandRunnerServiceTest {
 
     /*
      * Unfortunately the standard way we run localstack from the tests (@LocalstackDockerProperties) themselves is not 
-     * exposing the EC2 port 4592 (EC2) and so we get connection refused errors. As a workaround start localstack using 
+     * exposing the EC2 port 4597 (EC2) and so we get connection refused errors. As a workaround start localstack using 
      * docker-compose before running the tests
      *
      * Run in this way 4597 accepts incoming requests and the tests pass.
