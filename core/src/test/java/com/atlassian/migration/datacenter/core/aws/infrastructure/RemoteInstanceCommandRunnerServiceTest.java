@@ -5,6 +5,7 @@ import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSyst
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -53,10 +54,15 @@ class RemoteInstanceCommandRunnerServiceTest {
 
     private RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService;
 
+    @BeforeAll
+    public static void setup() throws InterruptedException {
+        localstackForEc2.start();
+        //Wait for container to come up
+        Thread.sleep(10000);
+    }
+
     @BeforeEach
     public void setUp() {
-        localstackForEc2.start();
-        
         ec2Client = Ec2Client.builder()
                 .credentialsProvider(mockCredentialsProvider)
                 .endpointOverride(URI.create(LOCAL_EC2_ENDPOINT))
