@@ -98,7 +98,7 @@
                 <version>${amps.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <jvmArgs>${amps.jvm.args} -Dspring.profiles.active=${amps.spring.profiles}</jvmArgs>
+                    <jvmArgs>${amps.jvm.args}</jvmArgs>
                     <enableQuickReload>true</enableQuickReload>
                     <instructions>
                         <Atlassian-Plugin-Key>${atlassian.plugin.key}</Atlassian-Plugin-Key>

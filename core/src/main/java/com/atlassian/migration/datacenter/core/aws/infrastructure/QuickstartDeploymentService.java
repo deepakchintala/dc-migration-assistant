@@ -153,7 +153,6 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
             if (!maybeStack.isPresent()) {
                 throw new InfrastructureDeploymentError("could not get details of application stack after deploying it");
             }
-
             Stack applicationStack = maybeStack.get();
             Map<String, String> applicationStackOutputsMap = new HashMap<>();
             applicationStack.outputs().forEach(output -> applicationStackOutputsMap.put(output.outputKey(), output.outputValue()));
