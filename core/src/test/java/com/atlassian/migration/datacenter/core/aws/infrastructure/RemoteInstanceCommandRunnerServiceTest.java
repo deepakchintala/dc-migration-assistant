@@ -4,7 +4,6 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -32,17 +31,8 @@ import static org.mockito.Mockito.*;
 @Disabled
 class RemoteInstanceCommandRunnerServiceTest {
     private static final String LOCAL_EC2_ENDPOINT = "http://localhost:4597";
-    
-//TODO: Tried to replicate "docker run -p 4597:4597 -e SERVICES=ec2 -e DEFAULT_REGION=us-east-1 localstack/localstack" via the code below, however we still
-//encounter connection refused errors on 4592    
-//    private static Map<String, String> envs  = new HashMap<String, String>() {{
-//        put("SERVICES", "ec2");
-//        put("DEFAULT_REGION", "us-east-1");
-//    }};
-//
-//    private static final GenericContainer AwsEc2Instance = new GenericContainer("localstack/localstack:0.11.2")
-//            .withExposedPorts(4597)
-//            .withEnv(envs);
+    public static final String JIRA_STACK_NAME = "JIRA_STACK_001";
+
     @Mock
     MigrationContext migrationContext;
 
@@ -55,14 +45,13 @@ class RemoteInstanceCommandRunnerServiceTest {
     @Mock
     SSMApi ssmApi;
 
+    @Mock
     private Ec2Client ec2Client;
 
     private RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService;
 
     @BeforeEach
     public void setUp() {
-//        AwsEc2Instance.start();
-
         ec2Client = Ec2Client.builder()
                 .credentialsProvider(mockCredentialsProvider)
                 .endpointOverride(URI.create(LOCAL_EC2_ENDPOINT))
@@ -82,26 +71,52 @@ class RemoteInstanceCommandRunnerServiceTest {
         });
         createEC2Instance(ec2Client);
     }
-
+    
     @Test
-    public void shouldCallRestartOnStackInstances() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
+    public void shouldCallRestartOnStackInstance() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
         when(migrationService.getCurrentContext()).thenReturn(migrationContext);
-        when(migrationContext.getApplicationDeploymentId()).thenReturn("JIRA_STACK_001");
+        when(migrationContext.getApplicationDeploymentId()).thenReturn(JIRA_STACK_NAME);
         remoteInstanceCommandRunnerService.restartJiraService();
         verify(ssmApi, times(1)).runSSMDocument(anyString(), anyString(), any());
     }
     
     @Test
-    public void shouldNotCallRestartOnStackInstances() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
+    public void shouldNotCallRestartOnStackInstanceIfMigrationStackNotFound() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
         when(migrationService.getCurrentContext()).thenReturn(migrationContext);
-        when(migrationContext.getApplicationDeploymentId()).thenReturn("NON_EXISTENT_STACK");
+        when(migrationContext.getApplicationDeploymentId()).thenReturn("NOT_JIRA_STACK");
         remoteInstanceCommandRunnerService.restartJiraService();
         verify(ssmApi, times(0)).runSSMDocument(anyString(), anyString(), any());
     }
 
-    public void  createEC2Instance(Ec2Client ec2) {
+    @Test
+    public void shouldNotPerformRestartIfNoEc2ClientAvailable() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
+        remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> null);
+        when(migrationService.getCurrentContext()).thenReturn(migrationContext);
+        when(migrationContext.getApplicationDeploymentId()).thenReturn(JIRA_STACK_NAME);
+        remoteInstanceCommandRunnerService.restartJiraService();
+        verify(ssmApi, times(0)).runSSMDocument(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void shouldNotPerformRestartIfMigrationContextIsNull() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
+        remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
+        when(migrationService.getCurrentContext()).thenReturn(null);
+        remoteInstanceCommandRunnerService.restartJiraService();
+        verify(ssmApi, times(0)).runSSMDocument(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void shouldNotPerformRestartIfDeploymentIdIsNull() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
+        remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
+        when(migrationService.getCurrentContext()).thenReturn(migrationContext);
+        when(migrationContext.getApplicationDeploymentId()).thenReturn(null);
+        remoteInstanceCommandRunnerService.restartJiraService();
+        verify(ssmApi, times(0)).runSSMDocument(anyString(), anyString(), any());
+    }
+
+    private void createEC2Instance(Ec2Client ec2) {
 
         RunInstancesRequest runRequest = RunInstancesRequest.builder()
                 .imageId("ami-031a03cb800ecb0d5")
