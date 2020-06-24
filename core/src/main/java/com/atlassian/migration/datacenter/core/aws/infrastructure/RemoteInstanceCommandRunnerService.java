@@ -61,7 +61,9 @@ public class RemoteInstanceCommandRunnerService {
     private DescribeInstancesResponse describeInstances(String stackName, Ec2Client ec2Client) {
         return ec2Client.describeInstances(builder -> {
                 builder.filters(Filter.builder()
-                        .name("tag:aws:cloudformation:stack-name")
+                        .name("tag-key")
+                        .values("tag:aws:cloudformation:stack-name")
+                        .name("tag-value")
                         .values(stackName)
                         .build()
                 );
