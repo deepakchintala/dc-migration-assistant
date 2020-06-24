@@ -29,6 +29,7 @@ import static org.mockito.Mockito.*;
  */
 
 @ExtendWith({MockitoExtension.class})
+@Disabled
 class RemoteInstanceCommandRunnerServiceTest {
     private static final String LOCAL_EC2_ENDPOINT = "http://localhost:4597";
     
@@ -81,10 +82,8 @@ class RemoteInstanceCommandRunnerServiceTest {
         });
         createEC2Instance(ec2Client);
     }
-    
 
     @Test
-    @Ignore
     public void shouldCallRestartOnStackInstances() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
         when(migrationService.getCurrentContext()).thenReturn(migrationContext);
@@ -92,9 +91,8 @@ class RemoteInstanceCommandRunnerServiceTest {
         remoteInstanceCommandRunnerService.restartJiraService();
         verify(ssmApi, times(1)).runSSMDocument(anyString(), anyString(), any());
     }
-
+    
     @Test
-    @Ignore
     public void shouldNotCallRestartOnStackInstances() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
         when(migrationService.getCurrentContext()).thenReturn(migrationContext);
