@@ -87,6 +87,18 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
         );
     }
 
+    if (fs.failed) {
+        builder.setFailed(true);
+        builder.setError(
+            <p>
+                {I18n.getText('atlassian.migration.datacenter.sync.fs.download.error', fs.failed)}
+                <a href="https://status.aws.amazon.com/" target="_blank" rel="noreferrer noopener">
+                    {I18n.getText('atlassian.migration.datacenter.common.aws.status')}
+                </a>
+            </p>
+        );
+    }
+
     return builder.build();
 };
 
