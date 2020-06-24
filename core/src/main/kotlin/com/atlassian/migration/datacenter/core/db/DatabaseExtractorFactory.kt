@@ -27,10 +27,6 @@ object DatabaseExtractorFactory {
             return PostgresExtractor(config)
         }
 
-        //Profile scoped perhaps?
-        if (config.databaseConfiguration.type == DBType.H2) {
-            return UnSupportedDatabaseExtractor()
-        }
-        throw DatabaseMigrationFailure("Unsupported database type: " + config.databaseConfiguration.type)
+        return UnSupportedDatabaseExtractor()
     }
 }
