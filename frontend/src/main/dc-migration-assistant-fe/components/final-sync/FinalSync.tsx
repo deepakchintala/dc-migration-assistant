@@ -64,7 +64,7 @@ const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => 
 
 const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
     const { fs, db } = status;
-    const { downloaded, uploaded, hasProgressedToNextStage } = fs;
+    const { downloaded, uploaded, failed, hasProgressedToNextStage } = fs;
     const builder = new ProgressBuilder();
     builder.setPhase(I18n.getText('atlassian.migration.datacenter.sync.fs.phase'));
     // FIXME: This time will be wrong when one of the components of final sync completes
@@ -87,7 +87,7 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
         );
     }
 
-    if (fs.failed) {
+    if (failed) {
         builder.setFailed(true);
         builder.setError(
             <p>
