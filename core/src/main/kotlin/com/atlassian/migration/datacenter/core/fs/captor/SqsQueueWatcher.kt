@@ -43,6 +43,7 @@ class SqsQueueWatcher(private val sqsAPi: SqsApi,
         try {
             val completableFuture = this.awaitRunnableToComplete(::checkForStateToBeInFsSyncAwait)
                     .thenCompose { awaitRunnableToComplete(::checkForQueueToBeEmpty) }
+                    .thenCompose { awaitRunnableToComplete(::checkForStateToBeInFsSyncAwait) }
                     .thenApply {
                         migrationService.transition(VALIDATE)
                     }
