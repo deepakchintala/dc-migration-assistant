@@ -2,7 +2,6 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.spi.MigrationService;
-import com.atlassian.migration.datacenter.spi.exceptions.JiraRestartFailure;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,7 @@ public class RemoteInstanceCommandRunnerService {
         this.ec2ClientSupplier = ec2ClientSupplier;
     }
     
-    public void restartJiraService() throws JiraRestartFailure {
+    public void restartJiraService() {
         String stackName = migrationService.getCurrentContext().getApplicationDeploymentId();
         Ec2Client ec2Client = ec2ClientSupplier.get();
         DescribeInstancesResponse ec2InstanceMetaData = describeInstances(stackName, ec2Client);

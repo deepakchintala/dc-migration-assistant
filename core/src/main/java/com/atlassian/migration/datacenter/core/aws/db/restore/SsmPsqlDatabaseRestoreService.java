@@ -25,7 +25,6 @@ import com.atlassian.migration.datacenter.core.fs.download.s3sync.EnsureSuccessf
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
-import com.atlassian.migration.datacenter.spi.exceptions.JiraRestartFailure;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +100,6 @@ public class SsmPsqlDatabaseRestoreService {
             throw new DatabaseMigrationFailure(errorMessage, e);
         }
     }
-    
     
     public SsmCommandResult fetchCommandResult() throws SsmCommandNotInitialisedException {
         if (getCommandId() == null) {
