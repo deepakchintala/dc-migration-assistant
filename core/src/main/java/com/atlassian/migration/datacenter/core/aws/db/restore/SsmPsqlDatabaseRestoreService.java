@@ -81,11 +81,7 @@ public class SsmPsqlDatabaseRestoreService {
         SuccessfulSSMCommandConsumer consumer = new EnsureSuccessfulSSMCommandConsumer(ssm, commandId,
                 migrationInstanceId);
         
-        try {
-            remoteInstanceCommandRunnerService.restartJiraService();
-        } catch (Exception e) {
-            logger.error("Error when trying to restart the Jira service", e);
-        }
+        remoteInstanceCommandRunnerService.restartJiraService();
         
         migrationStageCallback.transitionToServiceWaitStage();
 
