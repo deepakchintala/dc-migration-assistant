@@ -54,7 +54,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
 
     @BeforeEach
     void setUp() {
-        sut = new SsmPsqlDatabaseRestoreService(ssmApi, 1, migrationHelperDeploymentService, callback);
+        sut = new SsmPsqlDatabaseRestoreService(ssmApi, migrationHelperDeploymentService, callback);
     }
 
     @Test
