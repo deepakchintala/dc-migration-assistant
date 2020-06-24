@@ -82,6 +82,7 @@ public abstract class SuccessfulSSMCommandConsumer<T> {
         return status.equals(CommandInvocationStatus.FAILED) ||
                 status.equals(CommandInvocationStatus.CANCELLED) ||
                 status.equals(CommandInvocationStatus.TIMED_OUT) ||
+                status.equals(CommandInvocationStatus.DELAYED) ||
                 status.equals(CommandInvocationStatus.SUCCESS);
     }
 
