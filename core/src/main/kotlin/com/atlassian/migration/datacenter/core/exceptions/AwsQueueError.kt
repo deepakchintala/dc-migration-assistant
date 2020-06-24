@@ -26,7 +26,5 @@ open class AwsQueueError : Exception {
 
 class AwsQueueConnectionException(message: String, cause: Throwable) : AwsQueueError(message, cause)
 class AwsQueueApiUnsuccessfulResponse(message: String) : AwsQueueError(message)
-class AwsQueueBadRequestError : AwsQueueError {
-    constructor(message: String) : super(message)
-    constructor(message: String, throwable: Throwable) : super(message, throwable)
+class AwsQueueBadRequestError(message: String) : AwsQueueError(message) {
 }
