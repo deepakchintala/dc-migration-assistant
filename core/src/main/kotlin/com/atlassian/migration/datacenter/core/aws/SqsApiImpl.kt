@@ -23,13 +23,16 @@ import com.atlassian.migration.datacenter.core.exceptions.AwsQueueError
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest
+import software.amazon.awssdk.services.sqs.model.PurgeQueueInProgressException
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE
+import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException
+import java.util.concurrent.ExecutionException
 import java.util.function.Supplier
 
 class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsApi {
-
     companion object {
+
         private val logger = LoggerFactory.getLogger(SqsApiImpl::class.java)
     }
 
@@ -66,4 +69,30 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
             }
         }
     }
+
+    override fun emptyQueue(queueUrl: String) {
+        val defaultErrorMessage = "failed to purge dead letter queue. duplicate errors may be reported"
+        try {
+            val response = sqsClientSupplier.get().purgeQueue { it.queueUrl(queueUrl) }.get()
+            if (!response.sdkHttpResponse().isSuccessful) {
+                throw AwsQueueError(defaultErrorMessage)
+            }
+        } catch (e: Exception) {
+            when (e.cause) {
+                is ExecutionException -> {
+                    val execExc = e.cause as ExecutionException
+                    when(execExc.cause) {
+                        is QueueDoesNotExistException -> return
+                        is PurgeQueueInProgressException -> return
+                        null -> throw AwsQueueError(execExc)
+                        else -> throw AwsQueueError(execExc.cause as Throwable)
+                    }
+                }
+                is AwsQueueError -> throw e.cause as AwsQueueError
+                else -> throw AwsQueueError(defaultErrorMessage, e)
+            }
+        }
+    }
+
+
 }
