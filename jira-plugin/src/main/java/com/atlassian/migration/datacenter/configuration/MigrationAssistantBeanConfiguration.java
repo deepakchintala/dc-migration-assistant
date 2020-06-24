@@ -42,6 +42,7 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreSta
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.RemoteInstanceCommandRunnerService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSCleanupTaskFactory;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationInfrastructureCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService;
@@ -62,7 +63,6 @@ import com.atlassian.migration.datacenter.core.exceptions.AwsQueueError;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
-import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
 import com.atlassian.migration.datacenter.core.fs.S3UploaderFactory;
@@ -95,6 +95,7 @@ import org.springframework.core.env.Environment;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -153,6 +154,13 @@ public class MigrationAssistantBeanConfiguration {
                 .build();
     }
 
+    @Bean Supplier<Ec2Client> ec2Client(AwsCredentialsProvider awsCredentialsProvider, RegionService regionService){
+        return () -> Ec2Client.builder()
+                .credentialsProvider(awsCredentialsProvider)
+                .region(Region.of(regionService.getRegion()))
+                .build();
+    }
+    
     @Bean
     public AwsCredentialsProvider awsCredentialsProvider(ReadCredentialsService readCredentialsService) {
         return new AtlassianPluginAWSCredentialsProvider(readCredentialsService);
@@ -221,10 +229,15 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) {
-        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService, restoreStageTransitionCallback);
+    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback, RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService) {
+        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService, restoreStageTransitionCallback, remoteInstanceCommandRunnerService);
     }
-
+    
+    @Bean
+    public RemoteInstanceCommandRunnerService applicationRestartService(SSMApi ssm, Supplier<Ec2Client> ec2ClientSupplier, MigrationService migrationService){
+        return new RemoteInstanceCommandRunnerService(ssm, migrationService, ec2ClientSupplier);
+    }
+    
     @Bean
     public DatabaseMigrationService databaseMigrationService(MigrationService migrationService,
                                                              MigrationRunner migrationRunner,

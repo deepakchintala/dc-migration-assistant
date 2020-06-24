@@ -22,6 +22,7 @@ import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.RemoteInstanceCommandRunnerService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
@@ -98,6 +99,8 @@ class DatabaseMigrationServiceIT {
     private MigrationRunner migrationRunner;
     @Mock
     AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    @Mock
+    RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -141,7 +144,7 @@ class DatabaseMigrationServiceIT {
 
         DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback  = new DatabaseRestoreStageTransitionCallback(this.migrationService);
 
-        SsmPsqlDatabaseRestoreService restoreService = new SsmPsqlDatabaseRestoreService(ssmApi, migrationHelperDeploymentService, restoreStageTransitionCallback);
+        SsmPsqlDatabaseRestoreService restoreService = new SsmPsqlDatabaseRestoreService(ssmApi, migrationHelperDeploymentService, restoreStageTransitionCallback, remoteInstanceCommandRunnerService);
 
         DatabaseMigrationService service = new DatabaseMigrationService(tempDir,
                 migrationService,
