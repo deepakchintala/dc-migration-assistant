@@ -36,10 +36,13 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.justRun
+import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Duration
 import java.util.Optional
+import javax.ws.rs.core.Response
 import kotlin.test.assertEquals
 
 
@@ -76,7 +79,7 @@ internal class FinalSyncEndpointTest {
     fun shouldReportDbSyncStatus() {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(20))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
-        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0)
+        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0, 0)
 
         val resp = sut.getMigrationStatus()
         val json = resp.entity as String
@@ -91,14 +94,120 @@ internal class FinalSyncEndpointTest {
     fun shouldReportFsSyncStatus() {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(0))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
-        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50)
+        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50, 12)
 
         val resp = sut.getMigrationStatus()
         val json = resp.entity as String
 
         val result = mapper.readValue<FinalSyncEndpoint.FinalSyncStatus>(json)
         assertEquals(150, result.fs.uploaded)
-        assertEquals(100, result.fs.downloaded)
+        assertEquals(88, result.fs.downloaded)
+        assertEquals(12, result.fs.failed)
+    }
+
+    @Test
+    fun shouldRestartFsSync() {
+        givenFinalSyncHasFailed()
+        andFsRestartWillSucceed()
+        val res = sut.retryFsSync()
+        assertResponseStatusIs(Response.Status.ACCEPTED, res)
+
+        verify { s3FinalSyncService.scheduleSync() }
+    }
+
+    @Test
+    fun shouldTransitionToFinalSyncWaitWhenRestartingFSSync() {
+        givenFinalSyncHasFailed()
+        andFsRestartWillSucceed()
+        sut.retryFsSync()
+
+        verify { migrationService.transition(MigrationStage.FINAL_SYNC_WAIT) }
+    }
+
+    @Test
+    fun shouldNotStartFsSyncWhenMigrationIsNotError() {
+        givenMigrationHasSucceeded()
+
+        val res = sut.retryFsSync()
+        assertResponseStatusIs(Response.Status.BAD_REQUEST, res)
+        verify(exactly = 0) { s3FinalSyncService.scheduleSync() }
+    }
+
+    @Test
+    fun shouldReturnConflictWhenFsSyncCantBeStarted() {
+        givenFinalSyncHasFailed()
+        andFsRestartWillFail()
+
+        val res = sut.retryFsSync()
+        assertResponseStatusIs(Response.Status.CONFLICT, res)
+    }
+
+    @Test
+    fun shouldRestartDbMigration() {
+        givenFinalSyncHasFailed()
+        andDbRestartWillSucceed()
+
+        val res = sut.retryDbMigration()
+
+        assertResponseStatusIs(Response.Status.ACCEPTED, res)
+        verify { databaseMigrationService.scheduleMigration() }
+    }
+
+    @Test
+    fun shouldTransitionToDbMigrationExportWhenRestartingDbMigration() {
+        givenFinalSyncHasFailed()
+        andDbRestartWillSucceed()
+
+        sut.retryDbMigration()
+        verify { migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT) }
+    }
+
+    @Test
+    fun shouldNotStartDbMigrationWhenMigrationIsNotError() {
+        givenMigrationHasSucceeded()
+
+        val res = sut.retryDbMigration()
+        assertResponseStatusIs(Response.Status.BAD_REQUEST, res)
+        verify(exactly = 0) { databaseMigrationService.scheduleMigration() }
+    }
+
+    @Test
+    fun shouldReturnConflictWhenDbMigrationCantBeRestarted() {
+        givenFinalSyncHasFailed()
+        andDbRestartWillFail()
+
+        val res = sut.retryDbMigration()
+        assertResponseStatusIs(Response.Status.CONFLICT, res)
+    }
+
+    private fun givenMigrationHasSucceeded() {
+        every { migrationService.currentStage } returns MigrationStage.VALIDATE
+    }
+
+    private fun givenFinalSyncHasFailed() {
+        every { migrationService.currentStage } returns MigrationStage.FINAL_SYNC_ERROR
+        justRun { migrationService.transition(MigrationStage.FINAL_SYNC_WAIT) }
+        justRun { migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT) }
+    }
+
+    private fun andFsRestartWillSucceed() {
+        every { s3FinalSyncService.scheduleSync() } returns true
+    }
+
+    private fun andFsRestartWillFail() {
+        every { s3FinalSyncService.scheduleSync() } returns false
+    }
+
+    private fun andDbRestartWillSucceed() {
+        every { databaseMigrationService.scheduleMigration() } returns true
+    }
+
+    private fun andDbRestartWillFail() {
+        every { databaseMigrationService.scheduleMigration() } returns false
+    }
+
+    private fun assertResponseStatusIs(status: Response.Status, res: Response) {
+        assertEquals(status.statusCode, res.status)
     }
 
 }

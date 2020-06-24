@@ -39,6 +39,8 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
+typealias MigrationOperation = () -> Boolean
+
 @Path("/migration/final-sync")
 class FinalSyncEndpoint(
         private val databaseMigrationService: DatabaseMigrationService,
@@ -55,7 +57,7 @@ class FinalSyncEndpoint(
         )
     }
 
-    data class FSSyncStatus(val uploaded: Int, val downloaded: Int, val hasProgressedToNextStage: Boolean)
+    data class FSSyncStatus(val uploaded: Int, val downloaded: Int, val failed: Int, val hasProgressedToNextStage: Boolean)
     data class FinalSyncStatus(val db: DatabaseMigrationStatus, val fs: FSSyncStatus)
 
     @PUT
@@ -88,6 +90,26 @@ class FinalSyncEndpoint(
                 .build()
     }
 
+    @PUT
+    @Path("/retry/fs")
+    fun retryFsSync(): Response {
+        try {
+            finalSyncService.abortMigration()
+        } finally {
+            return retryMigrationOperation(finalSyncService::scheduleSync, MigrationStage.FINAL_SYNC_WAIT)
+        }
+    }
+
+    @PUT
+    @Path("/retry/db")
+    fun retryDbMigration(): Response {
+        try {
+            databaseMigrationService.abortMigration()
+        } finally {
+            return retryMigrationOperation(databaseMigrationService::scheduleMigration, MigrationStage.DB_MIGRATION_EXPORT)
+        }
+    }
+
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
@@ -102,7 +124,7 @@ class FinalSyncEndpoint(
         val isCurrentStageAfterFinalSync = currentStage.isAfter(MigrationStage.FINAL_SYNC_WAIT)
         val fsSyncStatus = finalSyncService.getFinalSyncStatus()
 
-        val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount, isCurrentStageAfterFinalSync)
+        val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount - fsSyncStatus.failedFileCount, fsSyncStatus.failedFileCount, isCurrentStageAfterFinalSync)
         val status = FinalSyncStatus(db, fs)
 
         return try {
@@ -146,5 +168,15 @@ class FinalSyncEndpoint(
             return Response.status(Response.Status.CONFLICT).entity(mapOf("error" to "SSM command wasn't executed"))
                     .build()
         }
+    }
+
+    private fun retryMigrationOperation(op: MigrationOperation, operationStartStage: MigrationStage): Response {
+        return when (migrationService.currentStage) {
+            MigrationStage.FINAL_SYNC_ERROR -> {
+                migrationService.transition(operationStartStage)
+                Response.status(if (op.invoke()) Response.Status.ACCEPTED else Response.Status.CONFLICT)
+            }
+            else -> Response.status(Response.Status.BAD_REQUEST)
+        }.build()
     }
 }
