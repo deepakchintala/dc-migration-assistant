@@ -51,7 +51,7 @@ internal class SqsQueueWatcherTest {
     fun shouldTransitionMigrationStateToValidate() {
         val migrationQueueUrl = "https://sqs/migrationQueue"
 
-        every { migrationService.currentStage } returns MigrationStage.DB_MIGRATION_EXPORT_WAIT andThen MigrationStage.DB_MIGRATION_UPLOAD andThen MigrationStage.DATA_MIGRATION_IMPORT_WAIT andThen MigrationStage.FINAL_SYNC_WAIT
+        every { migrationService.currentStage } returns MigrationStage.DB_MIGRATION_EXPORT_WAIT andThen MigrationStage.DB_MIGRATION_UPLOAD andThen MigrationStage.DATA_MIGRATION_IMPORT_WAIT andThen MigrationStage.FINAL_SYNC_WAIT andThen MigrationStage.DB_MIGRATION_EXPORT andThen MigrationStage.FINAL_SYNC_WAIT
         every { migrationService.transition(MigrationStage.VALIDATE) } answers {}
         every { migrationService.currentContext } returns mockContext
         every { mockContext.migrationQueueUrl } returns migrationQueueUrl
@@ -61,7 +61,7 @@ internal class SqsQueueWatcherTest {
 
         Assertions.assertTrue(isQueueDrained, "Expected Queue to be drained, but wasn't")
 
-        verify(exactly = 4) { migrationService.currentStage }
+        verify(exactly = 6) { migrationService.currentStage }
         verify(exactly = 4) { sqsApi.getQueueLength(migrationQueueUrl) }
         verify {
             migrationService.transition(MigrationStage.VALIDATE)
