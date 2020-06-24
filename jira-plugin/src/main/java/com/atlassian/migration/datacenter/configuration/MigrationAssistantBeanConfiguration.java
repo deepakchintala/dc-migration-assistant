@@ -42,7 +42,7 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreSta
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
-import com.atlassian.migration.datacenter.core.aws.infrastructure.ApplicationRestartService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.RemoteInstanceCommandRunnerService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSCleanupTaskFactory;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationInfrastructureCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService;
@@ -227,13 +227,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback, ApplicationRestartService applicationRestartService) {
-        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService, restoreStageTransitionCallback, applicationRestartService);
+    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback, RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService) {
+        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService, restoreStageTransitionCallback, remoteInstanceCommandRunnerService);
     }
     
     @Bean
-    public ApplicationRestartService applicationRestartService(SSMApi ssm, Supplier<Ec2Client> ec2ClientSupplier, MigrationService migrationService){
-        return new ApplicationRestartService(ssm, migrationService, ec2ClientSupplier);
+    public RemoteInstanceCommandRunnerService applicationRestartService(SSMApi ssm, Supplier<Ec2Client> ec2ClientSupplier, MigrationService migrationService){
+        return new RemoteInstanceCommandRunnerService(ssm, migrationService, ec2ClientSupplier);
     }
     
     @Bean
