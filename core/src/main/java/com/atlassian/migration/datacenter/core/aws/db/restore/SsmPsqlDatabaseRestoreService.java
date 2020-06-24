@@ -29,13 +29,12 @@ import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeplo
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
+
 import java.util.Collections;
 
 public class SsmPsqlDatabaseRestoreService {
 
     private static final Logger logger = LoggerFactory.getLogger(SsmPsqlDatabaseRestoreService.class);
-
-    private final int maxCommandRetries;
 
     private final SSMApi ssm;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
@@ -45,18 +44,11 @@ public class SsmPsqlDatabaseRestoreService {
     private final String restoreDocumentName = "restoreDatabaseBackupToRDS";
     private String commandId;
 
-    SsmPsqlDatabaseRestoreService(SSMApi ssm, int maxCommandRetries,
-                                  AWSMigrationHelperDeploymentService migrationHelperDeploymentService, MigrationStageCallback migrationStageCallback, RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService) {
+    public SsmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback migrationStageCallback, RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService) {
         this.ssm = ssm;
-        this.maxCommandRetries = maxCommandRetries;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
         this.migrationStageCallback = migrationStageCallback;
         this.remoteInstanceCommandRunnerService = remoteInstanceCommandRunnerService;
-    }
-
-    public SsmPsqlDatabaseRestoreService(SSMApi ssm,
-                                         AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback migrationStageCallback, RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService) {
-        this(ssm, 10, migrationHelperDeploymentService, migrationStageCallback, remoteInstanceCommandRunnerService);
     }
 
     public void restoreDatabase()
@@ -86,7 +78,7 @@ public class SsmPsqlDatabaseRestoreService {
         migrationStageCallback.transitionToServiceWaitStage();
 
         try {
-            consumer.handleCommandOutput(maxCommandRetries);
+            consumer.handleCommandOutput();
             migrationStageCallback.transitionToServiceNextStage();
         } catch (SuccessfulSSMCommandConsumer.UnsuccessfulSSMCommandInvocationException
                 | SuccessfulSSMCommandConsumer.SSMCommandInvocationProcessingError e) {
@@ -96,7 +88,7 @@ public class SsmPsqlDatabaseRestoreService {
             throw new DatabaseMigrationFailure(errorMessage, e);
         }
     }
-    
+
     public SsmCommandResult fetchCommandResult() throws SsmCommandNotInitialisedException {
         if (getCommandId() == null) {
             throw new SsmCommandNotInitialisedException("SSM command was not executed");
