@@ -20,7 +20,7 @@ import com.atlassian.migration.datacenter.api.db.DbMigrationStatus
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
 import com.atlassian.migration.datacenter.core.fs.captor.FinalFileSyncStatus
-import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
+import com.atlassian.migration.datacenter.core.fs.captor.DefaultS3FinalSyncService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.fasterxml.jackson.core.JsonParser
@@ -62,7 +62,7 @@ internal class FinalSyncEndpointTest {
     @MockK
     lateinit var ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService
     @MockK
-    lateinit var s3FinalSyncService: S3FinalSyncService
+    lateinit var defaultS3FinalSyncService: DefaultS3FinalSyncService
     @InjectMockKs
     lateinit var sut: FinalSyncEndpoint
 
@@ -79,7 +79,7 @@ internal class FinalSyncEndpointTest {
     fun shouldReportDbSyncStatus() {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(20))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
-        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0, 0)
+        every { defaultS3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0, 0)
 
         val resp = sut.getMigrationStatus()
         val json = resp.entity as String
@@ -94,7 +94,7 @@ internal class FinalSyncEndpointTest {
     fun shouldReportFsSyncStatus() {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(0))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
-        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50, 12)
+        every { defaultS3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50, 12)
 
         val resp = sut.getMigrationStatus()
         val json = resp.entity as String
@@ -112,7 +112,7 @@ internal class FinalSyncEndpointTest {
         val res = sut.retryFsSync()
         assertResponseStatusIs(Response.Status.ACCEPTED, res)
 
-        verify { s3FinalSyncService.scheduleSync() }
+        verify { defaultS3FinalSyncService.scheduleSync() }
     }
 
     @Test
@@ -130,7 +130,7 @@ internal class FinalSyncEndpointTest {
 
         val res = sut.retryFsSync()
         assertResponseStatusIs(Response.Status.BAD_REQUEST, res)
-        verify(exactly = 0) { s3FinalSyncService.scheduleSync() }
+        verify(exactly = 0) { defaultS3FinalSyncService.scheduleSync() }
     }
 
     @Test
@@ -191,11 +191,11 @@ internal class FinalSyncEndpointTest {
     }
 
     private fun andFsRestartWillSucceed() {
-        every { s3FinalSyncService.scheduleSync() } returns true
+        every { defaultS3FinalSyncService.scheduleSync() } returns true
     }
 
     private fun andFsRestartWillFail() {
-        every { s3FinalSyncService.scheduleSync() } returns false
+        every { defaultS3FinalSyncService.scheduleSync() } returns false
     }
 
     private fun andDbRestartWillSucceed() {

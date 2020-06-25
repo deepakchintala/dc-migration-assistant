@@ -19,7 +19,7 @@ import com.atlassian.migration.datacenter.api.db.DatabaseMigrationStatus
 import com.atlassian.migration.datacenter.api.db.stageToStatus
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
-import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
+import com.atlassian.migration.datacenter.core.fs.captor.DefaultS3FinalSyncService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
@@ -46,7 +46,7 @@ class FinalSyncEndpoint(
         private val databaseMigrationService: DatabaseMigrationService,
         private val migrationService: MigrationService,
         private val ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService,
-        private val finalSyncService: S3FinalSyncService
+        private val finalSyncService: DefaultS3FinalSyncService
 ) {
     private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
 

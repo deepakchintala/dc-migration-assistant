@@ -131,7 +131,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     @Override
     public void abortMigration() throws InvalidMigrationStageError {
         // We always try to remove scheduled job if the system is in inconsistent state
-        migrationRunner.abortJobIfPresesnt(getScheduledJobId());
+        unscheduleMigration();
 
         if (!isRunning()) {
             throw new InvalidMigrationStageError(
@@ -145,6 +145,11 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         bulkCopy.abortCopy();
 
         migrationService.error("File system migration was aborted");
+    }
+
+    @Override
+    public void unscheduleMigration() {
+        migrationRunner.abortJobIfPresent(getScheduledJobId());
     }
 
 

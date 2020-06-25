@@ -18,22 +18,21 @@ package com.atlassian.migration.datacenter.core.fs.captor
 
 import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.core.util.MigrationRunner
-import com.atlassian.migration.datacenter.dto.FileSyncRecord
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.scheduler.config.JobId
 import org.slf4j.LoggerFactory
 
-class S3FinalSyncService(private val migrationRunner: MigrationRunner,
-                         private val s3FinalSyncRunner: S3FinalSyncRunner,
-                         private val migrationService: MigrationService,
-                         private val sqsApi: SqsApi,
-                         private val attachmentSyncManager: AttachmentSyncManager
-) {
+class DefaultS3FinalSyncService(private val migrationRunner: MigrationRunner,
+                                private val s3FinalSyncRunner: S3FinalSyncRunner,
+                                private val migrationService: MigrationService,
+                                private val sqsApi: SqsApi,
+                                private val attachmentSyncManager: AttachmentSyncManager
+) : S3FinalSyncService {
     companion object {
-        private val logger = LoggerFactory.getLogger(S3FinalSyncService::class.java)
+        private val logger = LoggerFactory.getLogger(DefaultS3FinalSyncService::class.java)
     }
 
-    fun scheduleSync(): Boolean {
+    override fun scheduleSync(): Boolean {
 
         val jobId = getScheduledJobId()
 
@@ -45,16 +44,20 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
         return result
     }
 
-    fun abortMigration() {
+    override fun abortMigration() {
         // We always try to remove scheduled job if the system is in inconsistent state
-        migrationRunner.abortJobIfPresesnt(getScheduledJobId())
+        unscheduleMigration()
 
         logger.warn("Aborting running final file sync")
 
         migrationService.error("Aborted final file sync")
     }
 
-    fun getFinalSyncStatus() : FinalFileSyncStatus {
+    override fun unscheduleMigration() {
+        migrationRunner.abortJobIfPresent(getScheduledJobId())
+    }
+
+    override fun getFinalSyncStatus() : FinalFileSyncStatus {
         val currentContext = migrationService.currentContext
         val migrationQueueUrl = currentContext.migrationQueueUrl
         val uploadedFileCount =  attachmentSyncManager.capturedAttachmentCountForCurrentMigration

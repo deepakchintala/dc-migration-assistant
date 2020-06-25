@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test
 const val queueUrl = "https://sqs/account/queues/foo"
 const val dlQueUrl = "https://sqs/account/queus/deadletter"
 
-internal class S3FinalSyncServiceTest {
+internal class DefaultS3FinalSyncServiceTest {
 
     @MockK
     lateinit var migrationRunner: MigrationRunner
@@ -49,7 +49,7 @@ internal class S3FinalSyncServiceTest {
     lateinit var attachmentSyncManager: AttachmentSyncManager
 
     @InjectMockKs
-    lateinit var sut: S3FinalSyncService
+    lateinit var sut: DefaultS3FinalSyncService
 
     @BeforeEach
     fun init() {

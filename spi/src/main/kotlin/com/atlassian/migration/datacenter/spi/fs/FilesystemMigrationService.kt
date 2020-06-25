@@ -52,4 +52,10 @@ interface FilesystemMigrationService {
      */
     @Throws(InvalidMigrationStageError::class)
     fun abortMigration()
+
+    /**
+     * UnSchedules a migration job that may be in progress. No-op when a running job does not exist.
+     *
+     */
+    fun unscheduleMigration()
 }

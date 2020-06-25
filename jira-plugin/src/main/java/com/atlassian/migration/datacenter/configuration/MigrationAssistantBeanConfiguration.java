@@ -71,6 +71,7 @@ import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.QueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncRunner;
+import com.atlassian.migration.datacenter.core.fs.captor.DefaultS3FinalSyncService;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService;
 import com.atlassian.migration.datacenter.core.fs.captor.SqsQueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
@@ -81,6 +82,7 @@ import com.atlassian.migration.datacenter.core.fs.jira.captor.DefaultAttachmentC
 import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
+import com.atlassian.migration.datacenter.plugin.LifecycleEventListener;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
@@ -399,8 +401,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, QueueWatcher queueWatcher, AttachmentSyncManager attachmentSyncManager) {
-        return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi, attachmentSyncManager);
+    public DefaultS3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, AttachmentSyncManager attachmentSyncManager) {
+        return new DefaultS3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi, attachmentSyncManager);
     }
 
     @Bean
@@ -445,5 +447,10 @@ public class MigrationAssistantBeanConfiguration {
             QuickstartWithVPCMigrationStackInputGatheringStrategy withVpcStrategy,
             QuickstartStandaloneMigrationStackInputGatheringStrategy standaloneStrategy) {
         return new MigrationStackInputGatheringStrategyFactory(withVpcStrategy, standaloneStrategy);
+    }
+
+    @Bean
+    public LifecycleEventListener lifecycleEventListener(EventPublisher eventPublisher, DatabaseMigrationService databaseMigrationService, FilesystemMigrationService filesystemMigrationService, DefaultS3FinalSyncService s3FinalSyncService){
+        return new LifecycleEventListener(eventPublisher, databaseMigrationService, filesystemMigrationService, s3FinalSyncService);
     }
 }
