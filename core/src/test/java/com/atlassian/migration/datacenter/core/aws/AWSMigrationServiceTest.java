@@ -22,13 +22,13 @@ import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
+import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
-import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
 import com.atlassian.scheduler.SchedulerService;
 import net.java.ao.EntityManager;
 import net.java.ao.test.junit.ActiveObjectsJUnitRunner;
@@ -49,7 +49,6 @@ import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_AP
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION_WAIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -75,6 +74,8 @@ public class AWSMigrationServiceTest {
     @Mock
     private ApplicationConfiguration applicationConfiguration;
     @Mock
+    private DatabaseExtractorFactory databaseExtractorFactory;
+    @Mock
     private DatabaseExtractor databaseExtractor;
     @Mock
     private EventPublisher eventPublisher;
@@ -83,9 +84,10 @@ public class AWSMigrationServiceTest {
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao, applicationConfiguration, databaseExtractor, Paths.get("."), eventPublisher);
+        sut = new AWSMigrationService(ao, applicationConfiguration, databaseExtractorFactory, Paths.get("."), eventPublisher);
         setupEntities();
         when(applicationConfiguration.getPluginVersion()).thenReturn("DUMMY");
+        when(databaseExtractorFactory.getExtractor()).thenReturn(databaseExtractor);
     }
 
     @Test
