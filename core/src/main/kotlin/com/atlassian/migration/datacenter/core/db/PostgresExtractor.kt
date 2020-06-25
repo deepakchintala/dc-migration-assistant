@@ -44,21 +44,20 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
 
     }
 
-    private val pgdumpPath: Optional<String>
+    private val pgdumpPath: String?
         get() {
             for (path in pddumpPaths) {
                 val p = Paths.get(path)
                 if (Files.isReadable(p) && Files.isExecutable(p)) {
-                    return Optional.of(path)
+                    return path
                 }
             }
-            return Optional.empty()
+            return null
         }
 
     override val clientVersion: SemVer?
         get() {
-            val pgdump = pgdumpPath
-                    .orElseThrow { DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.") }
+            val pgdump = pgdumpPath ?: return null
 
             try {
                 val proc = ProcessBuilder(pgdump,
