@@ -263,7 +263,7 @@ Resources:
             /opt/atlassian/dc-migration-assistant/db_post_restore_script.sql:
               content: !Sub
                 - |
-                  DELETE FROM clusternode where node_id IN (select NODE_ID from  clusternode where NODE_STATE ='offline');
+                  DELETE FROM clusternode;
                   -- Or set this in the deployment form
                    INSERT INTO pluginstate (pluginkey, pluginenabled) VALUES ('com.atlassian.migration.datacenter.jira-plugin','false');
                   -- Remove from clustered job here?
