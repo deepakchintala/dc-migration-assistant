@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws.db.restore;
 
 import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.RemoteInstanceCommandRunnerService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.aws.ssm.SuccessfulSSMCommandConsumer;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.EnsureSuccessfulSSMCommandConsumer;
@@ -38,14 +39,16 @@ public class SsmPsqlDatabaseRestoreService {
     private final SSMApi ssm;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
     private final MigrationStageCallback migrationStageCallback;
+    private final RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService;
 
     private final String restoreDocumentName = "restoreDatabaseBackupToRDS";
     private String commandId;
 
-    public SsmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback migrationStageCallback) {
+    public SsmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback migrationStageCallback, RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService) {
         this.ssm = ssm;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
         this.migrationStageCallback = migrationStageCallback;
+        this.remoteInstanceCommandRunnerService = remoteInstanceCommandRunnerService;
     }
 
     public void restoreDatabase()
@@ -69,7 +72,9 @@ public class SsmPsqlDatabaseRestoreService {
 
         SuccessfulSSMCommandConsumer consumer = new EnsureSuccessfulSSMCommandConsumer(ssm, commandId,
                 migrationInstanceId);
-
+        
+        remoteInstanceCommandRunnerService.restartJiraService();
+        
         migrationStageCallback.transitionToServiceWaitStage();
 
         try {
