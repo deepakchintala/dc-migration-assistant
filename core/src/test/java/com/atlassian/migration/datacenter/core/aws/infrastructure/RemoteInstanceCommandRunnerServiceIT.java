@@ -16,12 +16,10 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
-
+import static org.mockito.Mockito.*;
 import java.io.File;
 import java.net.URI;
 import java.util.Objects;
-
-import static org.mockito.Mockito.*;
 
 @ExtendWith({MockitoExtension.class})
 class RemoteInstanceCommandRunnerServiceIT {
