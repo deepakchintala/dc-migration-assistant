@@ -124,11 +124,11 @@ const props: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.finalSync.title'),
     description: I18n.getText('atlassian.migration.datacenter.finalSync.description'),
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
+    nextRoute: validationPath,
     startButtonText: I18n.getText('atlassian.migration.datacenter.finalSync.startButton'),
     startMigrationPhase: startFinalSync,
     inProgressStages: finalSyncInProgressStages,
     getProgress: getProgressFromStatus,
-    nextRoute: validationPath,
     getDetails: fetchDBMigrationLogs,
 };
 
