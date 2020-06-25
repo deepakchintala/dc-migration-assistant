@@ -64,7 +64,7 @@ const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => 
 
 const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
     const { fs, db } = status;
-    const { downloaded, uploaded, hasProgressedToNextStage } = fs;
+    const { downloaded, uploaded, failed, hasProgressedToNextStage } = fs;
     const builder = new ProgressBuilder();
     builder.setPhase(I18n.getText('atlassian.migration.datacenter.sync.fs.phase'));
     // FIXME: This time will be wrong when one of the components of final sync completes
@@ -84,6 +84,18 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
                 uploaded
             ),
             I18n.getText('atlassian.migration.datacenter.sync.fs.completeMessage.message')
+        );
+    }
+
+    if (failed) {
+        builder.setFailed(true);
+        builder.setError(
+            <p>
+                {I18n.getText('atlassian.migration.datacenter.sync.fs.download.error', fs.failed)}
+                <a href="https://status.aws.amazon.com/" target="_blank" rel="noreferrer noopener">
+                    {I18n.getText('atlassian.migration.datacenter.common.aws.status')}
+                </a>
+            </p>
         );
     }
 

@@ -28,6 +28,7 @@ import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFa
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
+import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
@@ -55,7 +56,7 @@ public class AWSMigrationService implements MigrationService {
     private static final Logger log = LoggerFactory.getLogger(AWSMigrationService.class);
     private ActiveObjects ao;
     private ApplicationConfiguration applicationConfiguration;
-    private DatabaseExtractor databaseExtractor;
+    private DatabaseExtractorFactory databaseExtractorFactory;
     private Path localHome;
     private EventPublisher eventPublisher;
 
@@ -64,12 +65,12 @@ public class AWSMigrationService implements MigrationService {
      */
     public AWSMigrationService(ActiveObjects ao,
                                ApplicationConfiguration applicationConfiguration,
-                               DatabaseExtractor databaseExtractor,
+                               DatabaseExtractorFactory databaseExtractorFactory,
                                Path jiraHome,
                                EventPublisher eventPublisher) {
         this.ao = requireNonNull(ao);
         this.applicationConfiguration = applicationConfiguration;
-        this.databaseExtractor = databaseExtractor;
+        this.databaseExtractorFactory = databaseExtractorFactory;
         this.localHome = jiraHome;
         this.eventPublisher = eventPublisher;
     }
@@ -137,6 +138,8 @@ public class AWSMigrationService implements MigrationService {
     @Override
     public MigrationReadyStatus getReadyStatus()
     {
+        DatabaseExtractor databaseExtractor = databaseExtractorFactory.getExtractor();
+
         Boolean db = applicationConfiguration.getDatabaseConfiguration().getType() == DatabaseConfiguration.DBType.POSTGRESQL;
         Boolean os = SystemUtils.IS_OS_LINUX;
         SemVer pgDumpVer = databaseExtractor.getClientVersion();
