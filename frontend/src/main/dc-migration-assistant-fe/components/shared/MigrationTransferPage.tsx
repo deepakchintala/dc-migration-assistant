@@ -15,11 +15,9 @@
  */
 
 import React, { FunctionComponent, ReactNode, useEffect, useState } from 'react';
-import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
-import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { Progress, ProgressCallback } from './Progress';
@@ -27,6 +25,7 @@ import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
+import { ErrorFlag } from './ErrorFlag';
 
 const POLL_INTERVAL_MILLIS = 8000;
 
@@ -144,6 +143,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     const updateProgress = async (): Promise<void> => {
         return getProgress()
             .then(result => {
+                setProgressFetchingError('');
                 setProgressList(result);
                 setLoading(false);
                 setFinished(
@@ -214,14 +214,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         return (): void => undefined;
     }, [started]);
 
-    const transferError = progressList
-        .filter(progress => progress?.errorMessage)
-        .map(progress => {
-            return <p key={progress.phase}>{progress?.errorMessage}</p>;
-        });
-
-    const LearnMoreLink =
-        'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors';
     return (
         <TransferPageContainer>
             <TransferContentContainer>
@@ -233,24 +225,14 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 <Spinner />
             ) : (
                 <>
+                    <ErrorFlag
+                        showError={progressFetchingError && progressFetchingError !== ''}
+                        dismissErrorFunc={(): void => setProgressFetchingError('')}
+                        title="Network error getting migration status"
+                        description="Check your internet connection and try refreshing"
+                        id={progressFetchingError}
+                    />
                     <TransferContentContainer>
-                        {(transferError.length !== 0 || progressFetchingError) && (
-                            <SectionMessage appearance="error">
-                                {...transferError}
-                                <p>
-                                    {progressFetchingError || ''}{' '}
-                                    <a
-                                        target="_blank"
-                                        rel="noreferrer noopener"
-                                        href={LearnMoreLink}
-                                    >
-                                        {I18n.getText(
-                                            'atlassian.migration.datacenter.common.learn_more'
-                                        )}
-                                    </a>
-                                </p>
-                            </SectionMessage>
-                        )}
                         {started &&
                             progressList.map((progress, index) => (
                                 <>

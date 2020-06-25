@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { ReactElement, FunctionComponent } from 'react';
+import React, { FunctionComponent } from 'react';
 import { Moment } from 'moment';
 import SectionMessage from '@atlaskit/section-message';
 import Spinner from '@atlaskit/spinner';
@@ -39,6 +39,9 @@ export type MigrationProgressProps = {
      */
     startedMoment: Moment;
 };
+
+const LearnMoreLink =
+    'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors';
 
 /**
  * A component which renders the progress of the current transfer. It renders
@@ -65,6 +68,17 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
 
     return (
         <>
+            {progress.errorMessage && (
+                <SectionMessage appearance="error">
+                    <p>{progress.errorMessage}</p>
+                    <p>
+                        <a target="_blank" rel="noreferrer noopener" href={LearnMoreLink}>
+                            {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                        </a>
+                    </p>
+                </SectionMessage>
+            )}
+
             {progress?.completeness === 1 && progress?.completeMessage && (
                 <SectionMessage appearance="confirmation">
                     <strong>{progress.completeMessage.boldPrefix}</strong>{' '}
