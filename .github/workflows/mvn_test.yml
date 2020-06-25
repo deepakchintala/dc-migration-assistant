@@ -50,7 +50,7 @@ jobs:
           java-version: ${{ matrix.java }}
 
       - name: Test with maven
-        if: matrix.profile != 'smoketest'
+        if: matrix.profile != 'smoketest' && matrix.profile != 'functest'
         run: mvn -B clean verify -P ${{ matrix.profile}}
 
       - name: Smoke-test with production image
