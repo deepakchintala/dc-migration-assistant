@@ -67,7 +67,7 @@ jobs:
           ./postgres/inject-license
           JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit postgresql jira cypress
 
-      - name: Rest api tests with production image
+      - name: REST API tests with production image
         timeout-minutes: 10
         if: matrix.profile == 'functest'
         env:
