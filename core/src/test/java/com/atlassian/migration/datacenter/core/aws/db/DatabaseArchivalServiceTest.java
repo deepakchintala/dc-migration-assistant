@@ -44,7 +44,7 @@ class DatabaseArchivalServiceTest {
 
     @Mock
     private DatabaseExtractor databaseExtractor;
-    @Mock
+    @Mock(lenient = true)
     private DatabaseExtractorFactory databaseExtractorFactory;
     @Mock
     private Process process;
