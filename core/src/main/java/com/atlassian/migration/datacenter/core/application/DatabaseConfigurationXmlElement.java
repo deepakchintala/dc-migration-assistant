@@ -18,32 +18,35 @@ package com.atlassian.migration.datacenter.core.application;
 
 
 import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
-import com.atlassian.migration.datacenter.spi.exceptions.UnsupportedPasswordEncodingException;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
-import java.util.Base64;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @JacksonXmlRootElement(localName = "jira-database-config")
 public class DatabaseConfigurationXmlElement {
 
+    @JacksonXmlProperty(localName = "database-type")
+    private String databaseType;
     @JacksonXmlProperty(localName = "jdbc-datasource")
     private DbConfigXmlElement dbConfigXmlElement;
 
     public DatabaseConfiguration toDatabaseConfiguration() {
-        String urlString = this.dbConfigXmlElement.getUrl();
-        String userName = this.dbConfigXmlElement.getUserName();
-        String password = this.dbConfigXmlElement.getPassword();
+        URI dbURI = getURI()
+                .orElseThrow(() -> new ConfigurationReadException("No URI in dbconfig.xml"));
+        DatabaseConfiguration.DBType type = getDBType()
+                .orElse(DatabaseConfiguration.DBType.valueOf(dbURI.getScheme().toUpperCase()));
 
-        validateRequiredValues(urlString, userName, password);
+        if (type == DatabaseConfiguration.DBType.H2)
+            return DatabaseConfiguration.h2();
 
-        URI absURI = URI.create(urlString);
-        URI dbURI = URI.create(absURI.getSchemeSpecificPart());
+        String userName = dbConfigXmlElement.getUserName();
+        String password = dbConfigXmlElement.getPassword();
 
-        DatabaseConfiguration.DBType type = DatabaseConfiguration.DBType.valueOf(dbURI.getScheme().toUpperCase());
+        validateRequiredValues(dbURI.toString(), userName, password);
 
         String host = dbURI.getHost();
         Integer port = dbURI.getPort();
@@ -60,44 +63,38 @@ public class DatabaseConfigurationXmlElement {
 
         boolean allValuesValid = Stream.of(values).allMatch(StringUtils::isNotBlank);
         if (!allValuesValid) {
-            throw new ConfigurationReadException("Database configuration file has invalid values");
+            throw new ConfigurationReadException("Database configuration file has invalid or missing values");
         }
     }
 
-    public boolean isDataSourcePresent() {
-        return dbConfigXmlElement != null;
-    }
-}
+    public Optional<URI> getURI() {
+        try {
+            String urlString = dbConfigXmlElement.getUrl();
+            if (urlString == null || urlString.equals(""))
+                return Optional.empty();
 
-class DbConfigXmlElement {
-    private static final String BASE64_CLASS = "com.atlassian.db.config.password.ciphers.base64.Base64Cipher";
+            URI absURI = URI.create(urlString);
+            URI dbURI = URI.create(absURI.getSchemeSpecificPart());
+            return Optional.of(dbURI);
 
-    private String url;
-    @JacksonXmlProperty(localName = "username")
-    private String userName;
-    @JacksonXmlProperty(localName = "atlassian-password-cipher-provider")
-    private String cipher;
-    private String password;
+        } catch (Exception e) {}
+        return Optional.empty();
 
-    public DbConfigXmlElement() {
     }
 
-    public String getUrl() {
-        return url;
-    }
+    public Optional<DatabaseConfiguration.DBType> getDBType() {
+        if (databaseType == null || databaseType.equals("")) {
+            return Optional.empty();
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public String getPassword() throws UnsupportedPasswordEncodingException
-    {
-        if (cipher != null) {
-            if (!cipher.equals(BASE64_CLASS)) {
-                throw new UnsupportedPasswordEncodingException("Unsupported database password encryption in dbconfig.xml; see documentation for detail: " + cipher);
-            }
-            return new String(Base64.getDecoder().decode(password));
+        } else if (databaseType.startsWith("mysql")) {
+            return Optional.of(DatabaseConfiguration.DBType.MYSQL);
         }
-        return password;
+
+        try {
+            Optional.of(DatabaseConfiguration.DBType.valueOf(databaseType));
+        } catch (IllegalArgumentException e) { }
+        return Optional.empty();
     }
+
 }
+
