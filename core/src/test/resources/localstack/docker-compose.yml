@@ -4,7 +4,7 @@ services:
 
   ec2_localstack:
     build:
-      context: ./localstack
+      context: .
     ports:
       - '4597:4597'
     environment:

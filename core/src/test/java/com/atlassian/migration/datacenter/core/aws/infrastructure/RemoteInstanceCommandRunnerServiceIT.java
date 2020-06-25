@@ -19,20 +19,20 @@ import software.amazon.awssdk.services.ec2.model.*;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Objects;
+
 import static org.mockito.Mockito.*;
 
 @ExtendWith({MockitoExtension.class})
-class RemoteInstanceCommandRunnerServiceTest {
-
-    /*
-     * Unfortunately the standard way we run localstack from the tests (@LocalstackDockerProperties) themselves is not 
-     * exposing the EC2 port 4597 (EC2) and so we get connection refused errors. As a workaround start localstack using 
-     * docker-compose before running the tests
-     *
-     * Run in this way 4597 accepts incoming requests and the tests pass.
-     */
-    public static DockerComposeContainer localstackForEc2 =
-            new DockerComposeContainer(new File("src/test/java/com/atlassian/migration/datacenter/core/util/docker/docker-compose.yml"));
+class RemoteInstanceCommandRunnerServiceIT {
+    
+    private static final String DOCKER_COMPOSE_FILE = "localstack/docker-compose.yml";
+    
+    private static final File dockerFile = new File(
+            Objects.requireNonNull(RemoteInstanceCommandRunnerServiceIT.class.getClassLoader().getResource(DOCKER_COMPOSE_FILE)).getFile()
+    );
+    
+    private static final DockerComposeContainer localstackForEc2 = new DockerComposeContainer(dockerFile);
     
     private static final String LOCAL_EC2_ENDPOINT = "http://localhost:4597";
     public static final String JIRA_STACK_NAME = "JIRA_STACK_001";
