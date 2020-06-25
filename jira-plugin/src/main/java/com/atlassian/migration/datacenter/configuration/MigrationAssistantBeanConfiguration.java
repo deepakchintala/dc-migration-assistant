@@ -42,11 +42,11 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreSta
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.RemoteInstanceCommandRunnerService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSCleanupTaskFactory;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationInfrastructureCleanupService;
-import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService;
-import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationStackCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.DatabaseSecretCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.MigrationBucketCleanupService;
@@ -57,8 +57,8 @@ import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManage
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.db.DefaultDatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.exceptions.AwsQueueError;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploaderFactory;
@@ -256,8 +256,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, DatabaseExtractor databaseExtractor, JiraHome jiraHome, EventPublisher eventPublisher) {
-        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, databaseExtractor, jiraHome.getHome().toPath(), eventPublisher);
+    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, DatabaseExtractorFactory databaseExtractorFactory, JiraHome jiraHome, EventPublisher eventPublisher) {
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, databaseExtractorFactory, jiraHome.getHome().toPath(), eventPublisher);
     }
 
     @Bean
@@ -271,13 +271,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseExtractor databaseExtractor(ApplicationConfiguration applicationConfiguration) {
-        return DatabaseExtractorFactory.getExtractor(applicationConfiguration);
+    public DatabaseExtractorFactory databaseExtractorFactory(ApplicationConfiguration applicationConfiguration) {
+        return new DefaultDatabaseExtractorFactory(applicationConfiguration);
     }
 
     @Bean
-    public DatabaseArchivalService databaseArchivalService(DatabaseExtractor databaseExtractor, DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback) {
-        return new DatabaseArchivalService(databaseExtractor, archiveStageTransitionCallback);
+    public DatabaseArchivalService databaseArchivalService(DatabaseExtractorFactory databaseExtractorFactory, DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback) {
+        return new DatabaseArchivalService(databaseExtractorFactory, archiveStageTransitionCallback);
     }
 
     @Bean

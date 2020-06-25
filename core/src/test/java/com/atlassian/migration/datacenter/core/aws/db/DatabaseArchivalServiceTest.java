@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
+import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,13 +45,16 @@ class DatabaseArchivalServiceTest {
     @Mock
     private DatabaseExtractor databaseExtractor;
     @Mock
+    private DatabaseExtractorFactory databaseExtractorFactory;
+    @Mock
     private Process process;
     @Mock
     private MigrationStageCallback migrationStageCallback;
 
     @BeforeEach
     void setUp() {
-        service = new DatabaseArchivalService(databaseExtractor, migrationStageCallback);
+        when(databaseExtractorFactory.getExtractor()).thenReturn(databaseExtractor);
+        service = new DatabaseArchivalService(databaseExtractorFactory, migrationStageCallback);
     }
 
     @Test

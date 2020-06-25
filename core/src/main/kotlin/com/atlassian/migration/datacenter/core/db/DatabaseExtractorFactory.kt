@@ -13,20 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.atlassian.migration.datacenter.core.db
 
-import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
-import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration.DBType
-import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
-
-object DatabaseExtractorFactory {
-    @JvmStatic
-    @Throws(DatabaseMigrationFailure::class)
-    fun getExtractor(config: ApplicationConfiguration): DatabaseExtractor {
-        if (config.databaseConfiguration.type == DBType.POSTGRESQL) {
-            return PostgresExtractor(config)
-        }
-
-        return UnSupportedDatabaseExtractor()
-    }
+interface DatabaseExtractorFactory {
+    val extractor: DatabaseExtractor
 }
