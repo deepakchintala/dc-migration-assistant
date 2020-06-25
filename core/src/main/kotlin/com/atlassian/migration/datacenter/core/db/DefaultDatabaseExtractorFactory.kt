@@ -27,12 +27,4 @@ class DefaultDatabaseExtractorFactory(val config: ApplicationConfiguration) : Da
             UnSupportedDatabaseExtractor()
         }
     }
-//    @Throws(DatabaseMigrationFailure::class)
-//    fun getExtractor(): DatabaseExtractor {
-//        if (config.databaseConfiguration.type == DBType.POSTGRESQL) {
-//            return PostgresExtractor(config)
-//        }
-//
-//        return UnSupportedDatabaseExtractor()
-//    }
 }
