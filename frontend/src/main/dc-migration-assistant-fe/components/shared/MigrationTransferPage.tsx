@@ -22,16 +22,12 @@ import Spinner from '@atlaskit/spinner';
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { Progress, ProgressCallback } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
-import { MigrationProgress } from './MigrationTransferProgress';
+import { MigrationProgress, RetryCallback } from './MigrationTransferProgress';
 import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
 import { ErrorFlag } from './ErrorFlag';
 
 const POLL_INTERVAL_MILLIS = 8000;
-
-export interface RetryCallback {
-    (): Promise<Response>;
-}
 
 export type MigrationTransferProps = {
     /**
@@ -99,7 +95,7 @@ const TransferContentContainer = styled.div`
     flex-direction: column;
     padding-right: 30px;
 
-    padding-bottom: 30px;
+    padding-bottom: 15px;
 `;
 
 const TransferActionsContainer = styled.div`
@@ -241,6 +237,9 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                         progress={progress}
                                         loading={loading}
                                         startedMoment={startMoment}
+                                        retryText={retryText}
+                                        onRetry={onRetry}
+                                        onRetryRoute={onRetryRoute}
                                     />
                                     {index !== progressList.length - 1 && <Divider />}
                                 </>
@@ -260,9 +259,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                             started={started}
                             loading={loading}
                             failed={failed}
-                            retryText={retryText}
-                            onRetry={onRetry}
-                            onRetryRoute={onRetryRoute}
                         />
                     </TransferActionsContainer>
                 </>
