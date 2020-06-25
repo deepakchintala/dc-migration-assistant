@@ -29,9 +29,6 @@ import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.function.Supplier;
-
-import static com.atlassian.migration.datacenter.configuration.SpringOsgiConfigurationUtil.lazyImportOsgiService;
 import static com.atlassian.plugins.osgi.javaconfig.OsgiServices.importOsgiService;
 
 @Configuration
@@ -79,11 +76,6 @@ public class MigrationAssistantOsgiImportConfiguration {
     @Bean
     public EventPublisher eventPublisher() {
         return importOsgiService(EventPublisher.class);
-    }
-
-    @Bean
-    public Supplier<PluginSettingsFactory> settingsFactorySupplier() {
-        return lazyImportOsgiService(PluginSettingsFactory.class);
     }
 
     @Bean

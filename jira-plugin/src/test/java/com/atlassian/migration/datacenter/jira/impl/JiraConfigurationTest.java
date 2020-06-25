@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.application;
+package com.atlassian.migration.datacenter.jira.impl;
 
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
+import com.atlassian.migration.datacenter.jira.impl.JiraConfiguration;
 import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
 import com.atlassian.migration.datacenter.spi.exceptions.UnsupportedPasswordEncodingException;
 import com.atlassian.plugin.PluginAccessor;
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.FileNotFoundException;
@@ -36,7 +39,6 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JiraConfigurationTest {
@@ -52,7 +54,7 @@ class JiraConfigurationTest {
 
     @BeforeEach
     void setUp() {
-        when(jiraHome.getLocalHomePath()).thenReturn(tempDir.toString());
+        Mockito.when(jiraHome.getLocalHomePath()).thenReturn(tempDir.toString());
     }
 
     @Test

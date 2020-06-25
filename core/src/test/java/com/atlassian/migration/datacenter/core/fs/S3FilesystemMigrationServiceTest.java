@@ -16,11 +16,9 @@
 
 package com.atlassian.migration.datacenter.core.fs;
 
-import com.atlassian.event.api.EventPublisher;
-import com.atlassian.migration.datacenter.core.fs.jira.captor.AttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentEventListener;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
-import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -38,15 +36,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.core.env.Environment;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class S3FilesystemMigrationServiceTest {
@@ -63,7 +55,7 @@ class S3FilesystemMigrationServiceTest {
     @Mock
     Environment mockEnv;
 
-    JiraIssueAttachmentListener attachmentListener;
+    DummyAttachmentListener attachmentListener;
 
     @Mock
     S3BulkCopy bulkCopy;
@@ -75,10 +67,8 @@ class S3FilesystemMigrationServiceTest {
 
     @BeforeEach
     void setUp() {
-        attachmentListener = new JiraIssueAttachmentListener(
-                mock(EventPublisher.class),
-                mock(AttachmentCaptor.class)
-        );
+        attachmentListener = new DummyAttachmentListener();
+
         fsService = new S3FilesystemMigrationService(mockEnv, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy, reportManager);
     }
 
@@ -196,5 +186,23 @@ class S3FilesystemMigrationServiceTest {
         when(migrationService.getCurrentMigration()).thenReturn(mockMigration);
         when(mockMigration.getID()).thenReturn(2);
         when(migrationService.getCurrentStage()).thenReturn(migrationStage);
+    }
+
+    private class DummyAttachmentListener implements AttachmentEventListener {
+        boolean started = false;
+
+        @Override
+        public void start() {
+            started = true;
+        }
+
+        @Override
+        public void stop() {
+            started = false;
+        }
+
+        public boolean isStarted() {
+            return started;
+        }
     }
 }

@@ -83,7 +83,7 @@ public class AWSMigrationServiceTest {
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao, applicationConfiguration, databaseExtractor, Paths.get("."), eventPublisher);
+        sut = new AWSMigrationService(ao, applicationConfiguration, databaseExtractor, eventPublisher);
         setupEntities();
         when(applicationConfiguration.getPluginVersion()).thenReturn("DUMMY");
     }

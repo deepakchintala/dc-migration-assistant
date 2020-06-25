@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.jira.captor;
+package com.atlassian.migration.datacenter.core.fs.captor;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
-import com.atlassian.jira.issue.attachment.Attachment;
-import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import org.slf4j.Logger;
@@ -32,23 +30,18 @@ public class DefaultAttachmentCaptor implements AttachmentCaptor {
     private static final Logger logger = LoggerFactory.getLogger(DefaultAttachmentCaptor.class);
     private final ActiveObjects ao;
     private final MigrationService migrationService;
-    private AttachmentStore attachmentStore;
 
-    public DefaultAttachmentCaptor(ActiveObjects ao, MigrationService migrationService, AttachmentStore
-            attachmentStore) {
+    public DefaultAttachmentCaptor(ActiveObjects ao, MigrationService migrationService) {
         this.ao = ao;
         this.migrationService = migrationService;
-        this.attachmentStore = attachmentStore;
     }
 
     @Override
-    public void captureAttachment(Attachment attachment) {
-        File attachmentFile = this.attachmentStore.getAttachmentFile(attachment);
+    public void captureAttachment(File attachmentFile, File thumbnailFile) {
 
         captureAttachmentFile(attachmentFile);
 
         //Thumbnails may not be present. However, attachment.isThumbnailable isn't very predictable, so we check if the thumbnail file exists for all attachments
-        File thumbnailFile = this.attachmentStore.getThumbnailFile(attachment);
         captureAttachmentFile(thumbnailFile);
     }
 

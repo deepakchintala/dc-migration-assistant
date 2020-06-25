@@ -51,7 +51,7 @@ class PluginSettingsRegionManagerTest {
 
     @BeforeEach
     void setUp() {
-        this.pluginSettingsRegionManager = new PluginSettingsRegionManager(() -> this.pluginSettingsFactory, globalInfrastructure);
+        this.pluginSettingsRegionManager = new PluginSettingsRegionManager(pluginSettingsFactory, globalInfrastructure);
         when(this.pluginSettingsFactory.createGlobalSettings()).thenReturn(pluginSettings);
         this.pluginSettingsRegionManager.postConstruct();
     }

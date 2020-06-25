@@ -21,7 +21,7 @@ import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
-import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
+import com.atlassian.migration.datacenter.jira.impl.JiraConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
@@ -61,7 +61,6 @@ import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
-import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
 import com.atlassian.migration.datacenter.core.fs.S3UploaderFactory;
@@ -75,9 +74,9 @@ import com.atlassian.migration.datacenter.core.fs.captor.SqsQueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
-import com.atlassian.migration.datacenter.core.fs.jira.captor.AttachmentCaptor;
-import com.atlassian.migration.datacenter.core.fs.jira.captor.DefaultAttachmentCaptor;
-import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentCaptor;
+import com.atlassian.migration.datacenter.jira.impl.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -172,8 +171,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public RegionService regionService(Supplier<PluginSettingsFactory> pluginSettingsFactorySupplier, GlobalInfrastructure globalInfrastructure) {
-        return new PluginSettingsRegionManager(pluginSettingsFactorySupplier, globalInfrastructure);
+    public RegionService regionService(PluginSettingsFactory pluginSettingsFactory, GlobalInfrastructure globalInfrastructure) {
+        return new PluginSettingsRegionManager(pluginSettingsFactory, globalInfrastructure);
     }
 
     @Bean
@@ -241,8 +240,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, DatabaseExtractor databaseExtractor, JiraHome jiraHome, EventPublisher eventPublisher) {
-        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, databaseExtractor, jiraHome.getHome().toPath(), eventPublisher);
+    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, DatabaseExtractor databaseExtractor, EventPublisher eventPublisher) {
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, databaseExtractor, eventPublisher);
     }
 
     @Bean
@@ -333,8 +332,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
-        return new JiraIssueAttachmentListener(eventPublisher, attachmentCaptor);
+    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor, AttachmentStore attachmentStore) {
+        return new JiraIssueAttachmentListener(eventPublisher, attachmentCaptor, attachmentStore);
     }
 
     @Bean
@@ -343,8 +342,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AttachmentCaptor attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService, AttachmentStore attachmentStore) {
-        return new DefaultAttachmentCaptor(activeObjects, migrationService, attachmentStore);
+    public AttachmentCaptor attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService) {
+        return new DefaultAttachmentCaptor(activeObjects, migrationService);
     }
 
     @Bean

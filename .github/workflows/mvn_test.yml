@@ -60,12 +60,32 @@ jobs:
           
         run: |
           mvn package -DskipTests
-          mv jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
           cd jira-e2e-tests
           ./postgres/inject-license
           JIRA_VERSION=latest docker-compose up --force-recreate --build -d
 
       - name: Rest api tests with production image built by previous step
+        timeout-minutes: 15
+        if: matrix.profile == 'smoketest'
+        run: |
+          cd jira-e2e-tests
+          until docker-compose ps --services --filter "status=stopped" | grep cypress ; do sleep 5; done; mvn -f ../pom.xml verify -pl func-tests -Prest; docker-compose down
+
+      - name: Smoke-test with production image - Jira 7.13
+        timeout-minutes: 10
+        if: matrix.profile == 'smoketest'
+        env:
+          JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
+          CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
+          CYPRESS_AWS_SECRET_ACCESS_KEY: ${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}
+
+        run: |
+          mvn package -DskipTests
+          cd jira-e2e-tests
+          ./postgres/inject-license
+          JIRA_VERSION=7.13.0 docker-compose up --force-recreate --build -d
+
+      - name: Rest api tests with production image built by previous step - Jira 7.13
         timeout-minutes: 15
         if: matrix.profile == 'smoketest'
         run: |

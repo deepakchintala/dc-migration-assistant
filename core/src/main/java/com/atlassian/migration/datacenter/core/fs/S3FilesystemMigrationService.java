@@ -16,7 +16,7 @@
 
 package com.atlassian.migration.datacenter.core.fs;
 
-import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentEventListener;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
@@ -44,7 +44,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     private final MigrationService migrationService;
     private final MigrationRunner migrationRunner;
     private final S3SyncFileSystemDownloadManager fileSystemDownloadManager;
-    private final JiraIssueAttachmentListener attachmentListener;
+    private final AttachmentEventListener attachmentListener;
     private final S3BulkCopy bulkCopy;
 
     private FileSystemMigrationReportManager reportManager;
@@ -53,7 +53,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
                                         S3SyncFileSystemDownloadManager fileSystemDownloadManager,
                                         MigrationService migrationService,
                                         MigrationRunner migrationRunner,
-                                        JiraIssueAttachmentListener attachmentListener,
+                                        AttachmentEventListener attachmentListener,
                                         S3BulkCopy bulkCopy,
                                         FileSystemMigrationReportManager reportManager) {
         this.environment = environment;
@@ -147,10 +147,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         migrationService.error("File system migration was aborted");
     }
 
-
     private JobId getScheduledJobId() {
         return JobId.of(S3UploadJobRunner.KEY + migrationService.getCurrentMigration().getID());
     }
-
-
 }

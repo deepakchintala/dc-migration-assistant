@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.regions.Region;
 
 import javax.annotation.PostConstruct;
-import java.util.function.Supplier;
 
 /**
  * Manages the persistence and retrieval of the region used to make AWS SDK API calls.
@@ -39,11 +38,11 @@ public class PluginSettingsRegionManager implements RegionService {
 
 
     private final GlobalInfrastructure globalInfrastructure;
-    private Supplier<PluginSettingsFactory> pluginSettingsFactorySupplier;
+    private PluginSettingsFactory pluginSettingsFactory;
     private PluginSettings pluginSettings;
 
-    public PluginSettingsRegionManager(Supplier<PluginSettingsFactory> pluginSettingsFactorySupplier, GlobalInfrastructure globalInfrastructure) {
-        this.pluginSettingsFactorySupplier = pluginSettingsFactorySupplier;
+    public PluginSettingsRegionManager(PluginSettingsFactory pluginSettingsFactory, GlobalInfrastructure globalInfrastructure) {
+        this.pluginSettingsFactory = pluginSettingsFactory;
         this.globalInfrastructure = globalInfrastructure;
     }
 
@@ -51,7 +50,7 @@ public class PluginSettingsRegionManager implements RegionService {
     // FIXME: I do not work
     public void postConstruct() {
         logger.debug("setting up plugin settings");
-        this.pluginSettings = this.pluginSettingsFactorySupplier.get().createGlobalSettings();
+        this.pluginSettings = this.pluginSettingsFactory.createGlobalSettings();
     }
 
     /**
@@ -61,7 +60,7 @@ public class PluginSettingsRegionManager implements RegionService {
     @Override
     public String getRegion() {
         // FIXME: Need to find a way to inject without calling the supplier every time
-        PluginSettings pluginSettings = this.pluginSettingsFactorySupplier.get().createGlobalSettings();
+        PluginSettings pluginSettings = this.pluginSettingsFactory.createGlobalSettings();
         String pluginSettingsRegion = (String) pluginSettings.get(AWS_REGION_PLUGIN_STORAGE_KEY + REGION_PLUGIN_STORAGE_SUFFIX);
         if (pluginSettingsRegion == null || "".equals(pluginSettingsRegion)) {
             return Region.US_EAST_1.toString();
@@ -83,7 +82,7 @@ public class PluginSettingsRegionManager implements RegionService {
         }
 
         // FIXME: Need to find a way to inject without calling the supplier every time
-        PluginSettings pluginSettings = this.pluginSettingsFactorySupplier.get().createGlobalSettings();
+        PluginSettings pluginSettings = this.pluginSettingsFactory.createGlobalSettings();
         pluginSettings.put(AWS_REGION_PLUGIN_STORAGE_KEY + REGION_PLUGIN_STORAGE_SUFFIX, region);
     }
 

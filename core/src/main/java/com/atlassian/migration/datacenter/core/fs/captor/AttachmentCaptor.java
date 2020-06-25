@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.jira.captor;
+package com.atlassian.migration.datacenter.core.fs.captor;
 
-
-import com.atlassian.jira.issue.attachment.Attachment;
+import javax.annotation.Nullable;
+import java.io.File;
 
 @FunctionalInterface
 public interface AttachmentCaptor {
-    void captureAttachment(Attachment attachment);
+    void captureAttachment(File attachment, @Nullable File thumbnail);
 }

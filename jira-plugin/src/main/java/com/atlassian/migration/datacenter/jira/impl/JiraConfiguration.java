@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.application;
+package com.atlassian.migration.datacenter.jira.impl;
 
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.core.application.CommonApplicationConfiguration;
+import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
+import com.atlassian.migration.datacenter.core.application.DatabaseConfigurationXmlElement;
 import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
 import com.atlassian.plugin.PluginAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -29,7 +32,6 @@ import java.util.Optional;
 
 public class JiraConfiguration extends CommonApplicationConfiguration
 {
-
     private final JiraHome jiraHome;
 
     public static final String PLUGIN_KEY = "com.atlassian.migration.datacenter.jira-plugin";

@@ -119,6 +119,4 @@ public class LocalStackEnvAutoConfiguration {
     public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
         return new StackResourceRegistryFactoryBean(amazonCloudFormation, new StaticStackNameProvider(STACK_NAME));
     }
-
-
 }

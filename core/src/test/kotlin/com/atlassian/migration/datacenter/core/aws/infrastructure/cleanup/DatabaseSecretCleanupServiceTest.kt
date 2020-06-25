@@ -16,14 +16,11 @@
 
 package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
-import com.atlassian.core.util.DateUtils
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import org.jfree.data.time.Second
-import org.joda.time.Seconds
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -32,15 +29,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.http.SdkHttpResponse
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
-import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest
-import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretResponse
-import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest
-import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse
-import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException
-import java.time.Duration
+import software.amazon.awssdk.services.secretsmanager.model.*
 import java.time.Instant
-import java.time.temporal.TemporalAmount
-import java.time.temporal.TemporalUnit
 import java.util.function.Supplier
 import kotlin.test.assertEquals
 

@@ -14,33 +14,41 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.jira.listener;
+package com.atlassian.migration.datacenter.jira.impl;
 
 
 import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
-import com.atlassian.migration.datacenter.core.fs.jira.captor.AttachmentCaptor;
+import com.atlassian.jira.issue.attachment.AttachmentStore;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class JiraIssueAttachmentListener implements DisposableBean {
+@Component
+public class JiraIssueAttachmentListener implements AttachmentEventListener, DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
     private static final List<Long> ISSUE_EVENT_TYPES_TO_LISTEN = Arrays.asList(EventType.ISSUE_CREATED_ID, EventType.ISSUE_UPDATED_ID);
 
     private final EventPublisher eventPublisher;
+    private final AttachmentStore attachmentStore;
     private AttachmentCaptor attachmentCaptor;
     private boolean started = false;
 
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
+    @Autowired
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor, AttachmentStore attachmentStore) {
         this.eventPublisher = eventPublisher;
         this.attachmentCaptor = attachmentCaptor;
+        this.attachmentStore = attachmentStore;
     }
 
     @EventListener
@@ -50,7 +58,7 @@ public class JiraIssueAttachmentListener implements DisposableBean {
             issueEvent
                     .getIssue()
                     .getAttachments()
-                    .forEach(this.attachmentCaptor::captureAttachment);
+                    .forEach(a -> attachmentCaptor.captureAttachment(attachmentStore.getAttachmentFile(a), attachmentStore.getThumbnailFile(a)));
         }
     }
 

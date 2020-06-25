@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.jira.captor;
+package com.atlassian.migration.datacenter.captor;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
-import com.atlassian.jira.issue.attachment.Attachment;
-import com.atlassian.jira.issue.attachment.AttachmentStore;
+import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentCaptor;
 import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import net.java.ao.EntityManager;
 import net.java.ao.test.junit.ActiveObjectsJUnitRunner;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -42,8 +42,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
+import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -62,14 +61,11 @@ public class DefaultAttachmentCaptorTest {
     @Mock
     MigrationService migrationService;
 
-    @Mock
-    private AttachmentStore attachmentStore;
-
     @Before
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new DefaultAttachmentCaptor(ao, migrationService, attachmentStore);
+        sut = new DefaultAttachmentCaptor(ao, migrationService);
         setupEntities();
     }
 
@@ -83,10 +79,8 @@ public class DefaultAttachmentCaptorTest {
     public void shouldStoreAttachmentPathInDatabase() throws IOException {
         File oneAttachmentFile = File.createTempFile("one-attachment-file", "");
         oneAttachmentFile.deleteOnExit();
-        Attachment oneAttachment = Mockito.mock(Attachment.class);
-        when(this.attachmentStore.getAttachmentFile(oneAttachment)).thenReturn(oneAttachmentFile);
 
-        sut.captureAttachment(oneAttachment);
+        sut.captureAttachment(oneAttachmentFile, null);
 
         FileSyncRecord record = ao.find(FileSyncRecord.class)[0];
 
@@ -98,31 +92,24 @@ public class DefaultAttachmentCaptorTest {
         File oneAttachmentFile = File.createTempFile("one-attachment-file", "");
         File oneThumbnailFile = File.createTempFile("one-thumbnail-file", "");
 
-        Attachment oneAttachment = Mockito.mock(Attachment.class);
-        when(this.attachmentStore.getAttachmentFile(oneAttachment)).thenReturn(oneAttachmentFile);
-        when(this.attachmentStore.getThumbnailFile(oneAttachment)).thenReturn(oneThumbnailFile);
-
-        sut.captureAttachment(oneAttachment);
+        sut.captureAttachment(oneAttachmentFile, oneThumbnailFile);
 
         FileSyncRecord[] fileSyncRecords = ao.find(FileSyncRecord.class);
         assertEquals(2, fileSyncRecords.length);
 
         List<String> actualFilePaths = Arrays.stream(fileSyncRecords).map(FileSyncRecord::getFilePath).collect(Collectors.toList());
-        assertThat(actualFilePaths, contains(oneAttachmentFile.getPath(), oneThumbnailFile.getPath()));
+        assertThat(actualFilePaths, IsIterableContainingInOrder.contains(oneAttachmentFile.getPath(), oneThumbnailFile.getPath()));
     }
 
     @Test
     public void shouldCaptureJustAttachmentPathWhenThumbnailDoesNotPhysicallyExist() throws IOException {
-        Attachment oneAttachment = Mockito.mock(Attachment.class);
         File oneAttachmentFile = File.createTempFile("oneAttachmentFile", "");
         oneAttachmentFile.deleteOnExit();
-        when(this.attachmentStore.getAttachmentFile(oneAttachment)).thenReturn(oneAttachmentFile);
 
         File tempThumbnailFile = File.createTempFile("soon-tobe-deleted", "");
-        when(this.attachmentStore.getThumbnailFile(oneAttachment)).thenReturn(tempThumbnailFile);
         tempThumbnailFile.delete();
 
-        sut.captureAttachment(oneAttachment);
+        sut.captureAttachment(oneAttachmentFile, tempThumbnailFile);
 
         FileSyncRecord[] fileSyncRecords = ao.find(FileSyncRecord.class);
         assertEquals(1, fileSyncRecords.length);
@@ -132,16 +119,13 @@ public class DefaultAttachmentCaptorTest {
 
     @Test
     public void shouldCaptureJustThumbnailPathWhenAttachmentFileDoesNotPhysicallyExist() throws IOException {
-        Attachment oneAttachment = Mockito.mock(Attachment.class);
         File oneAttachmentFile = File.createTempFile("oneAttachmentFile", "");
         oneAttachmentFile.delete();
-        when(this.attachmentStore.getAttachmentFile(oneAttachment)).thenReturn(oneAttachmentFile);
 
         File oneThumbnailFile = File.createTempFile("one-thumbnail-file", "");
-        when(this.attachmentStore.getThumbnailFile(oneAttachment)).thenReturn(oneThumbnailFile);
         oneThumbnailFile.deleteOnExit();
 
-        sut.captureAttachment(oneAttachment);
+        sut.captureAttachment(oneAttachmentFile, oneThumbnailFile);
 
         FileSyncRecord[] fileSyncRecords = ao.find(FileSyncRecord.class);
         assertEquals(1, fileSyncRecords.length);
@@ -151,16 +135,13 @@ public class DefaultAttachmentCaptorTest {
 
     @Test
     public void shouldNotCaptureAnyFilesWhenTheyDoNotPhysicallyExist() throws IOException {
-        Attachment oneAttachment = Mockito.mock(Attachment.class);
         File oneAttachmentFile = File.createTempFile("oneAttachmentFile", "");
         oneAttachmentFile.delete();
-        when(this.attachmentStore.getAttachmentFile(oneAttachment)).thenReturn(oneAttachmentFile);
 
         File oneThumbnailFile = File.createTempFile("one-thumbnail-file", "");
-        when(this.attachmentStore.getThumbnailFile(oneAttachment)).thenReturn(oneThumbnailFile);
         oneThumbnailFile.delete();
 
-        sut.captureAttachment(oneAttachment);
+        sut.captureAttachment(oneAttachmentFile, oneThumbnailFile);
 
         FileSyncRecord[] fileSyncRecords = ao.find(FileSyncRecord.class);
         assertEquals(0, fileSyncRecords.length);
@@ -168,12 +149,10 @@ public class DefaultAttachmentCaptorTest {
 
     @Test
     public void shouldStoreRecordAgainstCurrentMigration() throws IOException {
-      File oneAttachmentFile = File.createTempFile("one-attachment-file", "");
-      Attachment oneAttachment = Mockito.mock(Attachment.class);
-         Migration migration = givenMigrationExists();
-        when(this.attachmentStore.getAttachmentFile(oneAttachment)).thenReturn(oneAttachmentFile);
+        File oneAttachmentFile = File.createTempFile("one-attachment-file", "");
+        Migration migration = givenMigrationExists();
 
-        sut.captureAttachment(oneAttachment);
+        sut.captureAttachment(oneAttachmentFile, null);
         FileSyncRecord record = ao.find(FileSyncRecord.class)[0];
         assertEquals(migration, record.getMigration());
     }

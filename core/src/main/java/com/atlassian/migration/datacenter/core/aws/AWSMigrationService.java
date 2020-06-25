@@ -42,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
-import java.nio.file.Path;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
@@ -56,7 +55,6 @@ public class AWSMigrationService implements MigrationService {
     private ActiveObjects ao;
     private ApplicationConfiguration applicationConfiguration;
     private DatabaseExtractor databaseExtractor;
-    private Path localHome;
     private EventPublisher eventPublisher;
 
     /**
@@ -65,12 +63,10 @@ public class AWSMigrationService implements MigrationService {
     public AWSMigrationService(ActiveObjects ao,
                                ApplicationConfiguration applicationConfiguration,
                                DatabaseExtractor databaseExtractor,
-                               Path jiraHome,
                                EventPublisher eventPublisher) {
         this.ao = requireNonNull(ao);
         this.applicationConfiguration = applicationConfiguration;
         this.databaseExtractor = databaseExtractor;
-        this.localHome = jiraHome;
         this.eventPublisher = eventPublisher;
     }
 
