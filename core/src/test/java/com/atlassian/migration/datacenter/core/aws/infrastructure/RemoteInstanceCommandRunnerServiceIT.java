@@ -25,13 +25,10 @@ import java.util.Objects;
 class RemoteInstanceCommandRunnerServiceIT {
     
     private static final String DOCKER_COMPOSE_FILE = "localstack/docker-compose.yml";
-    
     private static final File dockerFile = new File(
             Objects.requireNonNull(RemoteInstanceCommandRunnerServiceIT.class.getClassLoader().getResource(DOCKER_COMPOSE_FILE)).getFile()
     );
-    
     private static final DockerComposeContainer localstackForEc2 = new DockerComposeContainer(dockerFile);
-    
     private static final String LOCAL_EC2_ENDPOINT = "http://localhost:4597";
     public static final String JIRA_STACK_NAME = "JIRA_STACK_001";
 
