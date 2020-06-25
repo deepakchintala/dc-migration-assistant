@@ -12,5 +12,5 @@ docker-compose rm -sf
 if [[ "$1" == "--no-test" ]]; then
     docker-compose up --force-recreate --build jira postgresql
 else
-    docker-compose up --force-recreate --build
+    docker-compose up --force-recreate --build jira postgresql cypress
 fi
