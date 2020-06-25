@@ -13,6 +13,7 @@ The testing framework consists of the following parts:
 * A wrapper for official Postgres Docker image which injects a pre-configured Jira database.
 * A wrapper for the official Atlassian Jira-Software image
 * A [Cypress](https://www.cypress.io/) test-suite and Docker image
+* A functional (REST API) test-suite and Docker image
 * A Docker-Compose config to configure and run the above images and a smoke-test suite.
 
 ### Postgres container setup
