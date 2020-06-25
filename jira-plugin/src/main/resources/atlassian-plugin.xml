@@ -38,13 +38,13 @@
         <url-pattern>/dc-migration-assistant*</url-pattern>
     </servlet>
 
-<!--    <web-resource key="dc-migration-assistant-templates" name="DC Migration Assistant Soy Templates">-->
-<!--        <resource type="soy" name="dc-migration-assistant.soy" location="/templates/dc-migration-assistant.soy"/>-->
-<!--        <dependency>com.atlassian.plugins.jquery:jquery</dependency>-->
-<!--        <dependency>com.atlassian.auiplugin:ajs</dependency>-->
-<!--        <dependency>com.atlassian.auiplugin:soy</dependency>-->
-<!--        <dependency>com.atlassian.soy.soy-template-plugin:soy-deps</dependency>-->
-<!--    </web-resource>-->
+    <web-resource key="dc-migration-assistant-templates" name="DC Migration Assistant Soy Templates">
+        <resource type="soy" name="dc-migration-assistant.soy" location="/templates/dc-migration-assistant.soy"/>
+        <dependency>com.atlassian.plugins.jquery:jquery</dependency>
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <dependency>com.atlassian.auiplugin:soy</dependency>
+        <dependency>com.atlassian.soy.soy-template-plugin:soy-deps</dependency>
+    </web-resource>
 
     <web-item key="migrationAssistantItem" name="Jira DC Migration Plugin" section="admin_system_menu/advanced_menu_section"
               weight="200"

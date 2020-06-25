@@ -38,13 +38,6 @@ const plugins = shouldWatch => [
                     amd: 'wrm/context-path',
                 },
             },
-            AJS: {
-                dependency: 'com.atlassian.auiplugin:ajs',
-                import: {
-                    var: "require('AJS')",
-                    amd: 'AJS',
-                },
-            },
             'wrm/format': {
                 dependency: 'com.atlassian.plugins.atlassian-plugins-webresource-plugin:format',
                 import: {
