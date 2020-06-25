@@ -24,7 +24,7 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRes
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.RemoteInstanceCommandRunnerService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.db.DefaultDatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
@@ -133,7 +133,7 @@ class DatabaseMigrationServiceIT {
     @Test
     void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError, S3SyncFileSystemDownloader.CannotLaunchCommandException {
         MigrationStageCallback archiveStageTransitionCallback = new DatabaseArchiveStageTransitionCallback(migrationService);
-        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(DatabaseExtractorFactory.getExtractor(configuration), archiveStageTransitionCallback);
+        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(new DefaultDatabaseExtractorFactory(configuration), archiveStageTransitionCallback);
 
         MigrationStageCallback uploadStageTransitionCallback = new DatabaseUploadStageTransitionCallback(this.migrationService);
         DatabaseArtifactS3UploadService s3UploadService = new DatabaseArtifactS3UploadService(() -> s3client, uploadStageTransitionCallback, reportManager);

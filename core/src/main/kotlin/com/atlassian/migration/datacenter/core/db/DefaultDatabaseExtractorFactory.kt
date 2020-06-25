@@ -13,9 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.atlassian.migration.datacenter.core.db
 
-interface DatabaseExtractorFactory {
-    val extractor: DatabaseExtractor
+import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
+import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration.DBType
+import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
+
+class DefaultDatabaseExtractorFactory(val config: ApplicationConfiguration) : DatabaseExtractorFactory {
+    override val extractor: DatabaseExtractor by lazy {
+        if (config.databaseConfiguration.type == DBType.POSTGRESQL) {
+            PostgresExtractor(config)
+        } else {
+            UnSupportedDatabaseExtractor()
+        }
+    }
 }

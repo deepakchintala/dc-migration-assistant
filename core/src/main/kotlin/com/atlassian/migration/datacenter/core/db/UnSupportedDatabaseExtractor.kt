@@ -21,9 +21,9 @@ import java.nio.file.Path
 
 class UnSupportedDatabaseExtractor : DatabaseExtractor {
     override val clientVersion: SemVer?
-        get() = TODO("Not yet implemented")
+        get() = null
     override val serverVersion: SemVer?
-        get() = TODO("Not yet implemented")
+        get() = null
 
     @Throws(DatabaseMigrationFailure::class)
     override fun startDatabaseDump(target: Path?): Process? {

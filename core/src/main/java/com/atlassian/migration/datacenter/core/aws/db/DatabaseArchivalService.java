@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
+import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 
@@ -25,11 +26,11 @@ import java.nio.file.Path;
 
 public class DatabaseArchivalService {
 
-    private DatabaseExtractor databaseExtractor;
+    private DatabaseExtractorFactory databaseExtractorFactory;
     private MigrationStageCallback migrationStageCallback;
 
-    public DatabaseArchivalService(DatabaseExtractor databaseExtractor, MigrationStageCallback migrationStageCallback) {
-        this.databaseExtractor = databaseExtractor;
+    public DatabaseArchivalService(DatabaseExtractorFactory databaseExtractorFactory, MigrationStageCallback migrationStageCallback) {
+        this.databaseExtractorFactory = databaseExtractorFactory;
         this.migrationStageCallback = migrationStageCallback;
     }
 
@@ -38,7 +39,8 @@ public class DatabaseArchivalService {
 
         this.migrationStageCallback.assertInStartingStage();
 
-        Process extractorProcess = this.databaseExtractor.startDatabaseDump(target);
+        DatabaseExtractor databaseExtractor = databaseExtractorFactory.getExtractor();
+        Process extractorProcess = databaseExtractor.startDatabaseDump(target);
         this.migrationStageCallback.transitionToServiceWaitStage();
 
         try {
