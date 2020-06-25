@@ -124,8 +124,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
     override fun startDatabaseDump(target: Path?, parallel: Boolean?): Process? {
         val numJobs = if (parallel!!) 4 else 1 // Common-case for now, could be tunable or num-CPUs.
 
-        val pgdump = pgdumpPath
-                .orElseThrow { DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.") }
+        val pgdump = pgdumpPath ?: throw DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.")
         val config = applicationConfiguration.databaseConfiguration
 
         val builder = ProcessBuilder(pgdump,
