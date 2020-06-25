@@ -71,9 +71,12 @@ export type MigrationProgressProps = {
      */
     retryText?: string;
     /**
-     * A callback which iwll
+     * A callback which will retry the operation
      */
     onRetry?: RetryCallback;
+    /**
+     * A route to redirect the user to when
+     */
     onRetryRoute?: string;
 };
 
@@ -92,15 +95,10 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     onRetry,
     onRetryRoute,
 }) => {
-    const [failed, setFailed] = useState<boolean>(false);
     const [retryEnabled, setRetryEnabled] = useState<boolean>(false);
     const [shouldRedirectToStart, setShouldRedirectToStart] = useState<boolean>(false);
 
-    useEffect(() => {
-        if (progress.errorMessage) {
-            setFailed(true);
-        }
-    }, [progress]);
+    const failed = progress.errorMessage && true;
 
     if (loading) {
         return (
@@ -172,7 +170,9 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                             style={{ marginTop: '10px' }}
                             isDisabled={!retryEnabled}
                             onClick={(): void => {
-                                onRetry().then(() => setShouldRedirectToStart(true));
+                                onRetry().then(() =>
+                                    setShouldRedirectToStart(onRetryRoute && true)
+                                );
                             }}
                         >
                             {retryText || 'retry'}
