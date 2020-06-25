@@ -54,7 +54,7 @@ jobs:
         run: mvn -B clean verify -P ${{ matrix.profile}}
 
       - name: Smoke-test with production image
-        timeout-minutes: 10
+        timeout-minutes: 20
         if: matrix.profile == 'smoketest'
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
@@ -68,7 +68,7 @@ jobs:
           JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit postgresql jira cypress
 
       - name: REST API tests with production image
-        timeout-minutes: 10
+        timeout-minutes: 20
         if: matrix.profile == 'functest'
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
