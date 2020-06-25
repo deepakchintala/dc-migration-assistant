@@ -3,7 +3,7 @@ Description: Jira / Confluence Server to DC (AWS) Helper
 
 Parameters:
   NetworkPrivateSubnet:
-    Description: "Private SubnetId where Migration helper will be placed - Must have connection to desitnation Storage"
+    Description: "Private SubnetId where Migration helper will be placed - Must have connection to destination Storage"
     Type: String
   EFSFileSystemId:
     Description: "The Elastic File System Id we will mount to the Migration Helper EC2 Instance"
@@ -154,7 +154,7 @@ Resources:
     Metadata:
       AWS::CloudFormation::Init:
         configSets:
-          install_prerequisites: [create_efs_script,mount_efs,create_helper_user,create_log_directory,prepare_efs_sync_script,install_psql_client,create_rds_restore_script,download_java_helper_app,start_java_helper_app]
+          install_prerequisites: [create_efs_script,mount_efs,create_helper_user,create_log_directory,prepare_efs_sync_script,install_psql_client,create_db_post_restore_script,create_rds_restore_script,download_java_helper_app,start_java_helper_app]
         create_efs_script:
           files:
             /opt/atlassian/dc-migration-assistant/mount-efs.sh:
@@ -258,6 +258,16 @@ Resources:
               command: !Sub
                 - "amazon-linux-extras install -y postgresql${PSQLClientVersion}"
                 - { PSQLClientVersion: !Ref PSQLVersion }
+        create_db_post_restore_script:
+          files:
+            /opt/atlassian/dc-migration-assistant/db_post_restore_script.sql:
+              content: !Sub
+                - |
+                  DELETE FROM clusternode where node_id IN (select NODE_ID from  clusternode where NODE_STATE ='offline');
+                  -- Or set this in the deployment form
+                   INSERT INTO pluginstate (pluginkey, pluginenabled) VALUES ('com.atlassian.migration.datacenter.jira-plugin','false');
+                  -- Remove from clustered job here?
+              mode: "000755"
         create_rds_restore_script:
           files:
             /opt/atlassian/dc-migration-assistant/restore-db-to-rds.sh:
@@ -275,6 +285,7 @@ Resources:
                   PG_RESTORE_EXIT_CODE=$?
                   ERRORS_EXIST=`grep -qiE 'error|warning' $DB_DUMP_LOG_FILE && echo 'true' || echo 'false'`
                   RESTORE_COMPLETE=`grep -qiE 'WARNING: errors ignored on restore:' $DB_DUMP_LOG_FILE && echo 'true' || echo 'false'`
+                  PGPASSWORD=$SECRET_PASSWORD psql -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -a -f /opt/atlassian/dc-migration-assistant/db_post_restore_script.sql
                   echo -e "{\"is_restore_complete\":\""$RESTORE_COMPLETE"\",\"is_error_present\":\""$ERRORS_EXIST"\", "return_code":\""$PG_RESTORE_EXIT_CODE"\"}"
                 - {
                   SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password",
