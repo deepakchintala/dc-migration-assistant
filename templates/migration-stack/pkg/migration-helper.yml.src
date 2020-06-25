@@ -267,6 +267,7 @@ Resources:
                   -- Or set this in the deployment form
                    INSERT INTO pluginstate (pluginkey, pluginenabled) VALUES ('com.atlassian.migration.datacenter.jira-plugin','false');
                   -- Remove from clustered job here?
+                  --  DELETE FROM clusteredjob where job_id like 'com.atlassian.migration.datacenter%';
               mode: "000755"
         create_rds_restore_script:
           files:
