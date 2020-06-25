@@ -57,6 +57,7 @@ export type FinalSyncStatus = {
 export type FinalFileSyncStatus = {
     uploaded: number;
     downloaded: number;
+    failed: number;
     hasProgressedToNextStage: boolean;
 };
 
