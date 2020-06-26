@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState, useEffect } from 'react';
+import React, { FunctionComponent, useState } from 'react';
 import { Moment } from 'moment';
 import SectionMessage from '@atlaskit/section-message';
 import Spinner from '@atlaskit/spinner';
@@ -31,10 +31,6 @@ import {
     calcualateDurationFromElapsedSeconds,
     calculateStartedFromElapsedSeconds,
 } from './migration-timing';
-
-export interface RetryCallback {
-    (): Promise<Response>;
-}
 
 const SectionMessageParagraph = styled.p`
     margin: 0;
@@ -66,18 +62,6 @@ export type MigrationProgressProps = {
      * A moment representing the time that the transfer was started
      */
     startedMoment: Moment;
-    /**
-     * Text to display on the retry button
-     */
-    retryText?: string;
-    /**
-     * A callback which will retry the operation
-     */
-    onRetry?: RetryCallback;
-    /**
-     * A route to redirect the user to when
-     */
-    onRetryRoute?: string;
 };
 
 const LearnMoreLink =
@@ -91,14 +75,12 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     progress,
     loading,
     startedMoment,
-    retryText,
-    onRetry,
-    onRetryRoute,
 }) => {
     const [retryEnabled, setRetryEnabled] = useState<boolean>(false);
     const [shouldRedirectToStart, setShouldRedirectToStart] = useState<boolean>(false);
 
     const failed = progress.errorMessage && true;
+    const { onRetryRoute, retryText, onRetry } = progress?.retryProps;
 
     if (loading) {
         return (

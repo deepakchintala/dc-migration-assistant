@@ -32,6 +32,7 @@ import {
 } from '../../api/final-sync';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
+import { finalSync } from '../../api/final-sync';
 
 const finalSyncInProgressStages = [
     MigrationStage.DATA_MIGRATION_IMPORT,
@@ -50,6 +51,11 @@ const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => 
     builder.setPhase(statusToI18nString(status.status));
     builder.setElapsedSeconds(status.elapsedTime.seconds);
     builder.setFailed(status.status === DBMigrationStatus.FAILED);
+
+    builder.setRetryProps({
+        retryText: I18n.getText('atlassian.migration.datacenter.sync.db.retry'),
+        onRetry: finalSync.retryDbMigration,
+    });
 
     if (status.status === DBMigrationStatus.DONE) {
         builder.setCompleteness(1);
@@ -75,6 +81,11 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
         // If there are no files to upload (i.e. uploaded = 0), the state will be transitioned to `Validate` and conditional branch will not be evaluated due to the `hasProgressedToNextStage` check above.
         builder.setCompleteness(uploaded === 0 ? 0 : downloaded / uploaded);
     }
+
+    builder.setRetryProps({
+        retryText: I18n.getText('atlassian.migration.datacenter.sync.fs.retry'),
+        onRetry: finalSync.retryFsSync,
+    });
 
     if (downloaded === uploaded) {
         builder.setCompleteMessage(

@@ -22,7 +22,7 @@ import Spinner from '@atlaskit/spinner';
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { Progress, ProgressCallback } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
-import { MigrationProgress, RetryCallback } from './MigrationTransferProgress';
+import { MigrationProgress } from './MigrationTransferProgress';
 import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
 import { ErrorFlag } from './ErrorFlag';
@@ -74,10 +74,6 @@ export type MigrationTransferProps = {
     getProgress: ProgressCallback;
 
     getDetails?: () => Promise<CommandResult>;
-
-    onRetry?: RetryCallback;
-    retryText?: string;
-    onRetryRoute?: string;
 };
 
 const TransferPageContainer = styled.div`
@@ -124,9 +120,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     inProgressStages,
     startMigrationPhase,
     getDetails: getCommandresult,
-    retryText,
-    onRetry,
-    onRetryRoute,
 }) => {
     const [progressList, setProgressList] = useState<Array<Progress>>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -237,9 +230,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                         progress={progress}
                                         loading={loading}
                                         startedMoment={startMoment}
-                                        retryText={retryText}
-                                        onRetry={onRetry}
-                                        onRetryRoute={onRetryRoute}
                                     />
                                     {index !== progressList.length - 1 && <Divider />}
                                 </>
