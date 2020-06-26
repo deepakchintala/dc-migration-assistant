@@ -50,8 +50,6 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
         migrationRunner.abortJobIfPresesnt(getScheduledJobId())
 
         logger.warn("Aborting running final file sync")
-
-        migrationService.error("Aborted final file sync")
     }
 
     fun getFinalSyncStatus() : FinalFileSyncStatus {

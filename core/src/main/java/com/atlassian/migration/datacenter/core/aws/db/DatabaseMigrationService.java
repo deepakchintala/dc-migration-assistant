@@ -136,8 +136,6 @@ public class DatabaseMigrationService {
         }
 
         logger.warn("Aborting running DB migration");
-
-        migrationService.error("DB migration was aborted");
     }
 
     private JobId getScheduledJobId() {
