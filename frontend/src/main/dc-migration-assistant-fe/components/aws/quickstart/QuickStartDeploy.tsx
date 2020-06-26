@@ -118,7 +118,7 @@ const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({
                         const param = parameter;
                         if (ASIPrefixOverride && parameter.paramKey === 'ExportPrefix') {
                             param.paramProperties.Default = ASIPrefixOverride;
-                        } else if (parameter.paramKey === 'JiraVersion' && appVersion != '') {
+                        } else if (parameter.paramKey === 'JiraVersion' && appVersion !== '') {
                             param.paramProperties.Default = appVersion;
                         }
                         return createQuickstartFormField(param);
