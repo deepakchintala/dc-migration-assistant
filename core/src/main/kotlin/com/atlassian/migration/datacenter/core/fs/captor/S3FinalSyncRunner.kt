@@ -16,12 +16,14 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor
 
+import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
 import com.atlassian.migration.datacenter.core.fs.ReportType
 import com.atlassian.migration.datacenter.core.fs.S3UploadConfig
 import com.atlassian.migration.datacenter.core.fs.S3Uploader
 import com.atlassian.migration.datacenter.core.util.MigrationJobRunner
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
 import com.atlassian.scheduler.JobRunnerRequest
 import com.atlassian.scheduler.JobRunnerResponse
 import org.slf4j.LoggerFactory
@@ -37,7 +39,8 @@ class S3FinalSyncRunner(
         private val migrationHelperDeploymentService: AWSMigrationHelperDeploymentService,
         private val queueWatcher: QueueWatcher,
         private val attachmentListener: AttachmentEventListener,
-        private val reportManager: FileSystemMigrationReportManager)
+        private val reportManager: FileSystemMigrationReportManager,
+        private val sqsApi: SqsApi)
     : MigrationJobRunner {
 
     companion object {
@@ -53,6 +56,12 @@ class S3FinalSyncRunner(
     override fun runJob(request: JobRunnerRequest): JobRunnerResponse? {
         if (!isRunning.compareAndSet(false, true)) {
             return JobRunnerResponse.aborted("Database migration job is already running")
+        }
+
+        try {
+            sqsApi.emptyQueue(migrationHelperDeploymentService.deadLetterQueueResource)
+        } catch (e: InfrastructureDeploymentError) {
+            log.warn("unable to purge deadletter queue because we cannot find it from migration stack")
         }
 
         log.info("Stopping attachment event listener. Attachments created from this point onwards will not be migrated.")

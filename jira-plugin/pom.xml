@@ -213,7 +213,7 @@
 
     <properties>
         <amps.jira.version>8.5.2</amps.jira.version>
-        <amps.spring.profiles>allowAnyTransition,gaFeature</amps.spring.profiles>
+        <amps.spring.profiles>allowAnyTransition</amps.spring.profiles>
         <atlassian.plugins.osgi.javaconfig.version>0.3.1</atlassian.plugins.osgi.javaconfig.version>
     </properties>
 </project>

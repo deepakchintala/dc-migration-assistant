@@ -23,6 +23,7 @@ import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration
 import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
 import com.atlassian.plugin.PluginAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import java.io.IOException;
@@ -35,14 +36,14 @@ public class JiraConfiguration extends CommonApplicationConfiguration
     private final JiraHome jiraHome;
 
     public static final String PLUGIN_KEY = "com.atlassian.migration.datacenter.jira-plugin";
-    private final XmlMapper xmlMapper;
+    private final ObjectMapper xmlMapper;
     private Optional<DatabaseConfiguration> databaseConfiguration = Optional.empty();
 
     public JiraConfiguration(JiraHome jiraHome, PluginAccessor pluginAccessor) {
         super(pluginAccessor);
         this.jiraHome = jiraHome;
-        this.xmlMapper = new XmlMapper();
-        this.xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.xmlMapper = new XmlMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @Override
@@ -64,10 +65,7 @@ public class JiraConfiguration extends CommonApplicationConfiguration
         Path databaseConfig = Paths.get(jiraHome.getLocalHomePath()).resolve("dbconfig.xml");
 
         try {
-            DatabaseConfigurationXmlElement xmlElement = this.xmlMapper.readValue(databaseConfig.toFile(), DatabaseConfigurationXmlElement.class);
-            if (!xmlElement.isDataSourcePresent()) {
-                return DatabaseConfiguration.h2();
-            }
+            DatabaseConfigurationXmlElement xmlElement = xmlMapper.readValue(databaseConfig.toFile(), DatabaseConfigurationXmlElement.class);
             return xmlElement.toDatabaseConfiguration();
         } catch (IOException e) {
             throw new ConfigurationReadException("Unable to parse database configuration XML file", e);

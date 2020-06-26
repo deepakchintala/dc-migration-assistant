@@ -22,8 +22,9 @@ import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.RemoteInstanceCommandRunnerService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.db.DefaultDatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
@@ -98,6 +99,8 @@ class DatabaseMigrationServiceIT {
     private MigrationRunner migrationRunner;
     @Mock
     AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    @Mock
+    RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -130,7 +133,7 @@ class DatabaseMigrationServiceIT {
     @Test
     void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError, S3SyncFileSystemDownloader.CannotLaunchCommandException {
         MigrationStageCallback archiveStageTransitionCallback = new DatabaseArchiveStageTransitionCallback(migrationService);
-        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(DatabaseExtractorFactory.getExtractor(configuration), archiveStageTransitionCallback);
+        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(new DefaultDatabaseExtractorFactory(configuration), archiveStageTransitionCallback);
 
         MigrationStageCallback uploadStageTransitionCallback = new DatabaseUploadStageTransitionCallback(this.migrationService);
         DatabaseArtifactS3UploadService s3UploadService = new DatabaseArtifactS3UploadService(() -> s3client, uploadStageTransitionCallback, reportManager);
@@ -141,7 +144,7 @@ class DatabaseMigrationServiceIT {
 
         DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback  = new DatabaseRestoreStageTransitionCallback(this.migrationService);
 
-        SsmPsqlDatabaseRestoreService restoreService = new SsmPsqlDatabaseRestoreService(ssmApi, migrationHelperDeploymentService, restoreStageTransitionCallback);
+        SsmPsqlDatabaseRestoreService restoreService = new SsmPsqlDatabaseRestoreService(ssmApi, migrationHelperDeploymentService, restoreStageTransitionCallback, remoteInstanceCommandRunnerService);
 
         DatabaseMigrationService service = new DatabaseMigrationService(tempDir,
                 migrationService,

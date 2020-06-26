@@ -26,6 +26,7 @@ import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationSe
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
 import com.atlassian.migration.datacenter.core.aws.SqsApi;
+import com.atlassian.migration.datacenter.core.aws.SqsApiImpl;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
 import com.atlassian.migration.datacenter.core.aws.auth.EncryptedCredentialsStorage;
 import com.atlassian.migration.datacenter.core.aws.auth.ProbeAWSAuth;
@@ -42,10 +43,11 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreSta
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
-import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSCleanupTaskFactory;
-import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationInfrastructureCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.RemoteInstanceCommandRunnerService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSCleanupTaskFactory;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationInfrastructureCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationStackCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.DatabaseSecretCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.MigrationBucketCleanupService;
@@ -56,8 +58,9 @@ import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManage
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.db.DefaultDatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.exceptions.AwsQueueError;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
@@ -85,6 +88,7 @@ import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastruc
 import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.scheduler.SchedulerService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -92,6 +96,7 @@ import org.springframework.core.env.Environment;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -145,6 +150,13 @@ public class MigrationAssistantBeanConfiguration {
 
     @Bean Supplier<SqsAsyncClient> sqsAsyncClient(AwsCredentialsProvider awsCredentialsProvider, RegionService regionService){
         return () -> SqsAsyncClient.builder()
+                .credentialsProvider(awsCredentialsProvider)
+                .region(Region.of(regionService.getRegion()))
+                .build();
+    }
+
+    @Bean Supplier<Ec2Client> ec2Client(AwsCredentialsProvider awsCredentialsProvider, RegionService regionService){
+        return () -> Ec2Client.builder()
                 .credentialsProvider(awsCredentialsProvider)
                 .region(Region.of(regionService.getRegion()))
                 .build();
@@ -218,8 +230,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) {
-        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService, restoreStageTransitionCallback);
+    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback, RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService) {
+        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService, restoreStageTransitionCallback, remoteInstanceCommandRunnerService);
+    }
+
+    @Bean
+    public RemoteInstanceCommandRunnerService applicationRestartService(SSMApi ssm, Supplier<Ec2Client> ec2ClientSupplier, MigrationService migrationService){
+        return new RemoteInstanceCommandRunnerService(ssm, migrationService, ec2ClientSupplier);
     }
 
     @Bean
@@ -240,8 +257,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, DatabaseExtractor databaseExtractor, EventPublisher eventPublisher) {
-        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, databaseExtractor, eventPublisher);
+    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, DatabaseExtractorFactory databaseExtractorFactory, EventPublisher eventPublisher) {
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, databaseExtractorFactory, eventPublisher);
     }
 
     @Bean
@@ -255,13 +272,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseExtractor databaseExtractor(ApplicationConfiguration applicationConfiguration) {
-        return DatabaseExtractorFactory.getExtractor(applicationConfiguration);
+    public DatabaseExtractorFactory databaseExtractorFactory(ApplicationConfiguration applicationConfiguration) {
+        return new DefaultDatabaseExtractorFactory(applicationConfiguration);
     }
 
     @Bean
-    public DatabaseArchivalService databaseArchivalService(DatabaseExtractor databaseExtractor, DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback) {
-        return new DatabaseArchivalService(databaseExtractor, archiveStageTransitionCallback);
+    public DatabaseArchivalService databaseArchivalService(DatabaseExtractorFactory databaseExtractorFactory, DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback) {
+        return new DatabaseArchivalService(databaseExtractorFactory, archiveStageTransitionCallback);
     }
 
     @Bean
@@ -363,17 +380,18 @@ public class MigrationAssistantBeanConfiguration {
                                                AWSMigrationHelperDeploymentService helperDeploymentService,
                                                QueueWatcher queueWatcher,
                                                JiraIssueAttachmentListener attachmentListener,
-                                               FileSystemMigrationReportManager reportManager) {
-        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome.getHome().toPath(), helperDeploymentService, queueWatcher, attachmentListener, reportManager);
+                                               FileSystemMigrationReportManager reportManager,
+                                               SqsApi sqsApi) {
+        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome.getHome().toPath(), helperDeploymentService, queueWatcher, attachmentListener, reportManager, sqsApi);
     }
 
     @Bean
-    public SqsApi emptyQueueSqsApi() {
-        return queueUrl -> 0;
+    public SqsApi sqsApi(Supplier<SqsAsyncClient> sqsClientSupplier) {
+        return new SqsApiImpl(sqsClientSupplier);
     }
 
     @Bean
-    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, QueueWatcher queueWatcher, AttachmentSyncManager attachmentSyncManager) {
+    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, AttachmentSyncManager attachmentSyncManager) {
         return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi, attachmentSyncManager);
     }
 

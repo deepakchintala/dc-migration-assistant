@@ -19,10 +19,12 @@ package com.atlassian.migration.datacenter.core.exceptions
 
 open class AwsQueueError : Exception {
     constructor(message: String) : super(message)
+    constructor(cause: Throwable) : super(cause)
     constructor(message: String, throwable: Throwable) : super(message, throwable)
 
 }
 
 class AwsQueueConnectionException(message: String, cause: Throwable) : AwsQueueError(message, cause)
 class AwsQueueApiUnsuccessfulResponse(message: String) : AwsQueueError(message)
-class AwsQueueBadRequestError(message: String) : AwsQueueError(message)
+class AwsQueueBadRequestError(message: String) : AwsQueueError(message) {
+}

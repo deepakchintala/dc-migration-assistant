@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.aws
+// eslint-disable-next-line import/no-unresolved
+import contextPath from 'wrm/context-path';
 
-import com.atlassian.migration.datacenter.core.exceptions.AwsQueueError
+const contextPathWrapper = (): string => {
+    try {
+        return contextPath();
+    } catch (typeError) {
+        // eslint-disable-next-line no-prototype-builtins
+        if (window.hasOwnProperty('contextPath')) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            return window.contextPath;
+        }
+        throw typeError;
+    }
+};
 
-interface SqsApi {
-    @Throws(AwsQueueError::class)
-    fun getQueueLength(queueUrl: String) : Int
-
-    fun emptyQueue(queueUrl: String)
-}
+export default contextPathWrapper;
