@@ -74,7 +74,13 @@ public class DatabaseMigrationService {
         migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT);
         startTime.set(Optional.of(LocalDateTime.now()));
 
-        Path pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory);
+        Path pathToDatabaseFile;
+        try {
+            pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory);
+        } catch (DatabaseMigrationFailure e) {
+            migrationService.error(e);
+            throw e;
+        }
 
         FileSystemMigrationErrorReport report;
 
