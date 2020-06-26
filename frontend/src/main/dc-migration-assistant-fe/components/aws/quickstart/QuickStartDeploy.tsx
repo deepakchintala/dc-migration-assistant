@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, ReactElement, ReactFragment, useEffect, useState } from 'react';
-import Form, { ErrorMessage, Field, FormHeader, FormSection, HelperMessage } from '@atlaskit/form';
+import React, {FunctionComponent, ReactElement, ReactFragment, useEffect, useState} from 'react';
+import Form, {ErrorMessage, Field, FormHeader, FormSection, HelperMessage} from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
-import Button, { ButtonGroup } from '@atlaskit/button';
+import Button, {ButtonGroup} from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
-import { OptionType } from '@atlaskit/select';
-import { I18n } from '@atlassian/wrm-react-i18n';
+import {OptionType} from '@atlaskit/select';
+import {I18n} from '@atlassian/wrm-react-i18n';
 import styled from 'styled-components';
 import Panel from '@atlaskit/panel';
-import { Redirect } from 'react-router-dom';
+import {Redirect} from 'react-router-dom';
 
-import { yamlParse } from 'yaml-cfn';
-import { createQuickstartFormField } from './quickstartToAtlaskit';
-import { QuickstartParameterGroup, QuickstartTemplateForm } from './QuickStartTypes';
-
-import { callAppRest, RestApiPathConstants } from '../../../utils/api';
-import { quickstartStatusPath } from '../../../utils/RoutePaths';
-import { CancelButton } from '../../shared/CancelButton';
-import { DeploymentMode } from './QuickstartRoutes';
-import { provisioning } from '../../../api/provisioning';
-import { ErrorFlag } from '../../shared/ErrorFlag';
+import {yamlParse} from 'yaml-cfn';
+import {createQuickstartFormField} from './quickstartToAtlaskit';
+import {QuickstartParameterGroup, QuickstartTemplateForm} from './QuickStartTypes';
+import {quickstartStatusPath} from '../../../utils/RoutePaths';
+import {CancelButton} from '../../shared/CancelButton';
+import {DeploymentMode} from './QuickstartRoutes';
+import {provisioning} from '../../../api/provisioning';
+import {ErrorFlag} from '../../shared/ErrorFlag';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 
@@ -117,6 +115,8 @@ const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({
                         const param = parameter;
                         if (ASIPrefixOverride && parameter.paramKey === 'ExportPrefix') {
                             param.paramProperties.Default = ASIPrefixOverride;
+                        } else if (parameter.paramKey === 'JiraVersion') {
+                            param.paramProperties.Default = '8.5.3';
                         }
                         return createQuickstartFormField(param);
                     })}

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import React, { ReactElement } from 'react';
-import Select, { AsyncSelect, OptionType } from '@atlaskit/select';
+import React, {ReactElement} from 'react';
+import Select, {AsyncSelect, OptionType} from '@atlaskit/select';
 import Toggle from '@atlaskit/toggle';
 import TextField from '@atlaskit/textfield';
-import { ErrorMessage, Field, HelperMessage } from '@atlaskit/form';
-import { I18n } from '@atlassian/wrm-react-i18n';
-import { QuickstartParameter } from './QuickStartTypes';
-import { callAppRest, RestApiPathConstants } from '../../../utils/api';
+import {ErrorMessage, Field, HelperMessage} from '@atlaskit/form';
+import {I18n} from '@atlassian/wrm-react-i18n';
+import {QuickstartParameter} from './QuickStartTypes';
+import {callAppRest, RestApiPathConstants} from '../../../utils/api';
 
 type FormElementGenerator = (
     defaultProps: DefaultFieldProps,
@@ -165,6 +165,13 @@ const createStringInputFromQuickstartParam: FormElementGenerator = (defaultField
     let overrideFieldProps: Record<string, string | number | boolean | Function> = {
         defaultValue: (Default as string) || '',
     };
+
+    if (param.paramKey === 'JiraVersion') {
+        overrideInputProps = {
+            isDisabled: true,
+            ...overrideInputProps,
+        };
+    }
 
     if (MaxLength) {
         overrideInputProps = {
