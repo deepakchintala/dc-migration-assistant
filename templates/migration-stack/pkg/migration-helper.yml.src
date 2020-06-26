@@ -261,11 +261,11 @@ Resources:
         create_db_post_restore_script:
           files:
             /opt/atlassian/dc-migration-assistant/db_post_restore_script.sql:
-              content: !Sub
-                - |
+              content:
+                  |
                   DELETE FROM clusternode;
                   -- Or set this in the deployment form
-                   INSERT INTO pluginstate (pluginkey, pluginenabled) VALUES ('com.atlassian.migration.datacenter.jira-plugin','false');
+                  INSERT INTO pluginstate (pluginkey, pluginenabled) VALUES ('com.atlassian.migration.datacenter.jira-plugin','false');
                   -- Remove from clustered job here?
                   --  DELETE FROM clusteredjob where job_id like 'com.atlassian.migration.datacenter%';
               mode: "000755"
