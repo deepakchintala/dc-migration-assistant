@@ -18,6 +18,9 @@ package com.atlassian.migration.datacenter.api.application
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
 import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.PropertyAccessor
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.slf4j.LoggerFactory
 import javax.ws.rs.GET
 import javax.ws.rs.Path
 import javax.ws.rs.Produces
@@ -26,13 +29,20 @@ import javax.ws.rs.core.Response
 
 @Path("/application")
 class ApplicationPropertiesEndpoint(private val configuration: ApplicationConfiguration) {
+    private val mapper = ObjectMapper().setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY)
+
+    companion object {
+        val log = LoggerFactory.getLogger(ApplicationPropertiesEndpoint::class.java)
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     fun getApplicationProperties(): Response {
-        return Response.ok(ApplicationProperties(configuration.applicationVersion)).build()
+        val props = ApplicationProperties(configuration.applicationVersion)
+        log.trace("Application properties: {}", props)
+
+        return Response.ok(mapper.writeValueAsString(props)).build()
     }
 
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
     data class ApplicationProperties(val version: String)
 }

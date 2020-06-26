@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.api.application
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -43,9 +44,12 @@ class ApplicationPropertiesEndpointTest {
 
         val applicationProperties = applicationPropertiesEndpoint.getApplicationProperties()
 
+        val expectedProps =
+            ObjectMapper().writeValueAsString(ApplicationPropertiesEndpoint.ApplicationProperties(version))
+
         assertEquals(
             applicationProperties.entity,
-            ApplicationPropertiesEndpoint.ApplicationProperties(version)
+            expectedProps
         )
     }
 }
