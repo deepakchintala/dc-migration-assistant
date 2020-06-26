@@ -29,10 +29,10 @@ import {
     DBMigrationStatus,
     CommandDetails,
     FinalSyncStatus,
+    finalSync,
 } from '../../api/final-sync';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
-import { finalSync } from '../../api/final-sync';
 
 const finalSyncInProgressStages = [
     MigrationStage.DATA_MIGRATION_IMPORT,
@@ -50,8 +50,10 @@ const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => 
 
     builder.setPhase(statusToI18nString(status.status));
     builder.setElapsedSeconds(status.elapsedTime.seconds);
-    builder.setFailed(status.status === DBMigrationStatus.FAILED);
-
+    if (status.status === DBMigrationStatus.FAILED) {
+        builder.setFailed(true);
+        builder.setError(I18n.getText('atlassian.migration.datacenter.db.retry.error'));
+    }
     builder.setRetryProps({
         retryText: I18n.getText('atlassian.migration.datacenter.sync.db.retry'),
         onRetry: finalSync.retryDbMigration,
