@@ -74,20 +74,24 @@ Members of the DC Deployments team should have access to these in LastPass.
 ### Running locally
 
 This mostly involves setting the enviroment correctly as above and running
-`docker-compose`:
+`docker-compose`. There is a helper script in `jira-e2e-tests/helpers/run-local`
+to assist with this. By default it will run Jira and Postgres, which are
+accessible via [http://localhost:2990/jira/]:
 
-    cd jira-e2e-test
+    export JIRA_E2E_LICENSE='xxxxx'
+    ./jira-e2e-tests/helpers/run-local
+
+To run the functional or UI tests you can pass the container name to the script
+after setting any additional variables:
 
     export JIRA_E2E_LICENSE='xxxxx'
     export CYPRESS_AWS_ACCESS_KEY_ID='XXXX'
     export CYPRESS_AWS_SECRET_ACCESS_KEY='YYYY'
+    ./jira-e2e-tests/helpers/run-local cypress
 
-    cp ../jira-plugin/target/jira-plugin-1.0.0.jar jira/
-    ./postgres/inject-license
+    ./jira-e2e-tests/helpers/run-local functests
 
-    docker-compose up --build --force-recreate
-
-Once the smoke-test is complete the Cypress container will shut-down but the
+Once the test suite is complete the test container will shut-down but the
 Jira instance and DB will remain up. This can be used to run the smoke-test or
 other Cypress tests via the UI:
 
