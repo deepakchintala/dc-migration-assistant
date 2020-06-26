@@ -95,7 +95,7 @@
             <dependency> <!-- needed for java 11 -->
                 <groupId>javax.annotation</groupId>
                 <artifactId>javax.annotation-api</artifactId>
-                <version>${javax.annotation.version}</version>
+                <version>${javax.annotation.api}</version>
             </dependency>
             <!-- Review if we need this at all? -->
             <dependency>
