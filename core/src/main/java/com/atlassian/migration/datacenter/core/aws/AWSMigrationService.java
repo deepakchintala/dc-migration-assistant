@@ -56,7 +56,6 @@ public class AWSMigrationService implements MigrationService {
     private ActiveObjects ao;
     private ApplicationConfiguration applicationConfiguration;
     private DatabaseExtractorFactory databaseExtractorFactory;
-    private DatabaseExtractor databaseExtractor;
     private EventPublisher eventPublisher;
 
     /**
@@ -64,12 +63,10 @@ public class AWSMigrationService implements MigrationService {
      */
     public AWSMigrationService(ActiveObjects ao,
                                ApplicationConfiguration applicationConfiguration,
-                               DatabaseExtractor databaseExtractor,
                                DatabaseExtractorFactory databaseExtractorFactory,
                                EventPublisher eventPublisher) {
         this.ao = requireNonNull(ao);
         this.applicationConfiguration = applicationConfiguration;
-        this.databaseExtractor = databaseExtractor;
         this.databaseExtractorFactory = databaseExtractorFactory;
         this.eventPublisher = eventPublisher;
     }

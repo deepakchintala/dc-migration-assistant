@@ -122,6 +122,17 @@
             <version>${commons.io.version}</version>
             <scope>provided</scope>
         </dependency>
+        <!--
+             18.0 is provided by jira 7.13, 26.0-jre is provided by jira 8.0+, now the version here
+             doesn't actually matter UNLESS we start using guava in our code, then we have to be careful to only use
+             methods available in both versions
+         -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
