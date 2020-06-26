@@ -35,13 +35,15 @@ public class DatabaseConfigurationXmlElement {
     private DbConfigXmlElement dbConfigXmlElement;
 
     public DatabaseConfiguration toDatabaseConfiguration() {
-        URI dbURI = getURI()
-                .orElseThrow(() -> new ConfigurationReadException("No URI in dbconfig.xml"));
         DatabaseConfiguration.DBType type = getDBType()
-                .orElse(DatabaseConfiguration.DBType.valueOf(dbURI.getScheme().toUpperCase()));
+            .orElseThrow(() -> new ConfigurationReadException("Could not determine database type in dbconfig.xml"));
 
         if (type == DatabaseConfiguration.DBType.H2)
             return DatabaseConfiguration.h2();
+
+        // Assumption: Non-H2 supported databases always have a URI (H2 does not).
+        URI dbURI = getURI()
+            .orElseThrow(() -> new ConfigurationReadException("No URI in dbconfig.xml"));
 
         String userName = dbConfigXmlElement.getUserName();
         String password = dbConfigXmlElement.getPassword();
@@ -83,16 +85,20 @@ public class DatabaseConfigurationXmlElement {
     }
 
     public Optional<DatabaseConfiguration.DBType> getDBType() {
-        if (databaseType == null || databaseType.equals("")) {
-            return Optional.empty();
-
-        } else if (databaseType.startsWith("mysql")) {
-            return Optional.of(DatabaseConfiguration.DBType.MYSQL);
+        if (databaseType != null && databaseType.equals("h2")) {
+            return Optional.of(DatabaseConfiguration.DBType.H2);
         }
 
+        // The <database-type> can vary a lot (esp. for mysql) but is fairly fixed for the URI:
+        Optional<URI> uri = getURI();
+        if (!uri.isPresent())
+            return Optional.empty();
+
         try {
-            Optional.of(DatabaseConfiguration.DBType.valueOf(databaseType));
+            String scheme = uri.get().getScheme();
+            return Optional.of(DatabaseConfiguration.DBType.valueOf(scheme.toUpperCase()));
         } catch (IllegalArgumentException e) { }
+
         return Optional.empty();
     }
 
