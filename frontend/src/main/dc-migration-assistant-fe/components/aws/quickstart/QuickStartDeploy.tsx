@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-import React, {FunctionComponent, ReactElement, ReactFragment, useEffect, useState} from 'react';
-import Form, {ErrorMessage, Field, FormHeader, FormSection, HelperMessage} from '@atlaskit/form';
+import React, { FunctionComponent, ReactElement, ReactFragment, useEffect, useState } from 'react';
+import Form, { ErrorMessage, Field, FormHeader, FormSection, HelperMessage } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
-import Button, {ButtonGroup} from '@atlaskit/button';
+import Button, { ButtonGroup } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
-import {OptionType} from '@atlaskit/select';
-import {I18n} from '@atlassian/wrm-react-i18n';
+import { OptionType } from '@atlaskit/select';
+import { I18n } from '@atlassian/wrm-react-i18n';
 import styled from 'styled-components';
 import Panel from '@atlaskit/panel';
-import {Redirect} from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 
-import {yamlParse} from 'yaml-cfn';
-import {createQuickstartFormField} from './quickstartToAtlaskit';
-import {QuickstartParameterGroup, QuickstartTemplateForm} from './QuickStartTypes';
-import {quickstartStatusPath} from '../../../utils/RoutePaths';
-import {CancelButton} from '../../shared/CancelButton';
-import {DeploymentMode} from './QuickstartRoutes';
-import {provisioning} from '../../../api/provisioning';
-import {ErrorFlag} from '../../shared/ErrorFlag';
+import { yamlParse } from 'yaml-cfn';
+import { createQuickstartFormField } from './quickstartToAtlaskit';
+import { QuickstartParameterGroup, QuickstartTemplateForm } from './QuickStartTypes';
+import { quickstartStatusPath } from '../../../utils/RoutePaths';
+import { CancelButton } from '../../shared/CancelButton';
+import { DeploymentMode } from './QuickstartRoutes';
+import { provisioning } from '../../../api/provisioning';
+import { ErrorFlag } from '../../shared/ErrorFlag';
+import { fetchApplicationProperties } from '../../../api/application';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 
@@ -100,12 +101,14 @@ type QuickstartFormProps = {
     paramGroups: Array<QuickstartParameterGroup>;
     onSubmit: (data: Record<string, any>) => Promise<void>;
     ASIPrefixOverride?: string;
+    appVersion: string;
 };
 
 const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({
     paramGroups,
     onSubmit,
     ASIPrefixOverride,
+    appVersion,
 }) => {
     const renderFormSection = (group: QuickstartParameterGroup): ReactFragment => {
         const getFormSectionFragment = (props = {}): ReactFragment => {
@@ -115,8 +118,8 @@ const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({
                         const param = parameter;
                         if (ASIPrefixOverride && parameter.paramKey === 'ExportPrefix') {
                             param.paramProperties.Default = ASIPrefixOverride;
-                        } else if (parameter.paramKey === 'JiraVersion') {
-                            param.paramProperties.Default = '8.5.3';
+                        } else if (parameter.paramKey === 'JiraVersion' && appVersion != '') {
+                            param.paramProperties.Default = appVersion;
                         }
                         return createQuickstartFormField(param);
                     })}
@@ -263,19 +266,23 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
     const [loading, setLoading] = useState<boolean>(false);
     const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
     const [error, setError] = useState<string>();
+    const [appVersion, setAppVersion] = useState<string>();
 
     useEffect(() => {
         setLoading(true);
-        fetch(templateForDeploymentMode(deploymentMode), {
-            method: 'GET',
-        })
-            .then(resp => resp.text())
-            .then(buildQuickstartForm)
-            .then(quickstartForm => {
-                const groupedParameters = buildQuickstartParams(quickstartForm);
-                setParams(groupedParameters);
-                setLoading(false);
-            });
+
+        Promise.all([
+            fetchApplicationProperties()
+                .then(r => setAppVersion(r.version))
+                .catch(() => setAppVersion('')),
+            fetch(templateForDeploymentMode(deploymentMode), { method: 'GET' })
+                .then(resp => resp.text())
+                .then(buildQuickstartForm)
+                .then(quickstartForm => {
+                    const groupedParameters = buildQuickstartParams(quickstartForm);
+                    setParams(groupedParameters);
+                }),
+        ]).then(() => setLoading(false));
     }, []);
 
     const onSubmitQuickstartForm = async (data: Record<string, any>): Promise<void> => {
@@ -334,6 +341,7 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
                         paramGroups={params}
                         onSubmit={onSubmitQuickstartForm}
                         ASIPrefixOverride={ASIPrefix}
+                        appVersion={appVersion}
                     />
                 </>
             )}
