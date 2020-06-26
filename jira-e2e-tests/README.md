@@ -82,13 +82,16 @@ accessible via [http://localhost:2990/jira/]:
     ./jira-e2e-tests/helpers/run-local
 
 To run the functional or UI tests you can pass the container name to the script
-after setting any additional variables:
+after setting any additional variables, e.g:
 
     export JIRA_E2E_LICENSE='xxxxx'
     export CYPRESS_AWS_ACCESS_KEY_ID='XXXX'
     export CYPRESS_AWS_SECRET_ACCESS_KEY='YYYY'
     ./jira-e2e-tests/helpers/run-local cypress
 
+or:
+
+    export JIRA_E2E_LICENSE='xxxxx'
     ./jira-e2e-tests/helpers/run-local functests
 
 Once the test suite is complete the test container will shut-down but the
