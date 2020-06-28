@@ -104,7 +104,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
         }
 
     @Throws(DatabaseMigrationFailure::class)
-    override fun startDatabaseDump(target: Path?): Process? {
+    override fun startDatabaseDump(target: Path): Process {
         return startDatabaseDump(target, false)
     }
 
@@ -122,8 +122,8 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
      * @throws DatabaseMigrationFailure on failure.
      */
     @Throws(DatabaseMigrationFailure::class)
-    override fun startDatabaseDump(target: Path?, parallel: Boolean?): Process? {
-        val numJobs = if (parallel!!) 4 else 1 // Common-case for now, could be tunable or num-CPUs.
+    override fun startDatabaseDump(target: Path, parallel: Boolean): Process {
+        val numJobs = if (parallel) 4 else 1 // Common-case for now, could be tunable or num-CPUs.
 
         val pgdump = pgdumpPath ?: throw DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.")
         val config = applicationConfiguration.databaseConfiguration
@@ -161,7 +161,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
      * @throws DatabaseMigrationFailure on failure, including a non-zero exit code.
      */
     @Throws(DatabaseMigrationFailure::class)
-    override fun dumpDatabase(to: Path?) {
+    override fun dumpDatabase(to: Path) {
         val proc = startDatabaseDump(to)
         val exit: Int
         exit = try {
@@ -175,7 +175,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
     }
     
     @Throws(IOException::class)
-    fun deleteDatabaseDump(to: Path?) {
+    fun deleteDatabaseDump(to: Path) {
         try {
             FileUtils.deleteDirectory(File(to.toString()))
             log.debug("pg_dump archive [$to] deleted.")
