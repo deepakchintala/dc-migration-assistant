@@ -19,12 +19,13 @@ import com.atlassian.migration.datacenter.core.application.ApplicationConfigurat
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
 import com.impossibl.postgres.jdbc.PGDriver
 import net.swiftzer.semver.SemVer
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -142,10 +143,21 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
         builder.environment()["PGPASSWORD"] = config.password
 
         return try {
+            if(Files.exists(target!!))  {
+                deleteDatabaseDump(target)
+            }
             builder.start()
         } catch (e: IOException) {
             val command = java.lang.String.join(" ", builder.command())
             throw DatabaseMigrationFailure("Failed to start pg_dump process with commandline: $command", e)
+        }
+    }
+
+    private fun deleteDatabaseDump(target: Path) {
+        try {
+            FileUtils.deleteDirectory(File(target.toString()))
+        } catch (io: IOException) {
+            throw IOException("Unable to delete existing pg_dump archive: $target", io)
         }
     }
 
