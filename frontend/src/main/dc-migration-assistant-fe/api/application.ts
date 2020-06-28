@@ -18,7 +18,7 @@ import { callAppRest } from '../utils/api';
 
 const applicationPropertiesBase = 'application';
 
-export const applicationPropertiesEndpoint = `${applicationPropertiesBase}`;
+export const applicationPropertiesEndpoint = `${applicationPropertiesBase}/properties`;
 
 export type AppProperties = {
     version: string;

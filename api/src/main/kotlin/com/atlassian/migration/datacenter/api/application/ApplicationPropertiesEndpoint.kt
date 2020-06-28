@@ -36,6 +36,7 @@ class ApplicationPropertiesEndpoint(private val configuration: ApplicationConfig
     }
 
     @GET
+    @Path("/properties")
     @Produces(MediaType.APPLICATION_JSON)
     fun getApplicationProperties(): Response {
         val props = ApplicationProperties(configuration.applicationVersion)
