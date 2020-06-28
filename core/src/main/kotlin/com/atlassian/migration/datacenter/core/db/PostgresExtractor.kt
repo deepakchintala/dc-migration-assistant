@@ -174,7 +174,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
         }
     }
     
-    @Throws(DatabaseMigrationFailure::class)
+    @Throws(IOException::class)
     fun deleteDatabaseDump(to: Path?) {
         try {
             FileUtils.deleteDirectory(File(to.toString()))
