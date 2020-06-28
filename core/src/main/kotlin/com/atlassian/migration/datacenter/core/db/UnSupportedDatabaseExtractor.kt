@@ -39,4 +39,8 @@ class UnSupportedDatabaseExtractor : DatabaseExtractor {
     override fun dumpDatabase(to: Path?) {
         throw UnsupportedOperationException("Not implemented")
     }
+
+    override fun deleteDatabaseDump(to: Path?) {
+        throw UnsupportedOperationException("Not implemented")
+    }
 }

@@ -36,6 +36,7 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
+import java.nio.file.Path
 import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.*
@@ -55,7 +56,7 @@ internal class PostgresExtractorIT {
 
     @Mock(lenient = true)
     var configuration: ApplicationConfiguration? = null
-
+    
     @BeforeEach
     fun setUp() {
         Mockito.`when`(configuration!!.databaseConfiguration)
@@ -102,8 +103,7 @@ internal class PostgresExtractorIT {
     @Throws(IOException::class)
     fun testDatabaseDump() {
         val migration = PostgresExtractor(configuration!!)
-        val tempDir = createTempDir().toPath()
-        val target = tempDir.resolve("database.dump")
+        val target = buildTarget()
 
         migration.dumpDatabase(target)
         assertTrue(target.toFile().exists())
@@ -127,10 +127,14 @@ internal class PostgresExtractorIT {
     @Throws(IOException::class)
     fun testExistingArchiveIsDeletedBeforeDatabaseDump() {
         val migration = PostgresExtractor(configuration!!)
-        val tempDir = createTempDir().toPath()
-        val target = tempDir.resolve("database.dump")
-        Files.createDirectory(target);
+        val target = buildTarget()
 
+        //Create an 'existing' dump and assert presence
+        Files.createDirectory(target);
+        assertTrue(target.toFile().exists())
+        assertTrue(target.toFile().isDirectory)
+
+        //Begin dump
         migration.dumpDatabase(target)
         assertTrue(target.toFile().exists())
         assertTrue(target.toFile().isDirectory)
@@ -147,5 +151,11 @@ internal class PostgresExtractorIT {
         }
 
         assertTrue(found)
+    }
+
+    private fun buildTarget(): Path {
+        val tempDir = createTempDir().toPath()
+        val target = tempDir.resolve("database.dump")
+        return target
     }
 }

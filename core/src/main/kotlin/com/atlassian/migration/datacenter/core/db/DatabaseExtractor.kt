@@ -17,6 +17,7 @@ package com.atlassian.migration.datacenter.core.db
 
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
 import net.swiftzer.semver.SemVer
+import java.io.IOException
 import java.nio.file.Path
 
 interface DatabaseExtractor {

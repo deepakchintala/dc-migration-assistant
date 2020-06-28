@@ -144,20 +144,13 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
 
         return try {
             if(Files.exists(target!!))  {
+                log.debug("pg_dump archive [$target] already exists. Deleting now...")
                 deleteDatabaseDump(target)
             }
             builder.start()
         } catch (e: IOException) {
             val command = java.lang.String.join(" ", builder.command())
             throw DatabaseMigrationFailure("Failed to start pg_dump process with commandline: $command", e)
-        }
-    }
-
-    private fun deleteDatabaseDump(target: Path) {
-        try {
-            FileUtils.deleteDirectory(File(target.toString()))
-        } catch (io: IOException) {
-            throw IOException("Unable to delete existing pg_dump archive: $target", io)
         }
     }
 
@@ -180,5 +173,14 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
             throw DatabaseMigrationFailure("pg_dump process exited with non-zero status: $exit")
         }
     }
-
+    
+    @Throws(DatabaseMigrationFailure::class)
+    fun deleteDatabaseDump(to: Path?) {
+        try {
+            FileUtils.deleteDirectory(File(to.toString()))
+            log.debug("pg_dump archive [$to] deleted.")
+        } catch (io: IOException) {
+            throw IOException("Unable to delete existing pg_dump archive: $to", io)
+        }
+    }
 }
