@@ -143,7 +143,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
         builder.environment()["PGPASSWORD"] = config.password
 
         return try {
-            if(Files.exists(target!!))  {
+            if(Files.exists(target))  {
                 log.debug("pg_dump archive [$target] already exists. Deleting now...")
                 deleteDatabaseDump(target)
             }
@@ -175,10 +175,10 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
     }
     
     @Throws(IOException::class)
-    fun deleteDatabaseDump(to: Path) {
+    fun deleteDatabaseDump(target: Path) {
         try {
-            FileUtils.deleteDirectory(File(to.toString()))
-            log.debug("pg_dump archive [$to] deleted.")
+            FileUtils.deleteDirectory(target.toFile())
+            log.debug("pg_dump archive [$target] deleted.")
         } catch (io: IOException) {
             throw IOException("Unable to delete existing pg_dump archive: $to", io)
         }
