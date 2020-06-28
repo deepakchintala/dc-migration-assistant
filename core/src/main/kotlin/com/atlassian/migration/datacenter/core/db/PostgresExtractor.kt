@@ -180,7 +180,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
             FileUtils.deleteDirectory(target.toFile())
             log.debug("pg_dump archive [$target] deleted.")
         } catch (io: IOException) {
-            throw IOException("Unable to delete existing pg_dump archive: $to", io)
+            throw IOException("Unable to delete existing pg_dump archive: $target", io)
         }
     }
 }
