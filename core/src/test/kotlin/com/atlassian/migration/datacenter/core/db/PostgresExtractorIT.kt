@@ -123,36 +123,6 @@ internal class PostgresExtractorIT {
         assertTrue(found)
     }
 
-    @Test
-    @Throws(IOException::class)
-    fun testExistingArchiveIsDeletedBeforeDatabaseDump() {
-        val migration = PostgresExtractor(configuration!!)
-        val target = buildTarget()
-
-        //Create an 'existing' dump and assert presence
-        Files.createDirectory(target);
-        assertTrue(target.toFile().exists())
-        assertTrue(target.toFile().isDirectory)
-
-        //Begin dump
-        migration.dumpDatabase(target)
-        assertTrue(target.toFile().exists())
-        assertTrue(target.toFile().isDirectory)
-
-        var found = false
-        for (p in Files.newDirectoryStream(target, "*.gz")) {
-            val stream: InputStream = GZIPInputStream(FileInputStream(p.toFile()))
-            for (line in IOUtils.readLines(stream, "UTF-8")) {
-                if (line.contains("As an Agile team, I'd like to learn about Scrum")) {
-                    found = true
-                    break
-                }
-            }
-        }
-
-        assertTrue(found)
-    }
-
     private fun buildTarget(): Path {
         val tempDir = createTempDir().toPath()
         val target = tempDir.resolve("database.dump")
