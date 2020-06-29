@@ -48,8 +48,8 @@ class ApplicationPropertiesEndpointTest {
             ObjectMapper().writeValueAsString(ApplicationPropertiesEndpoint.ApplicationProperties(version))
 
         assertEquals(
-            applicationProperties.entity,
-            expectedProps
+            expectedProps,
+            applicationProperties.entity
         )
     }
 }
