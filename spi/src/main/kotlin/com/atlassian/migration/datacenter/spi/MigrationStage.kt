@@ -38,7 +38,8 @@ enum class MigrationStage {
         override val validAncestorStages = setOf(PROVISION_MIGRATION_STACK)
     },
     PROVISIONING_ERROR {
-        override val validAncestorStages = setOf(PROVISION_APPLICATION, PROVISION_APPLICATION_WAIT, PROVISION_MIGRATION_STACK, PROVISION_MIGRATION_STACK_WAIT)
+        override val validAncestorStages
+            get() = setOf(PROVISION_APPLICATION, PROVISION_APPLICATION_WAIT, PROVISION_MIGRATION_STACK, PROVISION_MIGRATION_STACK_WAIT, ERROR)
     },
     FS_MIGRATION_COPY {
         override val validAncestorStages = setOf(PROVISION_MIGRATION_STACK_WAIT)
@@ -47,7 +48,8 @@ enum class MigrationStage {
         override val validAncestorStages = setOf(FS_MIGRATION_COPY)
     },
     FS_MIGRATION_ERROR {
-        override val validAncestorStages = setOf(FS_MIGRATION_COPY, FS_MIGRATION_COPY_WAIT)
+        override val validAncestorStages
+            get() = setOf(FS_MIGRATION_COPY, FS_MIGRATION_COPY_WAIT, ERROR)
     },
     OFFLINE_WARNING {
         override val validAncestorStages = setOf(FS_MIGRATION_COPY_WAIT)
@@ -77,7 +79,8 @@ enum class MigrationStage {
             get() = setOf(DATA_MIGRATION_IMPORT_WAIT, FINAL_SYNC_ERROR)
     },
     FINAL_SYNC_ERROR {
-        override val validAncestorStages = setOf(DB_MIGRATION_EXPORT, DB_MIGRATION_EXPORT_WAIT, DB_MIGRATION_UPLOAD, DB_MIGRATION_UPLOAD_WAIT, DATA_MIGRATION_IMPORT, DATA_MIGRATION_IMPORT_WAIT, FINAL_SYNC_WAIT)
+        override val validAncestorStages
+            get() = setOf(DB_MIGRATION_EXPORT, DB_MIGRATION_EXPORT_WAIT, DB_MIGRATION_UPLOAD, DB_MIGRATION_UPLOAD_WAIT, DATA_MIGRATION_IMPORT, DATA_MIGRATION_IMPORT_WAIT, FINAL_SYNC_WAIT, ERROR)
     },
     VALIDATE {
         override val validAncestorStages = setOf(FINAL_SYNC_WAIT)
