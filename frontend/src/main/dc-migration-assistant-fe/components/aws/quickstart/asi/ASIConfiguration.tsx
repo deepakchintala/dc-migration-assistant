@@ -18,9 +18,8 @@ import styled from 'styled-components';
 import { ButtonGroup } from '@atlaskit/button';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 import { Redirect } from 'react-router-dom';
-import Spinner from '@atlaskit/spinner';
 import SectionMessage from '@atlaskit/section-message';
-import { ExistingASIConfiguration, ASISelector, ASIDescription } from './ExistingASIConfiguration';
+import { ExistingASIConfiguration, ASIDescription } from './ExistingASIConfiguration';
 import { I18n } from '../../../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../../../shared/CancelButton';
 import { quickstartPath } from '../../../../utils/RoutePaths';
@@ -94,7 +93,9 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
                 onSelectDeploymentMode={onSelectDeploymentMode}
             />
         ) : (
-            <ASISelector existingASIs={[]} useExisting={false} handlePrefixUpdated={updatePRefix} />
+            <SectionMessage>
+                <p>{I18n.getText('atlassian.migration.datacenter.provision.aws.asi.none')}</p>
+            </SectionMessage>
         );
     };
 
@@ -128,7 +129,7 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
                         onClick={handleSubmit}
                         type="submit"
                         appearance="primary"
-                        isDisabled={prefix?.length === 0}
+                        isDisabled={existingASIPrefixes?.length !== 0 && prefix?.length === 0}
                         data-test="asi-submit"
                         isLoading={loadingPrefixes}
                     >
