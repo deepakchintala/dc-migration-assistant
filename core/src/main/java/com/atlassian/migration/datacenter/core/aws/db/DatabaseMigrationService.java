@@ -141,6 +141,8 @@ public class DatabaseMigrationService {
                             migrationService.getCurrentStage()));
         }
 
+        migrationService.transition(MigrationStage.FINAL_SYNC_ERROR);
+
         logger.warn("Aborting running DB migration");
     }
 
