@@ -116,8 +116,6 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
                                 'atlassian.migration.datacenter.provision.aws.asi.scanning'
                             )}
                         </p>
-                        <p />
-                        <Spinner />
                     </SectionMessage>
                 </SectionMessageContainer>
             ) : (
@@ -132,6 +130,7 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
                         appearance="primary"
                         isDisabled={prefix?.length === 0}
                         data-test="asi-submit"
+                        isLoading={loadingPrefixes}
                     >
                         {I18n.getText('atlassian.migration.datacenter.generic.next')}
                     </Button>
