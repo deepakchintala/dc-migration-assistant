@@ -32,14 +32,16 @@ class BucketCleanupJobRunner(private val migrationService: MigrationService, pri
     companion object {
         val logger: Logger = LoggerFactory.getLogger(MigrationBucketCleanupService::class.java)
         val KEY = BucketCleanupJobRunner::class.java.toString()
-        val isRunning = AtomicBoolean(false)
         val maxRetries = 3
     }
+
+    val isRunning = AtomicBoolean(false)
+    val failedToEmpty = AtomicBoolean(false)
+
 
     private fun doCleanup(): Boolean {
 
         val bucket = migrationService.currentContext.migrationBucketName
-        var failedToEmpty = false
 
         if (bucket.isNullOrEmpty()) {
             logger.info("Bucket is not in context, no cleanup necessary")
@@ -66,7 +68,7 @@ class BucketCleanupJobRunner(private val migrationService: MigrationService, pri
             if (lastSize == contents.size) {
                 if (retryCount >= maxRetries) {
                     logger.error("Contents of bucket has not changed after 3 attempts at deleting everything, something must be wrong")
-                    failedToEmpty = true
+                    failedToEmpty.set(true)
                     break
                 }
                 retryCount++
@@ -74,7 +76,7 @@ class BucketCleanupJobRunner(private val migrationService: MigrationService, pri
         }
         logger.info("All objects in bucket deleted")
 
-        if (!failedToEmpty) {
+        if (!failedToEmpty.get()) {
             logger.info("Deleting migration bucket")
             try {
                 client.deleteBucket { it.bucket(bucket) }
