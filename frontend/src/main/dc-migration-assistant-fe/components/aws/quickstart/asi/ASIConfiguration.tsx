@@ -19,6 +19,7 @@ import { ButtonGroup } from '@atlaskit/button';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 import { Redirect } from 'react-router-dom';
 import Spinner from '@atlaskit/spinner';
+import SectionMessage from '@atlaskit/section-message';
 import { ExistingASIConfiguration, ASISelector, ASIDescription } from './ExistingASIConfiguration';
 import { I18n } from '../../../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../../../shared/CancelButton';
@@ -48,6 +49,11 @@ const Description = styled.p`
 
 const ButtonRow = styled.div`
     margin: 30px 0px 0px 0px;
+`;
+
+const SectionMessageContainer = styled.div`
+    margin-top: 20px;
+    width: 70%;
 `;
 
 export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
@@ -102,7 +108,22 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
                 </a>
             </Description>
 
-            {loadingPrefixes ? <Spinner /> : renderASISelector()}
+            {loadingPrefixes ? (
+                <SectionMessageContainer>
+                    <SectionMessage appearance="info">
+                        <p>
+                            {I18n.getText(
+                                'atlassian.migration.datacenter.provision.aws.asi.scanning'
+                            )}
+                        </p>
+                        <p />
+                        <Spinner />
+                    </SectionMessage>
+                </SectionMessageContainer>
+            ) : (
+                renderASISelector()
+            )}
+
             <ButtonRow>
                 <ButtonGroup>
                     <Button
