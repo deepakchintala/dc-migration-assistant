@@ -35,7 +35,7 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
     private val runner = BucketCleanupJobRunner(migrationService, s3ClientSupplier)
 
     override fun startMigrationInfrastructureCleanup(): Boolean {
-        val jobId = JobId.of(DatabaseMigrationJobRunner.KEY + migrationService.currentMigration.id)
+        val jobId = JobId.of(BucketCleanupJobRunner.KEY + migrationService.currentMigration.id)
 
         val result: Boolean = migrationRunner.runMigration(jobId, runner)
 
