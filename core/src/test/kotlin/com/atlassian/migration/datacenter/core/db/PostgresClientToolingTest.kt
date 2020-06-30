@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
-internal class PostgresExtractorTest {
+internal class PostgresClientToolingTest {
 
     companion object {
         @JvmStatic
@@ -69,6 +69,4 @@ internal class PostgresExtractorTest {
     fun testWithKnownValues(param: Pair<String, SemVer>) {
         assertEquals(param.second, PostgresClientTooling.parsePgDumpVersion(param.first))
     }
-
-
 }

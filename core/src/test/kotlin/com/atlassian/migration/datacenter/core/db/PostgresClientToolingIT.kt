@@ -44,7 +44,7 @@ import kotlin.test.assertEquals
 
 @Testcontainers
 @ExtendWith(MockitoExtension::class)
-internal class PostgresExtractorIT {
+internal class PostgresClientToolingIT {
     companion object {
         @Container
         val postgres = PostgreSQLContainer<Nothing>("postgres:9.6.18").apply {
@@ -76,55 +76,7 @@ internal class PostgresExtractorIT {
     }
 
     @Test
-    @Throws(SQLException::class)
-    fun testPsqlDataImported() {
-        val props = Properties()
-        props["user"] = postgres.username
-        props["password"] = postgres.password
-
-        val conn = DriverManager.getConnection(postgres.jdbcUrl, props)
-        val s = conn.createStatement()
-        val r = s.executeQuery("SELECT id, summary FROM jiraissue WHERE issuenum = 1;")
-        assertTrue(r.next())
-
-        val summary = r.getString(2)
-        assertTrue(summary.startsWith("As an Agile team, I'd like to learn about Scrum"))
-        assertFalse(r.next())
-
-        r.close()
-        s.close()
-        conn.close()
+    fun itShouldObtainThePostgresServerVersion() {
+        assertEquals(SemVer(9, 6, 18), clientTooling.getDatabaseServerVersion())
     }
-
-    @Test
-    fun testServerVersion() {
-        val migration = PostgresExtractor(configuration!!, clientTooling!!)
-        assertEquals(SemVer(9, 6, 18), clientTooling?.getDatabaseServerVersion())
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testDatabaseDump() {
-        val migration = PostgresExtractor(configuration!!, clientTooling!!)
-        val tempDir = createTempDir().toPath()
-        val target = tempDir.resolve("database.dump")
-
-        migration.dumpDatabase(target)
-        assertTrue(target.toFile().exists())
-        assertTrue(target.toFile().isDirectory)
-
-        var found = false
-        for (p in Files.newDirectoryStream(target, "*.gz")) {
-            val stream: InputStream = GZIPInputStream(FileInputStream(p.toFile()))
-            for (line in IOUtils.readLines(stream, "UTF-8")) {
-                if (line.contains("As an Agile team, I'd like to learn about Scrum")) {
-                    found = true
-                    break
-                }
-            }
-        }
-
-        assertTrue(found)
-    }
-
 }

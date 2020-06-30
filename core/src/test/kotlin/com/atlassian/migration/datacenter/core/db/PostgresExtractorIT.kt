@@ -19,7 +19,6 @@ import com.atlassian.migration.datacenter.core.application.ApplicationConfigurat
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
-import net.swiftzer.semver.SemVer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -40,7 +39,6 @@ import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.*
 import java.util.zip.GZIPInputStream
-import kotlin.test.assertEquals
 
 @Testcontainers
 @ExtendWith(MockitoExtension::class)
@@ -56,7 +54,7 @@ internal class PostgresExtractorIT {
     @Mock(lenient = true)
     var configuration: ApplicationConfiguration? = null
     
-    private lateinit var clientTooling: PostgresClientTooling;
+    private lateinit var databaseClientTooling: PostgresClientTooling
 
     @BeforeEach
     fun setUp() {
@@ -68,7 +66,7 @@ internal class PostgresExtractorIT {
                         postgres.username,
                         postgres.password))
 
-        clientTooling = PostgresClientTooling(configuration!!)
+        databaseClientTooling = PostgresClientTooling(configuration!!)
     }
 
     @AfterEach
@@ -97,15 +95,9 @@ internal class PostgresExtractorIT {
     }
 
     @Test
-    fun testServerVersion() {
-        val migration = PostgresExtractor(configuration!!, clientTooling!!)
-        assertEquals(SemVer(9, 6, 18), clientTooling?.getDatabaseServerVersion())
-    }
-
-    @Test
     @Throws(IOException::class)
     fun testDatabaseDump() {
-        val migration = PostgresExtractor(configuration!!, clientTooling!!)
+        val migration = PostgresExtractor(configuration!!, databaseClientTooling)
         val tempDir = createTempDir().toPath()
         val target = tempDir.resolve("database.dump")
 
