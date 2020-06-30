@@ -17,8 +17,6 @@ package com.atlassian.migration.datacenter.core.db
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
 import net.swiftzer.semver.SemVer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -30,16 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.shaded.org.apache.commons.io.IOUtils
 import org.testcontainers.utility.MountableFile
-import java.io.FileInputStream
-import java.io.IOException
-import java.io.InputStream
-import java.nio.file.Files
-import java.sql.DriverManager
-import java.sql.SQLException
-import java.util.*
-import java.util.zip.GZIPInputStream
 import kotlin.test.assertEquals
 
 @Testcontainers
@@ -56,7 +45,7 @@ internal class PostgresClientToolingIT {
     @Mock(lenient = true)
     var configuration: ApplicationConfiguration? = null
     
-    private lateinit var clientTooling: PostgresClientTooling;
+    private lateinit var databaseClientTooling: PostgresClientTooling;
 
     @BeforeEach
     fun setUp() {
@@ -68,7 +57,7 @@ internal class PostgresClientToolingIT {
                         postgres.username,
                         postgres.password))
 
-        clientTooling = PostgresClientTooling(configuration!!)
+        databaseClientTooling = PostgresClientTooling(configuration!!)
     }
 
     @AfterEach
@@ -77,6 +66,6 @@ internal class PostgresClientToolingIT {
 
     @Test
     fun itShouldObtainThePostgresServerVersion() {
-        assertEquals(SemVer(9, 6, 18), clientTooling.getDatabaseServerVersion())
+        assertEquals(SemVer(9, 6, 18), databaseClientTooling.getDatabaseServerVersion())
     }
 }
