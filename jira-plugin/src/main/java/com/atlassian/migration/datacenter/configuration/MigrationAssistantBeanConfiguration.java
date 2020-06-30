@@ -288,7 +288,7 @@ public class MigrationAssistantBeanConfiguration {
         return new DatabaseArchivalService(databaseExtractorFactory, archiveStageTransitionCallback);
     }
 
-    @Bean   
+    @Bean
     public S3SyncFileSystemDownloadManager s3SyncFileSystemDownloadManager(S3SyncFileSystemDownloader downloader) {
         return new S3SyncFileSystemDownloadManager(downloader);
     }
