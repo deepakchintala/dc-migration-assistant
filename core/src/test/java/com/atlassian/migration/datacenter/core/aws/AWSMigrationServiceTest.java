@@ -25,6 +25,7 @@ import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
+import com.atlassian.migration.datacenter.events.MigrationResetEvent;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
@@ -41,6 +42,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.AUTHENTICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
@@ -51,6 +53,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -210,6 +214,29 @@ public class AWSMigrationServiceTest {
         MigrationContext nextContext = sut.getCurrentContext();
         assertEquals(newDeploymentId, nextContext.getApplicationDeploymentId());
         assertEquals(newDeploymentId, sut.getCurrentMigration().getContext().getApplicationDeploymentId());
+    }
+
+    @Test
+    public void shouldPublishMigrationResetEventOnDeleteOfEachMigration() throws Exception {
+        Migration oneMigration = ao.create(Migration.class);
+        MigrationContext oneMigrationContext = ao.create(MigrationContext.class);
+        oneMigrationContext.setMigration(oneMigration);
+        oneMigrationContext.save();
+
+
+        Migration anotherMigration = ao.create(Migration.class);
+        MigrationContext migrationContext = ao.create(MigrationContext.class);
+        migrationContext.setMigration(anotherMigration);
+        migrationContext.save();
+
+        assertNumberOfMigrations(2);
+
+        sut.deleteMigrations();
+
+        assertNumberOfMigrations(0);
+
+        verify(eventPublisher, times(2)).publish(argThat(argument -> argument instanceof MigrationResetEvent && Arrays.asList(oneMigration.getID(), anotherMigration.getID()).contains(((MigrationResetEvent) argument).getMigrationId()))
+        );
     }
 
     @Test
