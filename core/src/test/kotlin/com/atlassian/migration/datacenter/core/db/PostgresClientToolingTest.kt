@@ -33,7 +33,7 @@ internal class PostgresClientToolingTest {
             Pair("pg_dump (PostgreSQL) 9.5.21\n", SemVer(9, 5, 21)),
 
             // Ubuntu bionic
-                Pair("pg_dump (PostgreSQL) 10.12 (Ubuntu 10.12-0ubuntu0.18.04.1)\n", SemVer(10, 12)),
+            Pair("pg_dump (PostgreSQL) 10.12 (Ubuntu 10.12-0ubuntu0.18.04.1)\n", SemVer(10, 12)),
 
             // Ubuntu eoan
             Pair("pg_dump (PostgreSQL) 11.7 (Ubuntu 11.7-0ubuntu0.19.10.1)\n", SemVer(11, 7)),
