@@ -34,6 +34,7 @@ import com.atlassian.migration.datacenter.core.db.PostgresClientTooling;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
+import com.atlassian.migration.datacenter.events.MigrationResetEvent;
 import com.atlassian.migration.datacenter.spi.MigrationReadyStatus;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -116,6 +117,8 @@ public class AWSMigrationService implements MigrationService {
     public void deleteMigrations() {
         final Migration[] migrations = ao.find(Migration.class);
         for (Migration migration : migrations) {
+            int migrationId = migration.getID();
+            eventPublisher.publish(new MigrationResetEvent(migrationId));
             ao.delete(migration.getContext());
             ao.delete(migration);
             log.warn("deleted migration {}", migration);
