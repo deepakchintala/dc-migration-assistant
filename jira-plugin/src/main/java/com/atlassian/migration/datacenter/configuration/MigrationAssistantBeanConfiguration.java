@@ -414,8 +414,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationBucketCleanupService bucketCleanupService(MigrationService migrationService, Supplier<S3Client> clientSupplier) {
-        return new MigrationBucketCleanupService(migrationService, clientSupplier);
+    public MigrationBucketCleanupService bucketCleanupService(MigrationService migrationService, MigrationRunner migrationRunner, Supplier<S3Client> clientSupplier) {
+        return new MigrationBucketCleanupService(migrationService, migrationRunner, clientSupplier);
     }
 
     @Bean
