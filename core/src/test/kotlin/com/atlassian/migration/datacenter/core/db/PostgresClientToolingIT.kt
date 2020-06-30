@@ -68,9 +68,4 @@ internal class PostgresClientToolingIT {
     fun itShouldObtainThePostgresServerVersion() {
         assertEquals(SemVer(9, 6, 18), databaseClientTooling.getDatabaseServerVersion())
     }
-
-    @Test
-    fun bla() {
-        assertEquals("", databaseClientTooling.getDatabaseDumpClientPath())
-    }
 }
