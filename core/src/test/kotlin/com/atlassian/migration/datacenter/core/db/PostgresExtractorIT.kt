@@ -55,6 +55,8 @@ internal class PostgresExtractorIT {
 
     @Mock(lenient = true)
     var configuration: ApplicationConfiguration? = null
+    
+    private lateinit var clientTooling: PostgresClientTooling;
 
     @BeforeEach
     fun setUp() {
@@ -65,6 +67,8 @@ internal class PostgresExtractorIT {
                         postgres.databaseName,
                         postgres.username,
                         postgres.password))
+
+        clientTooling = PostgresClientTooling(configuration!!)
     }
 
     @AfterEach
@@ -94,14 +98,14 @@ internal class PostgresExtractorIT {
 
     @Test
     fun testServerVersion() {
-        val migration = PostgresExtractor(configuration!!)
-        assertEquals(SemVer(9, 6, 18), migration.serverVersion)
+        val migration = PostgresExtractor(configuration!!, clientTooling!!)
+        assertEquals(SemVer(9, 6, 18), clientTooling?.getDatabaseServerVersion())
     }
 
     @Test
     @Throws(IOException::class)
     fun testDatabaseDump() {
-        val migration = PostgresExtractor(configuration!!)
+        val migration = PostgresExtractor(configuration!!, clientTooling!!)
         val tempDir = createTempDir().toPath()
         val target = tempDir.resolve("database.dump")
 

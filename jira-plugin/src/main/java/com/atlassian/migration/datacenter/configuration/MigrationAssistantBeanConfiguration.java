@@ -58,9 +58,10 @@ import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManage
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
+import com.atlassian.migration.datacenter.core.db.DatabaseClientTools;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.db.DefaultDatabaseExtractorFactory;
-import com.atlassian.migration.datacenter.core.exceptions.AwsQueueError;
+import com.atlassian.migration.datacenter.core.db.PostgresClientTooling;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
@@ -160,6 +161,11 @@ public class MigrationAssistantBeanConfiguration {
                 .credentialsProvider(awsCredentialsProvider)
                 .region(Region.of(regionService.getRegion()))
                 .build();
+    }
+
+    @Bean
+    public DatabaseClientTools databaseClientTools(ApplicationConfiguration applicationConfiguration) {
+        return new PostgresClientTooling(applicationConfiguration);
     }
     
     @Bean
@@ -272,8 +278,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseExtractorFactory databaseExtractorFactory(ApplicationConfiguration applicationConfiguration) {
-        return new DefaultDatabaseExtractorFactory(applicationConfiguration);
+    public DatabaseExtractorFactory databaseExtractorFactory(ApplicationConfiguration applicationConfiguration, DatabaseClientTools databaseClientTools) {
+        return new DefaultDatabaseExtractorFactory(applicationConfiguration, databaseClientTools);
     }
 
     @Bean
@@ -281,7 +287,7 @@ public class MigrationAssistantBeanConfiguration {
         return new DatabaseArchivalService(databaseExtractorFactory, archiveStageTransitionCallback);
     }
 
-    @Bean
+    @Bean   
     public S3SyncFileSystemDownloadManager s3SyncFileSystemDownloadManager(S3SyncFileSystemDownloader downloader) {
         return new S3SyncFileSystemDownloadManager(downloader);
     }

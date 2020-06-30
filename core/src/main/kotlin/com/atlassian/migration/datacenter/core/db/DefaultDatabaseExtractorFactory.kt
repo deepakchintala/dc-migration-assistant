@@ -19,10 +19,10 @@ import com.atlassian.migration.datacenter.core.application.ApplicationConfigurat
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration.DBType
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
 
-class DefaultDatabaseExtractorFactory(val config: ApplicationConfiguration) : DatabaseExtractorFactory {
+class DefaultDatabaseExtractorFactory(val config: ApplicationConfiguration, val databaseClientTools: DatabaseClientTools) : DatabaseExtractorFactory {
     override val extractor: DatabaseExtractor by lazy {
         if (config.databaseConfiguration.type == DBType.POSTGRESQL) {
-            PostgresExtractor(config)
+            PostgresExtractor(config, databaseClientTools)
         } else {
             UnSupportedDatabaseExtractor()
         }

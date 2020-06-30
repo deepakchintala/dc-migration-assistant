@@ -67,7 +67,7 @@ internal class PostgresExtractorTest {
     @ParameterizedTest
     @MethodSource("versions")
     fun testWithKnownValues(param: Pair<String, SemVer>) {
-        assertEquals(param.second, PostgresExtractor.parsePgDumpVersion(param.first))
+        assertEquals(param.second, PostgresClientTooling.parsePgDumpVersion(param.first))
     }
 
 
