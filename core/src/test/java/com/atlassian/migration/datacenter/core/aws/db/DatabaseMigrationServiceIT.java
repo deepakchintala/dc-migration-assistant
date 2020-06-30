@@ -26,6 +26,7 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.RemoteInstance
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseClientTools;
 import com.atlassian.migration.datacenter.core.db.DefaultDatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.db.PostgresClientTooling;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
@@ -86,7 +87,6 @@ class DatabaseMigrationServiceIT {
     @Mock(lenient = true)
     ApplicationConfiguration configuration;
 
-    @Mock(lenient = true)
     DatabaseClientTools databaseClientTools;
     
     FileSystemMigrationReportManager reportManager = new DefaultFileSystemMigrationReportManager();
@@ -131,6 +131,7 @@ class DatabaseMigrationServiceIT {
                 .build();
         CreateBucketResponse resp = s3client.createBucket(req).get();
         assertTrue(resp.sdkHttpResponse().isSuccessful());
+        databaseClientTools = new PostgresClientTooling(configuration);
     }
 
 
