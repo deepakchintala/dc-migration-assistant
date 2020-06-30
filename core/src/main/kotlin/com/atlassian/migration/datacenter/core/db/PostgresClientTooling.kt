@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit
 class PostgresClientTooling(private val applicationConfiguration: ApplicationConfiguration) : DatabaseClientTools {
     companion object {
         private val log = LoggerFactory.getLogger(PostgresClientTooling::class.java)
-        private val pddumpPaths = arrayOf("/usr/bin/pg_dump", "/usr/local/bin/pg_dump")
         private val versionPattern = Regex("^pg_dump\\s+\\([^\\)]+\\)\\s+(\\d[\\d\\.]+)[\\s$]")
         
         @JvmStatic
@@ -44,7 +43,7 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
      * @return semantic version of the dump utility
      */
     override fun getDatabaseDumpClientVersion(): SemVer? {
-        val pgdump = pgdumpPath ?: return null
+        val pgdump = getDatabaseDumpClientPath() ?: return null
 
         try {
             val proc = ProcessBuilder(pgdump,
@@ -66,15 +65,16 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
     }
 
     /**
-     * Get the path of the pg_dump binary
+     * Get the path to the executable pg_dump binary
      *
      * @return the path to the dump utility
      */
     override fun getDatabaseDumpClientPath(): String? {
-        for (path in pddumpPaths) {
-            val p = Paths.get(path)
-            if (Files.isReadable(p) && Files.isExecutable(p)) {
-                return path
+        val pgDumpPath = resolvePgDumpPath()
+        if(pgDumpPath == null) {
+            val path = Paths.get(pgDumpPath)
+            if (Files.isReadable(path) && Files.isExecutable(path)) {
+                return path.toString()
             }
         }
         return null
@@ -108,14 +108,21 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
         return SemVer.parse(meta.databaseProductVersion)
     }
 
-    private val pgdumpPath: String?
-        get() {
-            for (path in pddumpPaths) {
-                val p = Paths.get(path)
-                if (Files.isReadable(p) && Files.isExecutable(p)) {
-                    return path
-                }
-            }
-            return null
+    private fun resolvePgDumpPath(): String? {
+        return try {
+            val proc = ProcessBuilder("which", 
+                    "pg_dump")
+                    .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                    .redirectError(ProcessBuilder.Redirect.PIPE)
+                    .start()
+
+            proc.waitFor(60, TimeUnit.SECONDS)
+
+            proc.inputStream.bufferedReader().readText().replace("\n", "")
+
+        } catch (e: Exception) {
+            log.error("Failed to find path for pg_dump", e)
+            null
         }
+    }
 }
