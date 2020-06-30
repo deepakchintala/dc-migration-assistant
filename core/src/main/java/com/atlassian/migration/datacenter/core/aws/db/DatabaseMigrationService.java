@@ -21,6 +21,7 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHe
 import com.atlassian.migration.datacenter.core.db.DatabaseMigrationJobRunner;
 import com.atlassian.migration.datacenter.core.fs.FileUploadException;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
+import com.atlassian.migration.datacenter.spi.CancellableMigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
@@ -37,7 +38,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DatabaseMigrationService {
+public class DatabaseMigrationService implements CancellableMigrationService {
     private static Logger logger = LoggerFactory.getLogger(DatabaseMigrationService.class);
 
     private final Path tempDirectory;
@@ -131,9 +132,14 @@ public class DatabaseMigrationService {
         return result;
     }
 
+    public boolean unscheduleMigration(int migrationId) {
+        JobId jobId = getScheduledJobId(migrationId);
+        return migrationRunner.abortJobIfPresent(jobId);
+    }
+
     public void abortMigration() throws InvalidMigrationStageError {
         // We always try to remove scheduled job if the system is in inconsistent state
-        migrationRunner.abortJobIfPresesnt(getScheduledJobId());
+        migrationRunner.abortJobIfPresent(getScheduledJobId());
 
         if (!migrationService.getCurrentStage().isDBPhase() || s3UploadService == null) {
             throw new InvalidMigrationStageError(
@@ -147,7 +153,10 @@ public class DatabaseMigrationService {
     }
 
     private JobId getScheduledJobId() {
-        return JobId.of(DatabaseMigrationJobRunner.KEY + migrationService.getCurrentMigration().getID());
+        return getScheduledJobId(migrationService.getCurrentMigration().getID());
     }
 
+    private JobId getScheduledJobId(int migrationId) {
+        return JobId.of(DatabaseMigrationJobRunner.KEY + migrationId);
+    }
 }

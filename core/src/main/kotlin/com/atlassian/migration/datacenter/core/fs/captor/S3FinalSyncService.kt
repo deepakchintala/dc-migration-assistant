@@ -18,7 +18,7 @@ package com.atlassian.migration.datacenter.core.fs.captor
 
 import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.core.util.MigrationRunner
-import com.atlassian.migration.datacenter.dto.FileSyncRecord
+import com.atlassian.migration.datacenter.spi.CancellableMigrationService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.scheduler.config.JobId
@@ -29,7 +29,7 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
                          private val migrationService: MigrationService,
                          private val sqsApi: SqsApi,
                          private val attachmentSyncManager: AttachmentSyncManager
-) {
+): CancellableMigrationService {
     companion object {
         private val logger = LoggerFactory.getLogger(S3FinalSyncService::class.java)
     }
@@ -48,7 +48,7 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
 
     fun abortMigration() {
         // We always try to remove scheduled job if the system is in inconsistent state
-        migrationRunner.abortJobIfPresesnt(getScheduledJobId())
+        migrationRunner.abortJobIfPresent(getScheduledJobId())
 
         migrationService.transition(MigrationStage.FINAL_SYNC_ERROR)
 
@@ -66,8 +66,17 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
         return FinalFileSyncStatus(uploadedFileCount, itemsInQueue, itemsFailedToDownload)
     }
 
+    override fun unscheduleMigration(migrationId: Int): Boolean {
+        val jobId = getScheduledJobIdForMigration(migrationId)
+        return migrationRunner.abortJobIfPresent(jobId);
+    }
+
     private fun getScheduledJobId(): JobId {
-        return JobId.of(s3FinalSyncRunner.key + migrationService.currentMigration.id)
+        return getScheduledJobIdForMigration(migrationService.currentMigration.id)
+    }
+
+    private fun getScheduledJobIdForMigration(migrationId: Int): JobId {
+        return JobId.of(s3FinalSyncRunner.key + migrationId)
     }
 }
 
