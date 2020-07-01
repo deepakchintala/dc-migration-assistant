@@ -28,8 +28,6 @@ import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFa
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.db.DatabaseClientTools;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.db.PostgresClientTooling;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
 import com.atlassian.migration.datacenter.dto.Migration;
@@ -42,11 +40,11 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
 import net.swiftzer.semver.SemVer;
 import org.apache.commons.lang3.SystemUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
-import java.nio.file.Path;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
@@ -59,8 +57,6 @@ public class AWSMigrationService implements MigrationService {
     private static final Logger log = LoggerFactory.getLogger(AWSMigrationService.class);
     private ActiveObjects ao;
     private ApplicationConfiguration applicationConfiguration;
-    private DatabaseExtractorFactory databaseExtractorFactory;
-    private Path localHome;
     private EventPublisher eventPublisher;
 
     /**
@@ -68,13 +64,9 @@ public class AWSMigrationService implements MigrationService {
      */
     public AWSMigrationService(ActiveObjects ao,
                                ApplicationConfiguration applicationConfiguration,
-                               DatabaseExtractorFactory databaseExtractorFactory,
-                               Path jiraHome,
                                EventPublisher eventPublisher) {
         this.ao = requireNonNull(ao);
         this.applicationConfiguration = applicationConfiguration;
-        this.databaseExtractorFactory = databaseExtractorFactory;
-        this.localHome = jiraHome;
         this.eventPublisher = eventPublisher;
     }
 
@@ -241,6 +233,11 @@ public class AWSMigrationService implements MigrationService {
             log.error("Expected one Migration, found multiple.");
             throw new RuntimeException("Invalid State - should only be 1 migration");
         }
+    }
+
+    @Override
+    public void stageSpecificError(@NotNull MigrationStage stage, @NotNull Throwable e) {
+        throw new UnsupportedOperationException("Implementation coming soon");
     }
 }
 
