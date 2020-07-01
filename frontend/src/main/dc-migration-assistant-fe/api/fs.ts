@@ -21,6 +21,7 @@ enum RestApiPathConstants {
     fsStatusRestPath = `migration/fs/report`,
     fsStartRestPath = `migration/fs/start`,
     fsFinalSyncPath = `migration/fs/final-sync`,
+    fsRetryPath = `migration/fs/retry`,
 }
 
 type FailedFile = {
@@ -81,5 +82,9 @@ export const fs = {
         const result = await callAppRest('GET', RestApiPathConstants.fsFinalSyncPath);
         const capturedFiles = (await result.json()) as GetFinalSyncResponse;
         return capturedFiles.files || [];
+    },
+
+    retryFsMigration: async (): Promise<void> => {
+        return callAppRest('PUT', RestApiPathConstants.fsRetryPath).then(Promise.resolve);
     },
 };
