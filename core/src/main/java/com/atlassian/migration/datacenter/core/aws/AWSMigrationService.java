@@ -41,7 +41,6 @@ import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsE
 import net.java.ao.Query;
 import net.swiftzer.semver.SemVer;
 import org.apache.commons.lang3.SystemUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -217,12 +216,6 @@ public abstract class AWSMigrationService implements MigrationService {
             log.error("Expected one Migration, found multiple.");
             throw new RuntimeException("Invalid State - should only be 1 migration");
         }
-    }
-
-
-    @Override
-    public void stageSpecificError(@NotNull MigrationStage stage, @NotNull Throwable e) {
-        throw new UnsupportedOperationException("Implementation coming soon");
     }
 
     private List<Migration> findNonFinishedMigrations() {
