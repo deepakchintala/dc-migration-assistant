@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("localstack,test")
 @EnableStackConfiguration(stackName = "migration-helper")
 @ExtendWith(LocalstackDockerExtension.class)
-@LocalstackDockerProperties(environmentVariableProvider = LocalStackEnvironmentVars.class, useSingleDockerContainer = true, services = "sqs,s3,ssm,cfn,ec2,cloudformation", imageTag = "0.10.8")
+@LocalstackDockerProperties(environmentVariableProvider = LocalStackEnvironmentVars.class, services = "sqs,s3,ssm,cfn,ec2,cloudformation", imageTag = "0.10.8")
 @Disabled
 class FilesystemProcessorApplicationTests {
 
