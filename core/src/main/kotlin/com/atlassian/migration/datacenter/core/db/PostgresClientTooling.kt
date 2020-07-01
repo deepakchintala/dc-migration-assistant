@@ -71,11 +71,12 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
      * @return the path to the dump utility
      */
     override fun getDatabaseDumpClientPath(): String? {
-        val pgDumpPath = resolvePgDumpPath()
-        return when(pgDumpPath != null && Files.isReadable(pgDumpPath) && Files.isExecutable(pgDumpPath)) {
-            true -> pgDumpPath.toString();
-            else -> null
+        for (path in resolvePgDumpPath()) {
+            if (Files.isReadable(path) && Files.isExecutable(path)) {
+                return path.toString()
+            }
         }
+        return null
     }
 
     /**
@@ -106,7 +107,7 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
         return SemVer.parse(meta.databaseProductVersion)
     }
 
-    private fun resolvePgDumpPath(): Path? {
+    private fun resolvePgDumpPath(): Array<Path> {
         return try {
             val proc = ProcessBuilder("which", 
                     "pg_dump")
@@ -116,11 +117,12 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
 
             proc.waitFor(60, TimeUnit.SECONDS)
 
-            Paths.get(proc.inputStream.bufferedReader().readLine())
+            arrayOf(Paths.get(proc.inputStream.bufferedReader().readLine()))
             
         } catch (e: Exception) {
             log.error("Failed to find path to pg_dump binary:", e)
-            null
+            //Fallback to documented paths for pg_dump if one could not be dynamically found
+            arrayOf(Paths.get("/usr/bin/pg_dump"), Paths.get("/usr/local/bin/pg_dump"))
         }
     }
 }
