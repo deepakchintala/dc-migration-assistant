@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit
 class PostgresClientTooling(private val applicationConfiguration: ApplicationConfiguration) : DatabaseClientTools {
     companion object {
         private val log = LoggerFactory.getLogger(PostgresClientTooling::class.java)
+        private val defaultPgdumpPaths = arrayOf(Paths.get("/usr/bin/pg_dump"), Paths.get("/usr/local/bin/pg_dump"))
         private val versionPattern = Regex("^pg_dump\\s+\\([^\\)]+\\)\\s+(\\d[\\d\\.]+)[\\s$]")
         
         @JvmStatic
@@ -122,7 +123,7 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
         } catch (e: Exception) {
             log.error("Failed to find path to pg_dump binary:", e)
             //Fallback to documented paths for pg_dump if one could not be dynamically found
-            arrayOf(Paths.get("/usr/bin/pg_dump"), Paths.get("/usr/local/bin/pg_dump"))
+            defaultPgdumpPaths
         }
     }
 }
