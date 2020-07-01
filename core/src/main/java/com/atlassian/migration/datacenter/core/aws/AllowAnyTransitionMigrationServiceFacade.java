@@ -30,10 +30,8 @@ import java.nio.file.Path;
 public class AllowAnyTransitionMigrationServiceFacade extends AWSMigrationService implements MigrationService {
     public AllowAnyTransitionMigrationServiceFacade(ActiveObjects activeObjects,
                                                     ApplicationConfiguration applicationConfiguration,
-                                                    DatabaseExtractorFactory databaseExtractorFactory,
-                                                    Path home,
                                                     EventPublisher eventPublisher) {
-        super(activeObjects, applicationConfiguration, databaseExtractorFactory, home, eventPublisher);
+        super(activeObjects, applicationConfiguration, eventPublisher);
     }
 
     @Override

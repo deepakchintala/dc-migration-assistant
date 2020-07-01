@@ -98,6 +98,13 @@ interface MigrationService {
     fun error(e: Throwable)
 
     /**
+     * Moves the migration into a stage specific error stage, storing the cause.
+     *
+     * @see MigrationStage.ERROR
+     */
+    fun stageSpecificError(stage: MigrationStage, e: Throwable)
+
+    /**
      * Moves the migration to the final state (if valid) and performs any cleanup.
      *
      * @see MigrationStage.FINISHED

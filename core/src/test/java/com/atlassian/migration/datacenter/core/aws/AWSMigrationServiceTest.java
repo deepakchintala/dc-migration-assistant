@@ -44,7 +44,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
@@ -95,7 +94,7 @@ public class AWSMigrationServiceTest {
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao, applicationConfiguration, databaseExtractorFactory, Paths.get("."), eventPublisher);
+        sut = new AWSMigrationService(ao, applicationConfiguration, eventPublisher);
         setupEntities();
         when(applicationConfiguration.getPluginVersion()).thenReturn("DUMMY");
         when(databaseExtractorFactory.getExtractor()).thenReturn(databaseExtractor);
