@@ -46,7 +46,7 @@ import java.util.concurrent.ExecutionException;
  * 2. Split the file into same sized parts (except the last one) and upload them to S3
  * 3. Confirm the upload has finished with all the required parts
  * <p>
- * All files larger than 5GB (hard AWS limit) are required to be uploaded via this method.
+ * All files larger than 5MB (hard AWS limit) are required to be uploaded via this method.
  * <p>
  * https://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html
  */
