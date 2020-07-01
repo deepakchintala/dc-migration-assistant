@@ -21,7 +21,6 @@ import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.analytics.OsType;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
-import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationPrerequisiteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFailedEvent;
@@ -42,7 +41,6 @@ import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsE
 import net.java.ao.Query;
 import net.swiftzer.semver.SemVer;
 import org.apache.commons.lang3.SystemUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +49,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -59,11 +56,11 @@ import static java.util.Objects.requireNonNull;
 /**
  * Manages a migration from on-premise to self-hosted AWS.
  */
-public class AWSMigrationService implements MigrationService {
+public abstract class AWSMigrationService implements MigrationService {
     private static final Logger log = LoggerFactory.getLogger(AWSMigrationService.class);
     private ActiveObjects ao;
-    private ApplicationConfiguration applicationConfiguration;
-    private EventPublisher eventPublisher;
+    protected ApplicationConfiguration applicationConfiguration;
+    protected EventPublisher eventPublisher;
 
     /**
      * Creates a new, unstarted AWS Migration
@@ -172,31 +169,6 @@ public class AWSMigrationService implements MigrationService {
     }
 
     @Override
-    public void error(String message) {
-        Migration migration = findFirstOrCreateMigration();
-        MigrationContext context = getCurrentContext();
-
-        MigrationStage failStage = context.getMigration().getStage();
-        Long now = System.currentTimeMillis() / 1000L;
-
-        setCurrentStage(migration, ERROR);
-        // We must truncate the error message to 450 characters so that it fits in the varchar(450) column
-        context.setErrorMessage(message.substring(0, Math.min(450, message.length())));
-        context.setEndEpoch(now);
-        context.save();
-
-        eventPublisher.publish(new MigrationFailedEvent(applicationConfiguration.getPluginVersion(),
-                                                        failStage, now - context.getStartEpoch()));
-    }
-
-    @Override
-    public void error(Throwable e)
-    {
-        error(e.getMessage());
-        findFirstOrCreateMigration().getStage().setException(e);
-    }
-
-    @Override
     public void finishCurrentMigration() throws InvalidMigrationStageError {
         long now = System.currentTimeMillis() / 1000L;
         log.info("Finishing current migration. Migration has run for {} seconds", now);
@@ -243,12 +215,6 @@ public class AWSMigrationService implements MigrationService {
             log.error("Expected one Migration, found multiple.");
             throw new RuntimeException("Invalid State - should only be 1 migration");
         }
-    }
-
-
-    @Override
-    public void stageSpecificError(@NotNull MigrationStage stage, @NotNull Throwable e) {
-        throw new UnsupportedOperationException("Implementation coming soon");
     }
 
     private List<Migration> findNonFinishedMigrations() {

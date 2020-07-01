@@ -102,7 +102,7 @@ interface MigrationService {
      *
      * @see MigrationStage.ERROR
      */
-    fun stageSpecificError(stage: MigrationStage, e: Throwable)
+    fun stageSpecificError(stage: MigrationStage, message: String)
 
     /**
      * Moves the migration to the final state (if valid) and performs any cleanup.

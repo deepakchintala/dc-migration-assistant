@@ -21,6 +21,7 @@ import com.atlassian.activeobjects.test.TestActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
@@ -52,14 +53,17 @@ import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FINISHED;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISIONING_ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION_WAIT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -94,7 +98,7 @@ public class AWSMigrationServiceTest {
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao, applicationConfiguration, eventPublisher);
+        sut = new AwsMigrationServiceWrapper(ao, applicationConfiguration, eventPublisher);
         setupEntities();
         when(applicationConfiguration.getPluginVersion()).thenReturn("DUMMY");
         when(databaseExtractorFactory.getExtractor()).thenReturn(databaseExtractor);
@@ -321,6 +325,33 @@ public class AWSMigrationServiceTest {
         migrationContext.save();
 
         assertThrows(InvalidMigrationStageError.class, () -> sut.finishCurrentMigration());
+    }
+
+    @Test
+    public void shouldTransitionToStageSpecificErrorWhenStageIsAnErrorStage() {
+        initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
+
+        String errorMessage = "provisioning error";
+        sut.stageSpecificError(PROVISIONING_ERROR, errorMessage);
+
+        Migration actualMigration = sut.getCurrentMigration();
+        assertEquals(PROVISIONING_ERROR, actualMigration.getStage());
+        assertEquals(errorMessage, actualMigration.getContext().getErrorMessage());
+        verify(eventPublisher).publish(any(MigrationFailedEvent.class));
+    }
+
+    @Test
+    public void shouldNotTransitionToStageSpecificErrorWhenStageIsNotAnErrorStage() {
+        initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
+
+        String errorMessage = "provisioning error";
+
+        assertThrows(InvalidMigrationStageError.class, () -> sut.stageSpecificError(PROVISION_APPLICATION_WAIT, errorMessage));
+
+        Migration actualMigration = sut.getCurrentMigration();
+        assertEquals(PROVISION_APPLICATION, actualMigration.getStage());
+        assertNull(actualMigration.getContext().getErrorMessage());
+        verify(eventPublisher, never()).publish(any(MigrationFailedEvent.class));
     }
 
 
