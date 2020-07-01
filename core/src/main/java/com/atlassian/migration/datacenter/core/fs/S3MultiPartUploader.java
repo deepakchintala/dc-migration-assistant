@@ -26,11 +26,13 @@ import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +88,8 @@ public class S3MultiPartUploader {
         } catch (IOException e) {
             logger.error("Cannot open file for the multi-part upload", e);
         }
-        buffer.clear();
+        // The re-typing is to provide compatibility when compiling with Java 9+ and running on Java 8
+        ((Buffer) buffer).clear();
 
         logger.trace("Finished uploading parts, sending complete request.");
         try {
@@ -136,14 +139,15 @@ public class S3MultiPartUploader {
         if (readBytes < buffer.limit()) {
             // We need to limit the buffer if the rest of the file is smaller than the allocated size.
             // If don't do this, the size of the sent part will be always equal to the buffer size.
-            body = AsyncRequestBody.fromByteBuffer((ByteBuffer) buffer.limit(readBytes));
+            // The re-typing is to provide compatibility when compiling with Java 9+ and running on Java 8
+            body = AsyncRequestBody.fromByteBuffer((ByteBuffer) ((Buffer) buffer).limit(readBytes));
         } else {
             body = AsyncRequestBody.fromByteBuffer(buffer);
         }
-        return config.getS3AsyncClient()
-                .uploadPart(uploadPartRequest, body)
-                .get()
-                .eTag();
+        final CompletableFuture<UploadPartResponse> uploadPartResponseCompletableFuture = config.getS3AsyncClient().uploadPart(uploadPartRequest, body);
+
+        UploadPartResponse uploadPartResponse = uploadPartResponseCompletableFuture.get();
+        return uploadPartResponse.eTag();
     }
 
     private int completePart(int uploadPartNumber, String etag) {
