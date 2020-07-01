@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.slf4j.LoggerFactory
 import java.util.stream.Collectors
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
@@ -34,6 +35,11 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
                                   private val attachmentSyncManager: AttachmentSyncManager,
                                   private val reportManager: FileSystemMigrationReportManager)
 {
+
+    companion object {
+        val log = LoggerFactory.getLogger(FileSystemMigrationEndpoint::class.java)
+    }
+
     private val mapper: ObjectMapper = ObjectMapper()
 
     @PUT
@@ -112,6 +118,15 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
                 .entity(mapOf("error" to "filesystem migration is not in progress"))
                 .build()
         }
+    }
+
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/retry")
+    fun retryFileSystemMigration(): Response {
+        log.trace("Retrying file system migration")
+
+        return Response.accepted().build()
     }
 
     init {

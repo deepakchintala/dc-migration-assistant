@@ -94,7 +94,7 @@ const getPhaseFromStatus = (result: FileSystemMigrationStatusResponse): string =
 const getFsMigrationProgress: ProgressCallback = async () => {
     const retryProps: RetryProperties = {
         retryText: I18n.getText('atlassian.migration.datacenter.fs.retry'),
-        onRetry: () => Promise.reject(Error('Not implemented')),
+        onRetry: () => fs.retryFsMigration(),
     };
     return fs
         .getFsMigrationStatus()
