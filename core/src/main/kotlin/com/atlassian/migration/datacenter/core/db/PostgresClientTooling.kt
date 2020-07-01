@@ -121,7 +121,7 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
             arrayOf(Paths.get(proc.inputStream.bufferedReader().readLine()))
             
         } catch (e: Exception) {
-            log.error("Failed to find path to pg_dump binary:", e)
+            log.error("Failed to resolve path to pg_dump binary. Falling back to locations '/usr/bin/pg_dump and '/usr/local/bin/pg_dump'", e)
             //Fallback to documented paths for pg_dump if one could not be dynamically found
             defaultPgDumpPaths
         }
