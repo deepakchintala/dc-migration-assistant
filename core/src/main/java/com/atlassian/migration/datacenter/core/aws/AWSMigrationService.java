@@ -30,6 +30,7 @@ import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration
 import com.atlassian.migration.datacenter.core.db.DatabaseClientTools;
 import com.atlassian.migration.datacenter.core.db.PostgresClientTooling;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
+import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.events.MigrationResetEvent;
@@ -38,6 +39,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
+import net.java.ao.Query;
 import net.swiftzer.semver.SemVer;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
@@ -45,9 +47,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -77,7 +83,7 @@ public class AWSMigrationService implements MigrationService {
         if (migration.getStage().equals(NOT_STARTED)) {
             return migration;
         }
-        throw new MigrationAlreadyExistsException(String.format("Found existing migration in Stage - `%s`", migration.getStage()));
+        throw new MigrationAlreadyExistsException(format("Found existing migration in Stage - `%s`", migration.getStage()));
     }
 
     @Override
@@ -90,7 +96,7 @@ public class AWSMigrationService implements MigrationService {
     {
         MigrationStage currentStage = getCurrentStage();
         if (currentStage != expected) {
-            throw new InvalidMigrationStageError(String.format("wanted to be in stage %s but was in stage %s", expected, currentStage));
+            throw new InvalidMigrationStageError(format("wanted to be in stage %s but was in stage %s", expected, currentStage));
         }
     }
 
@@ -105,13 +111,15 @@ public class AWSMigrationService implements MigrationService {
         return getCurrentMigration().getContext();
     }
 
+    //Note: Delete migrations deletes all migrations, even `Finished` ones
+    // When we add support for multiple migrations, we need to revisit this and ensure that, on migration cancel, we should remove the active migration, not all migrations.
     @Override
     public void deleteMigrations() {
-        final Migration[] migrations = ao.find(Migration.class);
-        for (Migration migration : migrations) {
+        for (Migration migration : findAllMigrations()) {
             int migrationId = migration.getID();
             eventPublisher.publish(new MigrationResetEvent(migrationId));
             ao.delete(migration.getContext());
+            ao.deleteWithSQL(FileSyncRecord.class, format("%s = ?", "MIGRATION_ID"), migrationId);
             ao.delete(migration);
             log.warn("deleted migration {}", migration);
         }
@@ -189,19 +197,20 @@ public class AWSMigrationService implements MigrationService {
     }
 
     @Override
-    public void finish() throws InvalidMigrationStageError
-    {
-        // TODO: This may require additional operations
-
-        Long now = System.currentTimeMillis() / 1000L;
-        transition(MigrationStage.FINISHED);
+    public void finishCurrentMigration() throws InvalidMigrationStageError {
+        long now = System.currentTimeMillis() / 1000L;
+        log.info("Finishing current migration. Migration has run for {} seconds", now);
 
         MigrationContext context = getCurrentContext();
+
+        transition(MigrationStage.FINISHED);
+
         context.setEndEpoch(now);
         context.save();
 
-        eventPublisher.publish(new MigrationCompleteEvent(applicationConfiguration.getPluginVersion(),
-                                                          now - context.getStartEpoch()));
+        long migrationRunTimeInSeconds = now - context.getStartEpoch();
+
+        eventPublisher.publish(new MigrationCompleteEvent(applicationConfiguration.getPluginVersion(), migrationRunTimeInSeconds));
     }
 
     protected synchronized void setCurrentStage(Migration migration, MigrationStage stage) {
@@ -210,12 +219,13 @@ public class AWSMigrationService implements MigrationService {
     }
 
     protected synchronized Migration findFirstOrCreateMigration() {
-        Migration[] migrations = ao.find(Migration.class);
-        if (migrations.length == 1) {
+        List<Migration> migrations = findNonFinishedMigrations();
+        if (migrations.size() == 1) {
             // In case we have interrupted migration (e.g. the node went down), we want to pick up where we've
             // left off.
-            return migrations[0];
-        } else if (migrations.length == 0) {
+            return migrations.get(0);
+        }
+        if (migrations.isEmpty()) {
             // We didn't start the migration, so we need to create record in the db and a migration context
             Migration migration = ao.create(Migration.class);
             migration.setStage(NOT_STARTED);
@@ -235,9 +245,18 @@ public class AWSMigrationService implements MigrationService {
         }
     }
 
+
     @Override
     public void stageSpecificError(@NotNull MigrationStage stage, @NotNull Throwable e) {
         throw new UnsupportedOperationException("Implementation coming soon");
+    }
+
+    private List<Migration> findNonFinishedMigrations() {
+        return Arrays.stream(ao.find(Migration.class, Query.select().where(format("%s <> ?", "STAGE"), MigrationStage.FINISHED))).collect(Collectors.toList());
+    }
+
+    private Migration[] findAllMigrations() {
+        return ao.find(Migration.class);
     }
 }
 
