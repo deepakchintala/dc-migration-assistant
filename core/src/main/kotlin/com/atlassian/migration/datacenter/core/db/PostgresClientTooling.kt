@@ -20,6 +20,7 @@ import com.impossibl.postgres.jdbc.PGDriver
 import net.swiftzer.semver.SemVer
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.sql.SQLException
 import java.util.*
@@ -71,13 +72,10 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
      */
     override fun getDatabaseDumpClientPath(): String? {
         val pgDumpPath = resolvePgDumpPath()
-        if(pgDumpPath == null) {
-            val path = Paths.get(pgDumpPath)
-            if (Files.isReadable(path) && Files.isExecutable(path)) {
-                return path.toString()
-            }
+        return when(pgDumpPath != null && Files.isReadable(pgDumpPath) && Files.isExecutable(pgDumpPath)) {
+            true -> pgDumpPath.toString();
+            else -> null
         }
-        return null
     }
 
     /**
@@ -108,7 +106,7 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
         return SemVer.parse(meta.databaseProductVersion)
     }
 
-    private fun resolvePgDumpPath(): String? {
+    private fun resolvePgDumpPath(): Path? {
         return try {
             val proc = ProcessBuilder("which", 
                     "pg_dump")
@@ -118,10 +116,10 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
 
             proc.waitFor(60, TimeUnit.SECONDS)
 
-            proc.inputStream.bufferedReader().readText().replace("\n", "")
-
+            Paths.get(proc.inputStream.bufferedReader().readLine())
+            
         } catch (e: Exception) {
-            log.error("Failed to find path for pg_dump", e)
+            log.error("Failed to find path to pg_dump binary:", e)
             null
         }
     }
