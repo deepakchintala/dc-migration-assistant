@@ -82,7 +82,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
         boolean result = migrationRunner.runMigration(jobId, jobRunner);
 
         if (!result) {
-            migrationService.error("Error starting filesystem migration job.");
+            migrationService.stageSpecificError(MigrationStage.FS_MIGRATION_ERROR, "Error starting filesystem migration job.");
         }
         return result;
     }

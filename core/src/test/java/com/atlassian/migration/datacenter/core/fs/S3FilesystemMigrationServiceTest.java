@@ -39,9 +39,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -144,6 +146,18 @@ class S3FilesystemMigrationServiceTest {
         Boolean isScheduled = fsService.scheduleMigration();
         assertTrue(isScheduled);
         verify(migrationService).assertCurrentStage(MigrationStage.FS_MIGRATION_COPY);
+    }
+
+    @Test
+    void shouldTransitionToStageSpecificErrorWhenUnableToScheduleAMigration() throws Exception {
+        createStubMigration();
+
+        when(migrationRunner.runMigration(any(), any())).thenReturn(false);
+
+        boolean isScheduled = fsService.scheduleMigration();
+        assertFalse(isScheduled);
+
+        verify(migrationService).stageSpecificError(argThat(x -> x == MigrationStage.FS_MIGRATION_ERROR), anyString());
     }
 
     @Test
