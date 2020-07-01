@@ -143,7 +143,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
         report.setStatus(FAILED);
         bulkCopy.abortCopy();
 
-        migrationService.error("File system migration was aborted");
+        migrationService.stageSpecificError(FS_MIGRATION_ERROR,"File system migration was aborted");
     }
 
     private JobId getScheduledJobIdForMigration(int migrationId) {

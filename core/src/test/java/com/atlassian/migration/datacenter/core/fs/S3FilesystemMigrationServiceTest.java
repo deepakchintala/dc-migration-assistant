@@ -167,7 +167,7 @@ class S3FilesystemMigrationServiceTest {
 
         fsService.abortMigration();
 
-        verify(migrationService).error("File system migration was aborted");
+        verify(migrationService).stageSpecificError(FS_MIGRATION_ERROR, "File system migration was aborted");
         FileSystemMigrationReport report = reportManager.getCurrentReport(ReportType.Filesystem);
         assertEquals(report.getStatus(), FilesystemMigrationStatus.FAILED);
     }
