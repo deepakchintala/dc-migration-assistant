@@ -85,6 +85,6 @@ export const fs = {
     },
 
     retryFsMigration: async (): Promise<void> => {
-        return callAppRest('PUT', RestApiPathConstants.fsRetryPath).then(Promise.resolve)
-    }
+        return callAppRest('PUT', RestApiPathConstants.fsRetryPath).then(Promise.resolve);
+    },
 };
