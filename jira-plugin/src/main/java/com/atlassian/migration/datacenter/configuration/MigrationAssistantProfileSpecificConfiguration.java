@@ -18,27 +18,20 @@ package com.atlassian.migration.datacenter.configuration;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
-import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
-import com.atlassian.migration.datacenter.core.aws.SqsApi;
-import com.atlassian.migration.datacenter.core.aws.SqsApiImpl;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-
-import java.util.function.Supplier;
 
 @Configuration
 public class MigrationAssistantProfileSpecificConfiguration {
     @Bean
     @Profile("allowAnyTransition")
     @Primary
-    public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, DatabaseExtractorFactory databaseExtractorFactory, JiraHome jiraHome, EventPublisher eventPublisher) {
-        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, databaseExtractorFactory, jiraHome.getHome().toPath(), eventPublisher);
+    public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher) {
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, eventPublisher);
     }
 }

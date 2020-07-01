@@ -35,7 +35,7 @@ import kotlin.test.assertTrue
 
 @Tag("integration")
 @ExtendWith(LocalstackDockerExtension::class)
-@LocalstackDockerProperties(useSingleDockerContainer = true, services = ["sqs"], imageTag = "0.10.8")
+@LocalstackDockerProperties(services = ["sqs"], imageTag = "0.10.8")
 class SqsApiIT {
 
     companion object {
