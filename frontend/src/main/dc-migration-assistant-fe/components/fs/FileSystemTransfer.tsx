@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState, useEffect, ReactNode } from 'react';
+import React, { FunctionComponent, ReactNode } from 'react';
 
 import { I18n } from '@atlassian/wrm-react-i18n';
 import moment from 'moment';
-import Spinner from '@atlaskit/spinner';
 import Panel from '@atlaskit/panel';
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
 import { ProgressBuilder, ProgressCallback, RetryProperties } from '../shared/Progress';
 import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
-import { migration, MigrationStage } from '../../api/migration';
+import { MigrationStage } from '../../api/migration';
 import { warningPath } from '../../utils/RoutePaths';
 
 const dummyStarted = moment();
@@ -34,14 +33,14 @@ dummyStarted.subtract(23, 'minutes');
 const getErrorFromResult = (result: FileSystemMigrationStatusResponse): ReactNode | undefined => {
     if (result?.failedFiles.length > 0) {
         const failedFilesCount = result.failedFiles.length;
-
         return (
             <>
                 <strong>{failedFilesCount} files</strong> failed to upload.{' '}
                 {failedFilesCount === 100 &&
                     I18n.getText('atlassian.migration.datacenter.fs.error.maxFailedFiles')}
+                <p />
+                {I18n.getText('atlassian.migration.datacenter.fs.error.resolutionAction')}
                 <Panel header={I18n.getText('atlassian.migration.datacenter.fs.error.failedFiles')}>
-                    {I18n.getText('atlassian.migration.datacenter.fs.error.resolutionAction')}
                     <ul>
                         {result.failedFiles.map(({ filePath, reason }) => (
                             <li key={filePath}>
