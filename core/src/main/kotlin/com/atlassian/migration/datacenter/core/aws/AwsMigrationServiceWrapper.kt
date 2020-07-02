@@ -6,44 +6,39 @@ import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
 import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
-import com.atlassian.migration.datacenter.spi.MigrationStage
-import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
+import com.atlassian.migration.datacenter.spi.MigrationStage.*
 import kotlin.math.min
 
 
 open class AwsMigrationServiceWrapper(ao: ActiveObjects?, applicationConfiguration: ApplicationConfiguration?, eventPublisher: EventPublisher?) : AWSMigrationService(ao, applicationConfiguration, eventPublisher), MigrationService {
 
-    override fun stageSpecificError(errorStage: MigrationStage, message: String) {
-        if (!errorStage.isErrorStage()) {
-            throw InvalidMigrationStageError("Stage $errorStage is not a valid error stage")
-        }
+    override fun error(message: String) {
+        this.stageSpecificError(message);
+    }
 
+    override fun error(e: Throwable) {
+        stageSpecificError(e.message!!)
+        findFirstOrCreateMigration().stage.exception = e
+    }
+
+    private fun stageSpecificError(message: String) {
         val migration = findFirstOrCreateMigration()
-        val context: MigrationContext = this.currentContext
+        val preErrorTransitionStage = migration.stage
         val now = System.currentTimeMillis() / 1000L
 
-        val failStage = context.migration.stage
+        when {
+            PROVISIONING_ERROR.validAncestorStages.contains(preErrorTransitionStage) -> setCurrentStage(migration, PROVISIONING_ERROR)
+            FS_MIGRATION_ERROR.validAncestorStages.contains(preErrorTransitionStage) -> setCurrentStage(migration, FS_MIGRATION_ERROR)
+            else -> setCurrentStage(migration, ERROR)
+        }
 
-
-        setCurrentStage(migration, errorStage)
-        // We must truncate the error message to 450 characters so that it fits in the varchar(450) column
+        val context: MigrationContext = migration.context
         // We must truncate the error message to 450 characters so that it fits in the varchar(450) column
         context.setErrorMessage(message.substring(0, min(450, message.length)))
         context.endEpoch = now
         context.save()
 
         this.eventPublisher.publish(MigrationFailedEvent(this.applicationConfiguration.pluginVersion,
-                failStage, now - context.startEpoch))
+                preErrorTransitionStage, now - context.startEpoch))
     }
-
-    override fun error(message: String) {
-        this.stageSpecificError(MigrationStage.ERROR, message);
-    }
-
-    override fun error(e: Throwable) {
-        stageSpecificError(MigrationStage.ERROR, e.message!!)
-        findFirstOrCreateMigration().stage.exception = e
-    }
-
-
 }

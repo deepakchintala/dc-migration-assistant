@@ -99,14 +99,13 @@ class S3FilesystemMigrationServiceTest {
     {
         final String errorMessage = "Failed to migrate content. File not found: abc";
         when(this.migrationService.getCurrentStage()).thenReturn(FS_MIGRATION_COPY);
-        doThrow(
-            new FileUploadException(errorMessage)
-        ).when(bulkCopy).copySharedHomeToS3();
+        FileUploadException exception = new FileUploadException(errorMessage);
+        doThrow(exception).when(bulkCopy).copySharedHomeToS3();
 
         fsService.startMigration();
 
         verify(migrationService).transition(FS_MIGRATION_COPY_WAIT);
-        verify(migrationService).stageSpecificError(FS_MIGRATION_ERROR,errorMessage);
+        verify(migrationService).error(exception);
     }
 
     @Test
@@ -158,7 +157,7 @@ class S3FilesystemMigrationServiceTest {
         boolean isScheduled = fsService.scheduleMigration();
         assertFalse(isScheduled);
 
-        verify(migrationService).stageSpecificError(argThat(x -> x == FS_MIGRATION_ERROR), anyString());
+        verify(migrationService).error(anyString());
     }
 
     @Test
@@ -167,7 +166,7 @@ class S3FilesystemMigrationServiceTest {
 
         fsService.abortMigration();
 
-        verify(migrationService).stageSpecificError(FS_MIGRATION_ERROR, "File system migration was aborted");
+        verify(migrationService).error("File system migration was aborted");
         FileSystemMigrationReport report = reportManager.getCurrentReport(ReportType.Filesystem);
         assertEquals(report.getStatus(), FilesystemMigrationStatus.FAILED);
     }

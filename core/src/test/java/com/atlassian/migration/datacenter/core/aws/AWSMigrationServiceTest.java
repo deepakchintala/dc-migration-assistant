@@ -332,7 +332,7 @@ public class AWSMigrationServiceTest {
         initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
 
         String errorMessage = "provisioning error";
-        sut.stageSpecificError(PROVISIONING_ERROR, errorMessage);
+        sut.error(errorMessage);
 
         Migration actualMigration = sut.getCurrentMigration();
         assertEquals(PROVISIONING_ERROR, actualMigration.getStage());
@@ -341,17 +341,17 @@ public class AWSMigrationServiceTest {
     }
 
     @Test
-    public void shouldNotTransitionToStageSpecificErrorWhenStageIsNotAnErrorStage() {
-        initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
+    public void shouldTransitionToGenericErrorWhenCurrentStageDoesNotHaveASpecificErrorStage() {
+        initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
 
         String errorMessage = "provisioning error";
 
-        assertThrows(InvalidMigrationStageError.class, () -> sut.stageSpecificError(PROVISION_APPLICATION_WAIT, errorMessage));
+        sut.error( errorMessage);
 
         Migration actualMigration = sut.getCurrentMigration();
-        assertEquals(PROVISION_APPLICATION, actualMigration.getStage());
-        assertNull(actualMigration.getContext().getErrorMessage());
-        verify(eventPublisher, never()).publish(any(MigrationFailedEvent.class));
+        assertEquals(ERROR, actualMigration.getStage());
+        assertEquals(errorMessage, actualMigration.getContext().getErrorMessage());
+        verify(eventPublisher).publish(any(MigrationFailedEvent.class));
     }
 
 

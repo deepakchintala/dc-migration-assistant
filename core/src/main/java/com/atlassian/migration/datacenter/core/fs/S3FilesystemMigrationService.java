@@ -84,7 +84,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
         boolean result = migrationRunner.runMigration(jobId, jobRunner);
 
         if (!result) {
-            migrationService.stageSpecificError(FS_MIGRATION_ERROR, "Error starting filesystem migration job.");
+            migrationService.error("Error starting filesystem migration job.");
         }
         return result;
     }
@@ -122,7 +122,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
         } catch (FileSystemMigrationFailure e) {
             logger.error("Encountered critical error during file system migration");
             report.setStatus(FAILED);
-            migrationService.stageSpecificError(FS_MIGRATION_ERROR, e.getMessage());
+            migrationService.error(e);
         }
     }
 
@@ -143,7 +143,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
         report.setStatus(FAILED);
         bulkCopy.abortCopy();
 
-        migrationService.stageSpecificError(FS_MIGRATION_ERROR,"File system migration was aborted");
+        migrationService.error("File system migration was aborted");
     }
 
     private JobId getScheduledJobIdForMigration(int migrationId) {
