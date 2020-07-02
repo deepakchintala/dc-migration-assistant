@@ -99,6 +99,13 @@ const MigrationSummaryActionCallout = (): ReactElement => {
 const ValidationSummary: FunctionComponent = () => {
     const [areActionsAcknowledged, setAreActionsAcknowledged] = useState<boolean>(false);
     const [isFinishMigrationSuccess, setIsFinishMigrationSuccess] = useState<boolean>(false);
+    const [targetUrl, setTargetUrl] = useState<string>('');
+
+    useEffect(() => {
+        migration.getMigrationSummary().then(summary => {
+            setTargetUrl(summary.instanceUrl);
+        });
+    });
 
     const [finishMigrationApiErrorMessage, setFinishMigrationApiErrorMessage] = useState<string>(
         ''
@@ -138,11 +145,12 @@ const ValidationSummary: FunctionComponent = () => {
                 style={{
                     marginTop: '15px',
                 }}
-                isDisabled={!areActionsAcknowledged}
+                isDisabled={!areActionsAcknowledged || targetUrl === ''}
                 onClick={(): void => {
                     Promise.all([migration.finishMigration(), provisioning.cleanupInfrastructure()])
                         .then(() => {
                             setIsFinishMigrationSuccess(true);
+                            window.open(targetUrl);
                         })
                         .catch(response => {
                             setFinishMigrationApiErrorMessage(response.message);
