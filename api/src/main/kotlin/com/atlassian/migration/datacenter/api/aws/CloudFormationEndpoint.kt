@@ -35,6 +35,7 @@ import javax.ws.rs.core.Response
  * REST API Endpoint for managing AWS provisioning.
  */
 @Path("/aws/stack")
+@WebSudoRequired
 class CloudFormationEndpoint(
         private val applicationDeploymentService: ApplicationDeploymentService,
         private val migrationService: MigrationService,

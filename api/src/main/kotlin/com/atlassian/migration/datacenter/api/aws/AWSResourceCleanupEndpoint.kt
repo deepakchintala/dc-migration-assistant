@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.api.aws
 
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import org.slf4j.LoggerFactory
 import javax.ws.rs.DELETE
 import javax.ws.rs.GET
@@ -29,6 +30,7 @@ import javax.ws.rs.core.Response
  * REST API endpoint for cleaning up migration resources
  */
 @Path("/aws/cleanup")
+@WebSudoRequired
 class AWSResourceCleanupEndpoint(private val cleanupService: MigrationInfrastructureCleanupService) {
 
     companion object {

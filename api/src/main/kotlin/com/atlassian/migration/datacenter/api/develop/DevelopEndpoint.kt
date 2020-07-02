@@ -17,6 +17,7 @@ package com.atlassian.migration.datacenter.api.develop
 
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
 import javax.ws.rs.Consumes
@@ -27,6 +28,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/develop")
+@WebSudoRequired
 class DevelopEndpoint(private val migrationService: MigrationService, private val environment: Environment) {
 
     companion object {

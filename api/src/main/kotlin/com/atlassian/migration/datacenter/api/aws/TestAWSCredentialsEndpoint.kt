@@ -17,6 +17,7 @@ package com.atlassian.migration.datacenter.api.aws
 
 import com.atlassian.migration.datacenter.core.aws.auth.ProbeAWSAuth
 import com.atlassian.migration.datacenter.core.aws.auth.WriteCredentialsService
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.cloudformation.model.CloudFormationException
 import javax.ws.rs.POST
@@ -26,6 +27,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("aws/credentials")
+@WebSudoRequired
 class TestAWSCredentialsEndpoint @Autowired constructor(
     private val writeCredentialsService: WriteCredentialsService,
     private val probe: ProbeAWSAuth

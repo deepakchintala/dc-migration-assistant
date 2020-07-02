@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.api;
+package com.atlassian.migration.datacenter.api
 
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import javax.ws.rs.*
+import javax.ws.rs.Consumes
+import javax.ws.rs.DELETE
+import javax.ws.rs.GET
+import javax.ws.rs.POST
+import javax.ws.rs.Path
+import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -30,6 +36,7 @@ import javax.ws.rs.core.Response
  * Supports get and create.
  */
 @Path("/migration")
+@WebSudoRequired
 class MigrationEndpoint(private val migrationService: MigrationService) {
     /**
      * @return A response with the status of the current migration
@@ -39,13 +46,15 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     fun getMigrationStatus(): Response {
         val currentStage = migrationService.currentStage
 
-        val responseEntity = mapOf("stage" to
+        val responseEntity = mapOf(
+            "stage" to
                 if (currentStage.isErrorStage())
-                    MigrationStage.ERROR.toString() else currentStage.toString())
+                    MigrationStage.ERROR.toString() else currentStage.toString()
+        )
 
         return Response
-                .ok(responseEntity)
-                .build()
+            .ok(responseEntity)
+            .build()
     }
 
     /**
@@ -80,12 +89,12 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     fun getMigrationSummary(): Response {
         return if (migrationService.currentStage == MigrationStage.NOT_STARTED) {
             Response
-                    .status(Response.Status.NOT_FOUND)
-                    .build()
+                .status(Response.Status.NOT_FOUND)
+                .build()
         } else {
             Response
-                    .ok(migrationContextResponseEntity())
-                    .build()
+                .ok(migrationContextResponseEntity())
+                .build()
         }
     }
 
@@ -96,8 +105,8 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     fun getMigrationReadyStatus(): Response {
         val status = migrationService.readyStatus
         return Response
-                .ok(jacksonObjectMapper().writeValueAsString(status))
-                .build()
+            .ok(jacksonObjectMapper().writeValueAsString(status))
+            .build()
     }
 
     @DELETE
@@ -124,8 +133,8 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
         val currentContext = migrationService.currentContext
 
         return mapOf(
-                "instanceUrl" to currentContext.serviceUrl,
-                "error" to currentContext.getErrorMessage()
+            "instanceUrl" to currentContext.serviceUrl,
+            "error" to currentContext.getErrorMessage()
         )
     }
 }
