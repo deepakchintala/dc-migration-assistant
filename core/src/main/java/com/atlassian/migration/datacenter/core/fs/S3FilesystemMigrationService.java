@@ -33,7 +33,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.env.Environment;
 
+import static com.atlassian.migration.datacenter.spi.MigrationStage.*;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_ERROR;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DONE;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DOWNLOADING;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.FAILED;
@@ -69,7 +71,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
 
     @Override
     public boolean isRunning() {
-        return this.migrationService.getCurrentStage().equals(MigrationStage.FS_MIGRATION_COPY_WAIT);
+        return this.migrationService.getCurrentStage().equals(FS_MIGRATION_COPY_WAIT);
     }
 
     @Override
@@ -98,7 +100,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
             return;
         }
 
-        migrationService.transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
+        migrationService.transition(FS_MIGRATION_COPY_WAIT);
 
         logger.info("Enabling file listener to listen to attachment updates while migration is in progress");
         attachmentListener.start();
@@ -116,11 +118,11 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
             report.setStatus(DONE);
 
             logger.info("Completed file system migration. Transitioning to next stage.");
-            migrationService.transition(MigrationStage.OFFLINE_WARNING);
+            migrationService.transition(OFFLINE_WARNING);
         } catch (FileSystemMigrationFailure e) {
             logger.error("Encountered critical error during file system migration", e);
             report.setStatus(FAILED);
-            migrationService.error(e.getMessage());
+            migrationService.error(e);
         }
     }
 

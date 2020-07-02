@@ -18,12 +18,15 @@ package com.atlassian.migration.datacenter.api.fs
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
 import com.atlassian.migration.datacenter.core.fs.ReportType
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
+import com.atlassian.migration.datacenter.spi.MigrationService
+import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.stream.Collectors
 import javax.ws.rs.*
@@ -33,11 +36,13 @@ import javax.ws.rs.core.Response
 @Path("/migration/fs")
 class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigrationService,
                                   private val attachmentSyncManager: AttachmentSyncManager,
-                                  private val reportManager: FileSystemMigrationReportManager)
+                                  private val reportManager: FileSystemMigrationReportManager,
+                                  private val migrationService: MigrationService
+)
 {
 
     companion object {
-        val log = LoggerFactory.getLogger(FileSystemMigrationEndpoint::class.java)
+        val log: Logger = LoggerFactory.getLogger(FileSystemMigrationEndpoint::class.java)
     }
 
     private val mapper: ObjectMapper = ObjectMapper()
@@ -124,9 +129,29 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/retry")
     fun retryFileSystemMigration(): Response {
-        log.trace("Retrying file system migration")
+        log.debug("[Retry operation] Retrying file system migration")
+        try {
+            log.debug("[Retry operation] Aborting current migration, if there is a migration in progress")
+            fsMigrationService.abortMigration()
+        } catch (e: InvalidMigrationStageError) {
+            log.error("[Retry operation] Unable to abort a migration", e)
+            return Response.status(Response.Status.BAD_REQUEST).build()
+        }
 
-        return Response.accepted().build()
+        try {
+            log.debug("[Retry operation] Transitioning stage to File system start stage")
+            migrationService.transition(MigrationStage.FS_MIGRATION_COPY)
+        } catch (e: InvalidMigrationStageError) {
+            log.error("[Retry operation] Unable to transition stage to {}", MigrationStage.FS_MIGRATION_COPY, e)
+
+            return Response.status(Response.Status.BAD_REQUEST).build()
+        }
+
+        val isMigrationScheduled = fsMigrationService.scheduleMigration()
+
+        log.info("[Retry operation] Retrying FS migration operation success status {}", isMigrationScheduled)
+
+        return Response.status(if (isMigrationScheduled) Response.Status.ACCEPTED else Response.Status.CONFLICT).build()
     }
 
     init {

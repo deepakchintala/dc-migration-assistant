@@ -38,10 +38,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 
+import static com.atlassian.migration.datacenter.spi.MigrationStage.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -84,7 +87,7 @@ class S3FilesystemMigrationServiceTest {
 
     @Test
     void shouldStartAttachmentListener() throws InvalidMigrationStageError {
-        when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
+        when(this.migrationService.getCurrentStage()).thenReturn(FS_MIGRATION_COPY);
 
         fsService.startMigration();
 
@@ -95,20 +98,19 @@ class S3FilesystemMigrationServiceTest {
     void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError, FileUploadException
     {
         final String errorMessage = "Failed to migrate content. File not found: abc";
-        when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
-        doThrow(
-            new FileUploadException(errorMessage)
-        ).when(bulkCopy).copySharedHomeToS3();
+        when(this.migrationService.getCurrentStage()).thenReturn(FS_MIGRATION_COPY);
+        FileUploadException exception = new FileUploadException(errorMessage);
+        doThrow(exception).when(bulkCopy).copySharedHomeToS3();
 
         fsService.startMigration();
 
-        verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
-        verify(migrationService).error(errorMessage);
+        verify(migrationService).transition(FS_MIGRATION_COPY_WAIT);
+        verify(migrationService).error(exception);
     }
 
     @Test
     void shouldFailToStartMigrationWhenMigrationStageIsInvalid() throws InvalidMigrationStageError {
-        when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
+        when(this.migrationService.getCurrentStage()).thenReturn(FS_MIGRATION_COPY);
         Mockito.doThrow(InvalidMigrationStageError.class).when(migrationService).transition(any());
         assertThrows(InvalidMigrationStageError.class, () -> {
             fsService.startMigration();
@@ -120,7 +122,7 @@ class S3FilesystemMigrationServiceTest {
 
     @Test
     void shouldFailToStartMigrationWhenMigrationAlreadyInProgress() throws InvalidMigrationStageError {
-        when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY_WAIT);
+        when(this.migrationService.getCurrentStage()).thenReturn(FS_MIGRATION_COPY_WAIT);
 
         fsService.startMigration();
 
@@ -130,7 +132,7 @@ class S3FilesystemMigrationServiceTest {
 
     @Test
     void shouldNotScheduleMigrationWhenCurrentMigrationStageIsNotFilesystemMigrationCopy() throws InvalidMigrationStageError {
-        doThrow(new InvalidMigrationStageError("wrong stage")).when(migrationService).assertCurrentStage(MigrationStage.FS_MIGRATION_COPY);
+        doThrow(new InvalidMigrationStageError("wrong stage")).when(migrationService).assertCurrentStage(FS_MIGRATION_COPY);
 
         assertThrows(InvalidMigrationStageError.class, fsService::scheduleMigration);
     }
@@ -143,12 +145,24 @@ class S3FilesystemMigrationServiceTest {
 
         Boolean isScheduled = fsService.scheduleMigration();
         assertTrue(isScheduled);
-        verify(migrationService).assertCurrentStage(MigrationStage.FS_MIGRATION_COPY);
+        verify(migrationService).assertCurrentStage(FS_MIGRATION_COPY);
+    }
+
+    @Test
+    void shouldTransitionToStageSpecificErrorWhenUnableToScheduleAMigration() throws Exception {
+        createStubMigration();
+
+        when(migrationRunner.runMigration(any(), any())).thenReturn(false);
+
+        boolean isScheduled = fsService.scheduleMigration();
+        assertFalse(isScheduled);
+
+        verify(migrationService).error(anyString());
     }
 
     @Test
     void shouldAbortRunningMigration() throws Exception {
-        mockJobDetailsAndMigration(MigrationStage.FS_MIGRATION_COPY_WAIT);
+        mockJobDetailsAndMigration(FS_MIGRATION_COPY_WAIT);
 
         fsService.abortMigration();
 
@@ -168,7 +182,7 @@ class S3FilesystemMigrationServiceTest {
 
     @Test
     void throwExceptionWhenTryToAbortNonRunningMigration() {
-        mockJobDetailsAndMigration(MigrationStage.AUTHENTICATION);
+        mockJobDetailsAndMigration(AUTHENTICATION);
 
         assertThrows(InvalidMigrationStageError.class, () -> fsService.abortMigration());
     }
