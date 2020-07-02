@@ -147,7 +147,9 @@ const ValidationSummary: FunctionComponent = () => {
                 }}
                 isDisabled={!areActionsAcknowledged || targetUrl === ''}
                 onClick={(): void => {
-                    Promise.all([migration.finishMigration(), provisioning.cleanupInfrastructure()])
+                    provisioning
+                        .cleanupInfrastructure()
+                        .then(() => migration.finishMigration())
                         .then(() => {
                             setIsFinishMigrationSuccess(true);
                             window.open(targetUrl);
