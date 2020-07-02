@@ -58,12 +58,10 @@ import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_AP
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION_WAIT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -168,12 +166,25 @@ public class AWSMigrationServiceTest {
 
     @Test
     public void shouldSetCurrentStageToErrorOnError() {
-        initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
+        initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
 
         final String errorMessage = "failure";
         sut.error(errorMessage);
 
         assertEquals(ERROR, sut.getCurrentStage());
+
+        MigrationContext context = sut.getCurrentContext();
+        assertEquals(errorMessage, context.getErrorMessage());
+    }
+
+    @Test
+    public void shouldSetCurrentStageToSpecificErrorStageOnError() {
+        initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
+
+        final String errorMessage = "failure";
+        sut.error(errorMessage);
+
+        assertEquals(PROVISIONING_ERROR, sut.getCurrentStage());
 
         MigrationContext context = sut.getCurrentContext();
         assertEquals(errorMessage, context.getErrorMessage());
