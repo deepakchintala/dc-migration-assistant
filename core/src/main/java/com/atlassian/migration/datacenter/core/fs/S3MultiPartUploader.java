@@ -26,11 +26,13 @@ import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,9 +46,10 @@ import java.util.concurrent.ExecutionException;
  * 2. Split the file into same sized parts (except the last one) and upload them to S3
  * 3. Confirm the upload has finished with all the required parts
  * <p>
- * All files larger than 5GB (hard AWS limit) are required to be uploaded via this method.
+ * All files larger than 5MB (hard AWS limit) are required to be uploaded via this method.
  * <p>
  * https://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html
+ * https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
  */
 public class S3MultiPartUploader {
     private final static Logger logger = LoggerFactory.getLogger(S3MultiPartUploader.class);
@@ -54,7 +57,7 @@ public class S3MultiPartUploader {
     private final File file;
     private final String key;
 
-    private int sizeToUpload = 100 * 1024 * 1024; // 100 MB
+    private int sizeToUpload = 25 * 1024 * 1024; // 25 MB
     private List<CompletedPart> completedParts = new ArrayList<>();
     private ByteBuffer buffer;
     private int uploadPartNumber = 1;
@@ -86,7 +89,8 @@ public class S3MultiPartUploader {
         } catch (IOException e) {
             logger.error("Cannot open file for the multi-part upload", e);
         }
-        buffer.clear();
+        // The re-typing is to provide compatibility when compiling with Java 9+ and running on Java 8
+        ((Buffer) buffer).clear();
 
         logger.trace("Finished uploading parts, sending complete request.");
         try {
@@ -136,14 +140,15 @@ public class S3MultiPartUploader {
         if (readBytes < buffer.limit()) {
             // We need to limit the buffer if the rest of the file is smaller than the allocated size.
             // If don't do this, the size of the sent part will be always equal to the buffer size.
-            body = AsyncRequestBody.fromByteBuffer((ByteBuffer) buffer.limit(readBytes));
+            // The re-typing is to provide compatibility when compiling with Java 9+ and running on Java 8
+            body = AsyncRequestBody.fromByteBuffer((ByteBuffer) ((Buffer) buffer).limit(readBytes));
         } else {
             body = AsyncRequestBody.fromByteBuffer(buffer);
         }
-        return config.getS3AsyncClient()
-                .uploadPart(uploadPartRequest, body)
-                .get()
-                .eTag();
+        final CompletableFuture<UploadPartResponse> uploadPartResponseCompletableFuture = config.getS3AsyncClient().uploadPart(uploadPartRequest, body);
+
+        UploadPartResponse uploadPartResponse = uploadPartResponseCompletableFuture.get();
+        return uploadPartResponse.eTag();
     }
 
     private int completePart(int uploadPartNumber, String etag) {
