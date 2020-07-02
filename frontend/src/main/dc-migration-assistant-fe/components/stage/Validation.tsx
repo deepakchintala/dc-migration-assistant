@@ -167,7 +167,7 @@ const ValidationSummary: FunctionComponent = () => {
     return (
         <>
             <ErrorFlag
-                showError={finishMigrationApiErrorMessage !== ''}
+                showError={finishMigrationApiErrorMessage && finishMigrationApiErrorMessage !== ''}
                 dismissErrorFunc={(): void => setFinishMigrationApiErrorMessage('')}
                 title={I18n.getText('atlassian.migration.datacenter.validation.finish.api.error')}
                 description="This only impacts the source instance. Please check the logs for the exact cause."
@@ -189,25 +189,16 @@ const ValidationSummary: FunctionComponent = () => {
                     marginTop: '15px',
                 }}
                 onClick={(): void => {
-                    migration
-                        .finishMigration()
-                        .then(() => setIsFinishMigrationSuccess(true))
+                    Promise.all([migration.finishMigration(), provisioning.cleanupInfrastructure()])
+                        .then(() => {
+                            setIsFinishMigrationSuccess(true);
+                        })
                         .catch(response => {
                             setFinishMigrationApiErrorMessage(response.message);
                         });
                 }}
             >
                 {I18n.getText('atlassian.migration.datacenter.validation.next.button')}
-            </Button>
-            <Button
-                appearance="warning"
-                onClick={(): any => provisioning.cleanupInfrastructure()}
-                style={{
-                    marginTop: '15px',
-                    marginLeft: '5px',
-                }}
-            >
-                Cleanup migration infrastructure
             </Button>
         </>
     );

@@ -37,7 +37,7 @@ type ErrorFlagProps = {
     /**
      * Text that appears below the flag. Should be a call to action on how to resolve the error
      */
-    description: string;
+    description: React.ReactNode;
     /**
      * Unique identifier for the error
      */
