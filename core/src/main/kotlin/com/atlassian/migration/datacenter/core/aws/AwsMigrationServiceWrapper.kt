@@ -29,6 +29,8 @@ open class AwsMigrationServiceWrapper(ao: ActiveObjects?, applicationConfigurati
         when {
             PROVISIONING_ERROR.validAncestorStages.contains(preErrorTransitionStage) -> setCurrentStage(migration, PROVISIONING_ERROR)
             FS_MIGRATION_ERROR.validAncestorStages.contains(preErrorTransitionStage) -> setCurrentStage(migration, FS_MIGRATION_ERROR)
+            FINAL_SYNC_ERROR.validAncestorStages.contains(preErrorTransitionStage) ->
+                setCurrentStage(migration, FINAL_SYNC_ERROR)
             else -> setCurrentStage(migration, ERROR)
         }
 
