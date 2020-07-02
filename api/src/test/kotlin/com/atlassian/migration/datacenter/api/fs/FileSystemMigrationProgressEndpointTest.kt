@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.api.fs
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
 import com.atlassian.migration.datacenter.core.fs.ReportType
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
+import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.atlassian.migration.datacenter.spi.fs.reporting.FailedFileMigration
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport
@@ -56,6 +57,9 @@ class FileSystemMigrationProgressEndpointTest {
 
     @MockK
     lateinit var fsMigrationService: FilesystemMigrationService
+
+    @MockK
+    lateinit var migrationService: MigrationService
 
     @InjectMockKs
     lateinit var endpoint: FileSystemMigrationEndpoint
