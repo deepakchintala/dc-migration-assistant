@@ -27,7 +27,7 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 
 import java.nio.file.Path;
 
-public class AllowAnyTransitionMigrationServiceFacade extends AWSMigrationService implements MigrationService {
+public class AllowAnyTransitionMigrationServiceFacade extends AwsMigrationServiceWrapper implements MigrationService {
     public AllowAnyTransitionMigrationServiceFacade(ActiveObjects activeObjects,
                                                     ApplicationConfiguration applicationConfiguration,
                                                     EventPublisher eventPublisher) {
