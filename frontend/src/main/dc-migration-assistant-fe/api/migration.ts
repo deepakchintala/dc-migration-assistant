@@ -52,11 +52,6 @@ type GetMigrationResult = {
     stage: MigrationStage;
 };
 
-type GetMigrationSummaryResult = {
-    instanceUrl: string;
-    error: string;
-};
-
 export type MigrationReadyStatus = {
     dbCompatible: boolean;
     osCompatible: boolean;
