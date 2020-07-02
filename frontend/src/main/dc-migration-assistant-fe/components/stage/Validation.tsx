@@ -67,7 +67,12 @@ const MigrationSummaryActionCallout = (): ReactElement => {
                     </li>
                     <li>
                         {I18n.getText(
-                            'atlassian.migration.datacenter.validation.post.action.aws.test'
+                            'atlassian.migration.datacenter.validation.post.action.aws.verify'
+                        )}
+                    </li>
+                    <li>
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.validation.post.action.index'
                         )}
                     </li>
                     <li>
