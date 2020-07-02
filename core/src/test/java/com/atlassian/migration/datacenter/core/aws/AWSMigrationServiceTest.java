@@ -21,6 +21,7 @@ import com.atlassian.activeobjects.test.TestActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
@@ -48,10 +49,15 @@ import java.util.Arrays;
 import java.util.stream.IntStream;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.AUTHENTICATION;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.DATA_MIGRATION_IMPORT_WAIT;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.FINAL_SYNC_ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FINISHED;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY_WAIT;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISIONING_ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION_WAIT;
 import static org.junit.Assert.assertEquals;
@@ -94,7 +100,7 @@ public class AWSMigrationServiceTest {
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao, applicationConfiguration, eventPublisher);
+        sut = new AwsMigrationServiceWrapper(ao, applicationConfiguration, eventPublisher);
         setupEntities();
         when(applicationConfiguration.getPluginVersion()).thenReturn("DUMMY");
         when(databaseExtractorFactory.getExtractor()).thenReturn(databaseExtractor);
@@ -160,19 +166,6 @@ public class AWSMigrationServiceTest {
         Migration updatedMigration = sut.getCurrentMigration();
 
         assertEquals(testDeploymentId, updatedMigration.getContext().getApplicationDeploymentId());
-    }
-
-    @Test
-    public void shouldSetCurrentStageToErrorOnError() {
-        initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
-
-        final String errorMessage = "failure";
-        sut.error(errorMessage);
-
-        assertEquals(ERROR, sut.getCurrentStage());
-
-        MigrationContext context = sut.getCurrentContext();
-        assertEquals(errorMessage, context.getErrorMessage());
     }
 
     @Test
@@ -321,6 +314,59 @@ public class AWSMigrationServiceTest {
         migrationContext.save();
 
         assertThrows(InvalidMigrationStageError.class, () -> sut.finishCurrentMigration());
+    }
+
+    @Test
+    public void shouldTransitionToStageSpecificErrorWhenStageIsAnErrorStage() {
+        initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
+
+        String errorMessage = "provisioning error";
+        sut.error(errorMessage);
+
+        Migration actualMigration = sut.getCurrentMigration();
+        assertEquals(PROVISIONING_ERROR, actualMigration.getStage());
+        assertEquals(errorMessage, actualMigration.getContext().getErrorMessage());
+        verify(eventPublisher).publish(any(MigrationFailedEvent.class));
+    }
+
+    @Test
+    public void shouldTransitionToGenericErrorWhenCurrentStageDoesNotHaveASpecificErrorStage() {
+        initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
+
+        String errorMessage = "provisioning error";
+
+        sut.error(errorMessage);
+
+        Migration actualMigration = sut.getCurrentMigration();
+        assertEquals(ERROR, actualMigration.getStage());
+        assertEquals(errorMessage, actualMigration.getContext().getErrorMessage());
+        verify(eventPublisher).publish(any(MigrationFailedEvent.class));
+    }
+
+    @Test
+    public void shouldTransitionToFinalSyncErrorStageWhenCurrentStageIsOneOfFinalSyncStages() {
+        initializeAndCreateSingleMigrationWithStage(DATA_MIGRATION_IMPORT_WAIT);
+
+        final String errorMessage = "failure";
+        sut.error(errorMessage);
+
+        assertEquals(FINAL_SYNC_ERROR, sut.getCurrentStage());
+
+        MigrationContext context = sut.getCurrentContext();
+        assertEquals(errorMessage, context.getErrorMessage());
+    }
+
+    @Test
+    public void shouldTransitionToFSErrorStageWhenCurrentStageIsOneOfFSMigrationStages() {
+        initializeAndCreateSingleMigrationWithStage(FS_MIGRATION_COPY_WAIT);
+
+        final String errorMessage = "failure";
+        sut.error(errorMessage);
+
+        assertEquals(FS_MIGRATION_ERROR, sut.getCurrentStage());
+
+        MigrationContext context = sut.getCurrentContext();
+        assertEquals(errorMessage, context.getErrorMessage());
     }
 
 
