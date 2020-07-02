@@ -17,6 +17,7 @@
 import React, { FunctionComponent, ReactElement, useEffect, useState } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import SectionMessage from '@atlaskit/section-message';
+import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
 import styled from 'styled-components';
 import { Redirect } from 'react-router-dom';
@@ -36,6 +37,10 @@ const MigrationSummaryContainer = styled.div`
     & div {
         padding-bottom: 5px;
     }
+`;
+
+const MigrationDetailsContainer = styled.div`
+    margin-top: 25px;
 `;
 
 const SectionMessageContainer = styled.div`
@@ -92,6 +97,68 @@ const MigrationSummaryActionCallout = (): ReactElement => {
     );
 };
 
+type MigrationSummaryData = {
+    key: string;
+    value: string;
+};
+
+const INSTANCE_URL_MIGRATION_CONTEXT_KEY = 'instanceUrl';
+
+const MigrationSummary: FunctionComponent = () => {
+    const [summaryData, setSummaryData]: [Array<MigrationSummaryData>, Function] = useState<
+        Array<MigrationSummaryData>
+    >([]);
+
+    useEffect(() => {
+        migration
+            .getMigrationSummary()
+            .then(data => {
+                setSummaryData(
+                    Object.entries(data).map(summary => {
+                        const [key, value] = summary;
+                        return { key, value };
+                    })
+                );
+            })
+            .catch(() => {
+                setSummaryData([]);
+            });
+    }, []);
+
+    return (
+        <MigrationDetailsContainer>
+            <div>
+                <h4>Migration details</h4>
+            </div>
+            <TableTree>
+                {summaryData
+                    .filter(x => x.key === INSTANCE_URL_MIGRATION_CONTEXT_KEY)
+                    .map(summary => {
+                        return (
+                            <Row key={`migration-summary-${summary.key}`} hasChildren={false}>
+                                <Cell width={400} singleLine>
+                                    {I18n.getText(
+                                        'atlassian.migration.datacenter.validation.summary.phrase.instanceUrl'
+                                    )}
+                                </Cell>
+                                <Cell width={400}>
+                                    <a
+                                        target="_blank"
+                                        rel="noreferrer noopener"
+                                        href={summary.value}
+                                        style={{ whiteSpace: 'nowrap' }}
+                                    >
+                                        {summary.value}
+                                    </a>
+                                </Cell>
+                            </Row>
+                        );
+                    })}
+            </TableTree>
+        </MigrationDetailsContainer>
+    );
+};
+
 const ValidationSummary: FunctionComponent = () => {
     const [areActionsAcknowledged, setAreActionsAcknowledged] = useState<boolean>(false);
     const [isFinishMigrationSuccess, setIsFinishMigrationSuccess] = useState<boolean>(false);
@@ -122,6 +189,7 @@ const ValidationSummary: FunctionComponent = () => {
                     {I18n.getText('atlassian.migration.datacenter.validation.section.message')}
                 </SectionMessage>
             </SectionMessageContainer>
+            <MigrationSummary />
             <MigrationSummaryActionCallout />
             <Checkbox
                 isChecked={areActionsAcknowledged}

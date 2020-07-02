@@ -52,6 +52,11 @@ type GetMigrationResult = {
     stage: MigrationStage;
 };
 
+type GetMigrationSummaryResult = {
+    instanceUrl: string;
+    error: string;
+};
+
 export type MigrationReadyStatus = {
     dbCompatible: boolean;
     osCompatible: boolean;
@@ -100,6 +105,11 @@ export const migration = {
                     reason !== undefined ? reason : DEFAULT_MIGRATION_ERROR_REASON
                 );
             });
+    },
+    getMigrationSummary: (): Promise<GetMigrationSummaryResult> => {
+        return callAppRest('GET', RestApiPathConstants.migrationSummaryRestPath).then(res =>
+            res.json()
+        );
     },
     getReadyStatus: (): Promise<MigrationReadyStatus> => {
         return callAppRest('GET', RestApiPathConstants.migrationReadyRestPath).then(res =>
