@@ -31,6 +31,10 @@ export interface RetryCallback {
     (): Promise<void>;
 }
 
+export interface ContinueCallback {
+    (): Promise<void>;
+}
+
 export type RetryProperties = {
     /**
      * Text to display on the retry button
@@ -44,6 +48,21 @@ export type RetryProperties = {
      * A route to redirect the user to when
      */
     onRetryRoute?: string;
+};
+
+export type IgnoreAndContinueProperties = {
+    /**
+     * Text to display on the continue button
+     */
+    continueText: string;
+    /**
+     * A route to redirect the user to when
+     */
+    onContinue: ContinueCallback;
+    /**
+     * A route to redirect the user to when
+     */
+    onContinueRoute?: string;
 };
 
 /**
@@ -65,6 +84,7 @@ export type Progress = {
     completeMessage?: CompleteMessage;
     failed?: boolean;
     retryProps: RetryProperties;
+    ignoreAndContinueProps?: IgnoreAndContinueProperties;
 };
 
 /**
@@ -84,6 +104,8 @@ export class ProgressBuilder {
     private failed: boolean;
 
     private retryProps: RetryProperties;
+
+    private ignoreAndContinueProps: IgnoreAndContinueProperties;
 
     setElapsedSeconds(seconds: number): ProgressBuilder {
         this.elapsedSeconds = seconds;
@@ -125,6 +147,12 @@ export class ProgressBuilder {
         return this;
     }
 
+    setIgnoreAndContinueProps(ignoreAndContinueProps: IgnoreAndContinueProperties) {
+        this.ignoreAndContinueProps = ignoreAndContinueProps;
+
+        return this;
+    }
+
     build(): Progress {
         if (!(this.phase && this.retryProps)) {
             throw new Error('must include phase and retry props in progress object');
@@ -138,10 +166,12 @@ export class ProgressBuilder {
             elapsedSeconds,
             failed,
             retryProps,
+            ignoreAndContinueProps,
         } = this;
 
         return {
             retryProps,
+            ignoreAndContinueProps,
             phase,
             completeMessage,
             completeness,
