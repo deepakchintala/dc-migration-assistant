@@ -49,6 +49,7 @@ import java.util.concurrent.ExecutionException;
  * All files larger than 5MB (hard AWS limit) are required to be uploaded via this method.
  * <p>
  * https://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html
+ * https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
  */
 public class S3MultiPartUploader {
     private final static Logger logger = LoggerFactory.getLogger(S3MultiPartUploader.class);
@@ -56,7 +57,7 @@ public class S3MultiPartUploader {
     private final File file;
     private final String key;
 
-    private int sizeToUpload = 100 * 1024 * 1024; // 100 MB
+    private int sizeToUpload = 25 * 1024 * 1024; // 25 MB
     private List<CompletedPart> completedParts = new ArrayList<>();
     private ByteBuffer buffer;
     private int uploadPartNumber = 1;
