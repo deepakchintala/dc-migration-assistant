@@ -24,6 +24,7 @@ import { homePath } from '../../utils/RoutePaths';
 import { migration, MigrationStage } from '../../api/migration';
 import { provisioning } from '../../api/provisioning';
 import { ErrorFlag } from '../shared/ErrorFlag';
+import { Checkbox } from '@atlaskit/checkbox';
 
 const MigrationSummaryContainer = styled.div`
     display: grid;
@@ -92,6 +93,7 @@ const MigrationSummaryActionCallout = (): ReactElement => {
 };
 
 const ValidationSummary: FunctionComponent = () => {
+    const [areActionsAcknowledged, setAreActionsAcknowledged] = useState<boolean>(false);
     const [isFinishMigrationSuccess, setIsFinishMigrationSuccess] = useState<boolean>(false);
 
     const [finishMigrationApiErrorMessage, setFinishMigrationApiErrorMessage] = useState<string>(
@@ -121,6 +123,11 @@ const ValidationSummary: FunctionComponent = () => {
                 </SectionMessage>
             </SectionMessageContainer>
             <MigrationSummaryActionCallout />
+            <Checkbox
+                isChecked={areActionsAcknowledged}
+                onChange={(evnt): void => setAreActionsAcknowledged(evnt.target.checked)}
+                label="Okay, I know what I must do"
+            />
             <Button
                 isLoading={false}
                 appearance="primary"
