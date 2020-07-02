@@ -18,15 +18,14 @@ package com.atlassian.migration.datacenter.api.fs
 
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
+import com.atlassian.migration.datacenter.spi.MigrationService
+import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
-import io.mockk.MockKAnnotations
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.just
-import io.mockk.runs
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,6 +36,9 @@ import javax.ws.rs.core.Response
 internal class FileSystemMigrationEndpointTest {
     @MockK
     lateinit var fsMigrationService: FilesystemMigrationService
+
+    @MockK
+    lateinit var migrationService: MigrationService
 
     @MockK
     lateinit var attachmentSyncManager: AttachmentSyncManager
@@ -68,4 +70,52 @@ internal class FileSystemMigrationEndpointTest {
 
         assertEquals(response.status, Response.Status.CONFLICT.statusCode)
     }
+
+    @Test
+    fun shouldBeAbleToRetryAMigration() {
+        every { fsMigrationService.abortMigration() } just runs
+        every { migrationService.transition(MigrationStage.FS_MIGRATION_COPY) } just runs
+        every { fsMigrationService.scheduleMigration() } returns true
+
+        val response = endpoint.retryFileSystemMigration()
+
+        assertEquals(response.status, Response.Status.ACCEPTED.statusCode)
+    }
+
+    @Test
+    fun shouldNotRetryMigrationWhenAbortMigrationThrowsAnException() {
+        every { fsMigrationService.abortMigration() } throws InvalidMigrationStageError("bad state error")
+
+        val response = endpoint.retryFileSystemMigration()
+
+        assertEquals(response.status, Response.Status.BAD_REQUEST.statusCode)
+
+        verify(exactly = 0) { migrationService.transition(any()) }
+        verify(exactly = 0) { fsMigrationService.scheduleMigration() }
+    }
+
+    @Test
+    fun shouldNotRetryMigrationWhenMigrationCannotBeTransitionedToStartStage() {
+        every { fsMigrationService.abortMigration() } just runs
+        every { migrationService.transition(MigrationStage.FS_MIGRATION_COPY) } throws InvalidMigrationStageError("bad transition")
+
+        val response = endpoint.retryFileSystemMigration()
+
+        assertEquals(response.status, Response.Status.BAD_REQUEST.statusCode)
+
+        verify(exactly = 0) { fsMigrationService.scheduleMigration() }
+    }
+
+
+    @Test
+    fun shouldNotRetryMigrationWhenFsMigrationCannotBeScheduled() {
+        every { fsMigrationService.abortMigration() } just runs
+        every { migrationService.transition(MigrationStage.FS_MIGRATION_COPY) } just runs
+        every { fsMigrationService.scheduleMigration() } returns false
+
+        val response = endpoint.retryFileSystemMigration()
+
+        assertEquals(response.status, Response.Status.CONFLICT.statusCode)
+    }
+
 }
