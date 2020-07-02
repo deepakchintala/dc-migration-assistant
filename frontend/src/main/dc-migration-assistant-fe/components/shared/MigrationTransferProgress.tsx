@@ -79,7 +79,6 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
 }) => {
     const [retryEnabled, setRetryEnabled] = useState<boolean>(false);
     const [shouldRedirectToStart, setShouldRedirectToStart] = useState<boolean>(false);
-    const [shouldIgnoreAndContinue, setShouldIgnoreAndContinue] = useState<boolean>(false);
 
     const failed = (progress.errorMessage && true) || progress.failed;
     const { onRetryRoute, retryText, onRetry } = progress?.retryProps;
@@ -101,10 +100,6 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
 
     if (shouldRedirectToStart) {
         return <Redirect to={onRetryRoute} push />;
-    }
-
-    if (shouldIgnoreAndContinue) {
-        return <Redirect to={warningPath} push />;
     }
 
     return (
@@ -167,10 +162,8 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                             {retryText || 'retry'}
                         </Button>
                         <Button
+                            href={warningPath}
                             style={{ marginTop: '10px', marginLeft: '10px' }}
-                            onClick={(): void => {
-                                setShouldIgnoreAndContinue(true);
-                            }}
                         >
                             {continueText || 'continue'}
                         </Button>
