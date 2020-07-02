@@ -120,7 +120,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
             logger.info("Completed file system migration. Transitioning to next stage.");
             migrationService.transition(OFFLINE_WARNING);
         } catch (FileSystemMigrationFailure e) {
-            logger.error("Encountered critical error during file system migration");
+            logger.error("Encountered critical error during file system migration", e);
             report.setStatus(FAILED);
             migrationService.error(e);
         }
