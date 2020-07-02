@@ -102,7 +102,6 @@ const getFsMigrationProgress: ProgressCallback = async () => {
     };
     const ignoreAndContinueProps: IgnoreAndContinueProperties = {
         continueText: I18n.getText('atlassian.migration.datacenter.fs.ignore.and.continue'),
-        onContinue: () => fs.retryFsMigration(),
     };
     return fs
         .getFsMigrationStatus()

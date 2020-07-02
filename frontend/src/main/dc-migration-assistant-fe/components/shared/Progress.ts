@@ -31,10 +31,6 @@ export interface RetryCallback {
     (): Promise<void>;
 }
 
-export interface ContinueCallback {
-    (): Promise<void>;
-}
-
 export type RetryProperties = {
     /**
      * Text to display on the retry button
@@ -55,14 +51,6 @@ export type IgnoreAndContinueProperties = {
      * Text to display on the continue button
      */
     continueText: string;
-    /**
-     * A route to redirect the user to when
-     */
-    onContinue: ContinueCallback;
-    /**
-     * A route to redirect the user to when
-     */
-    onContinueRoute?: string;
 };
 
 /**

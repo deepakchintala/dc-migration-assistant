@@ -24,6 +24,7 @@ import Button from '@atlaskit/button';
 import styled from 'styled-components';
 import { Checkbox } from '@atlaskit/checkbox';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
+import { warningPath } from '../../utils/RoutePaths';
 
 import { Progress } from './Progress';
 import {
@@ -83,7 +84,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
 
     const failed = (progress.errorMessage && true) || progress.failed;
     const { onRetryRoute, retryText, onRetry } = progress?.retryProps;
-    const { onContinueRoute, continueText, onContinue } = progress?.ignoreAndContinueProps;
+    const { continueText } = progress?.ignoreAndContinueProps;
 
     if (loading) {
         return (
@@ -104,7 +105,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     }
 
     if (shouldIgnoreAndContinue) {
-        return <Redirect to={onContinueRoute} push />;
+        return <Redirect to={warningPath} push />;
     }
 
     return (
@@ -184,9 +185,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                             style={{ marginTop: '10px', marginLeft: '10px' }}
                             isDisabled={!continueEnabled}
                             onClick={(): void => {
-                                onContinue().then(() =>
-                                    setShouldIgnoreAndContinue(onContinueRoute && true)
-                                );
+                                setShouldIgnoreAndContinue(true);
                             }}
                         >
                             {continueText || 'continue'}
