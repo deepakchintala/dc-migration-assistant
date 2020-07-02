@@ -106,11 +106,6 @@ export const migration = {
                 );
             });
     },
-    getMigrationSummary: (): Promise<GetMigrationSummaryResult> => {
-        return callAppRest('GET', RestApiPathConstants.migrationSummaryRestPath).then(res =>
-            res.json()
-        );
-    },
     getReadyStatus: (): Promise<MigrationReadyStatus> => {
         return callAppRest('GET', RestApiPathConstants.migrationReadyRestPath).then(res =>
             res.json()
