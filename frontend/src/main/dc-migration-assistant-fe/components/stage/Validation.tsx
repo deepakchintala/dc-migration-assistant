@@ -134,6 +134,7 @@ const ValidationSummary: FunctionComponent = () => {
                 style={{
                     marginTop: '15px',
                 }}
+                isDisabled={!areActionsAcknowledged}
                 onClick={(): void => {
                     Promise.all([migration.finishMigration(), provisioning.cleanupInfrastructure()])
                         .then(() => {
