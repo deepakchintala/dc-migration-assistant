@@ -170,7 +170,9 @@ const ValidationSummary: FunctionComponent = () => {
                 showError={finishMigrationApiErrorMessage && finishMigrationApiErrorMessage !== ''}
                 dismissErrorFunc={(): void => setFinishMigrationApiErrorMessage('')}
                 title={I18n.getText('atlassian.migration.datacenter.validation.finish.api.error')}
-                description="This only impacts the source instance. Please check the logs for the exact cause."
+                description={I18n.getText(
+                    'atlassian.migration.datacenter.validation.finish.api.error.description'
+                )}
                 id="finish-api-error"
             />
             <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
