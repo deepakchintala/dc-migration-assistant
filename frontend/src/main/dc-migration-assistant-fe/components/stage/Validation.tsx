@@ -26,6 +26,10 @@ import { migration, MigrationStage } from '../../api/migration';
 import { provisioning } from '../../api/provisioning';
 import { ErrorFlag } from '../shared/ErrorFlag';
 
+const ValidationRoot = styled.div`
+    max-width: 950px;
+`;
+
 const MigrationSummaryContainer = styled.div`
     display: grid;
     justify-items: start;
@@ -191,5 +195,9 @@ export const ValidateStagePage: FunctionComponent = () => {
             });
     }, []);
 
-    return isStageValid ? <ValidationSummary /> : <InvalidMigrationStageErrorMessage />;
+    return (
+        <ValidationRoot>
+            {isStageValid ? <ValidationSummary /> : <InvalidMigrationStageErrorMessage />}
+        </ValidationRoot>
+    );
 };
