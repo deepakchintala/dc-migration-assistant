@@ -78,7 +78,6 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     startedMoment,
 }) => {
     const [retryEnabled, setRetryEnabled] = useState<boolean>(false);
-    const [continueEnabled, setContinueEnabled] = useState<boolean>(false);
     const [shouldRedirectToStart, setShouldRedirectToStart] = useState<boolean>(false);
     const [shouldIgnoreAndContinue, setShouldIgnoreAndContinue] = useState<boolean>(false);
 
@@ -147,25 +146,11 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                         <CheckboxContainer>
                             <Checkbox
                                 value="true"
-                                isDisabled={continueEnabled}
                                 label={I18n.getText(
                                     'atlassian.migration.datacenter.common.aws.retry.checkbox.restart.copy'
                                 )}
                                 onChange={(event: any): void => {
                                     setRetryEnabled(event.target.checked);
-                                }}
-                                name="retryAgree"
-                            />
-                        </CheckboxContainer>
-                        <CheckboxContainer>
-                            <Checkbox
-                                value="true"
-                                isDisabled={retryEnabled}
-                                label={I18n.getText(
-                                    'atlassian.migration.datacenter.common.aws.retry.checkbox.continue'
-                                )}
-                                onChange={(event: any): void => {
-                                    setContinueEnabled(event.target.checked);
                                 }}
                                 name="retryAgree"
                             />
@@ -183,7 +168,6 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                         </Button>
                         <Button
                             style={{ marginTop: '10px', marginLeft: '10px' }}
-                            isDisabled={!continueEnabled}
                             onClick={(): void => {
                                 setShouldIgnoreAndContinue(true);
                             }}
