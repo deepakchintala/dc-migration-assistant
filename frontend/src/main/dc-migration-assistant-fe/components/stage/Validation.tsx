@@ -27,13 +27,12 @@ import { provisioning } from '../../api/provisioning';
 import { ErrorFlag } from '../shared/ErrorFlag';
 
 const ValidationRoot = styled.div`
-    max-width: 950px;
+    max-width: 920px;
 `;
 
 const MigrationSummaryContainer = styled.div`
     display: grid;
     justify-items: start;
-    margin-top: 25px;
     & li {
         align-self: center;
     }
@@ -47,6 +46,10 @@ const SectionMessageContainer = styled.div`
     width: 100%;
 `;
 
+const CheckBoxContainer = styled.div`
+    margin: 5px 0 0 -5px;
+`;
+
 const LearnMoreLink =
     'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-Additionalresources';
 
@@ -54,15 +57,15 @@ const MigrationSummaryActionCallout = (): ReactElement => {
     return (
         <MigrationSummaryContainer>
             <div>
-                <h4>
-                    {I18n.getText('atlassian.migration.datacenter.validation.actions.required')}
-                </h4>
-            </div>
-            <div>
                 <ul>
                     <li>
                         {I18n.getText(
                             'atlassian.migration.datacenter.validation.post.action.aws.login'
+                        )}
+                    </li>
+                    <li>
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.validation.post.action.index'
                         )}
                     </li>
                     <li>
@@ -73,11 +76,6 @@ const MigrationSummaryActionCallout = (): ReactElement => {
                     <li>
                         {I18n.getText(
                             'atlassian.migration.datacenter.validation.post.action.aws.verify'
-                        )}
-                    </li>
-                    <li>
-                        {I18n.getText(
-                            'atlassian.migration.datacenter.validation.post.action.index'
                         )}
                     </li>
                     <li>
@@ -127,18 +125,28 @@ const ValidationSummary: FunctionComponent = () => {
                 id="finish-api-error"
             />
             <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
-            <h3>{I18n.getText('atlassian.migration.datacenter.validation.message')}</h3>
+            <p>
+                {I18n.getText('atlassian.migration.datacenter.validation.message')}
+                <br />
+                <a href={targetUrl}>{targetUrl}</a>
+            </p>
             <SectionMessageContainer>
-                <SectionMessage appearance="info">
-                    {I18n.getText('atlassian.migration.datacenter.validation.section.message')}
+                <SectionMessage
+                    appearance="info"
+                    title={I18n.getText(
+                        'atlassian.migration.datacenter.validation.actions.required'
+                    )}
+                >
+                    <MigrationSummaryActionCallout />
                 </SectionMessage>
             </SectionMessageContainer>
-            <MigrationSummaryActionCallout />
-            <Checkbox
-                isChecked={areActionsAcknowledged}
-                onChange={(evnt): void => setAreActionsAcknowledged(evnt.target.checked)}
-                label="Okay, I know what I must do"
-            />
+            <CheckBoxContainer>
+                <Checkbox
+                    isChecked={areActionsAcknowledged}
+                    onChange={(evnt): void => setAreActionsAcknowledged(evnt.target.checked)}
+                    label={I18n.getText('atlassian.migration.datacenter.validation.next.checkbox')}
+                />
+            </CheckBoxContainer>
             <Button
                 isLoading={false}
                 appearance="primary"
