@@ -59,10 +59,6 @@ export type MigrationProgressProps = {
      * Should be true when the progress is being fetched
      */
     loading: boolean;
-    /**
-     * A moment representing the time that the transfer was started
-     */
-    startedMoment: Moment;
 };
 
 const LearnMoreLink =
@@ -75,7 +71,6 @@ const LearnMoreLink =
 export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     progress,
     loading,
-    startedMoment,
 }) => {
     const [retryEnabled, setRetryEnabled] = useState<boolean>(false);
     const [shouldRedirectToStart, setShouldRedirectToStart] = useState<boolean>(false);
@@ -94,9 +89,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
         );
     }
 
-    const duration =
-        calculateDurationFromBeginning(startedMoment) ||
-        calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
+    const duration = calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
 
     if (shouldRedirectToStart) {
         return <Redirect to={onRetryRoute} push />;
@@ -174,9 +167,8 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                         <OperationTimingParagraph>
                             {I18n.getText(
                                 'atlassian.migration.datacenter.common.progress.started',
-                                (
-                                    startedMoment ||
-                                    calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds)
+                                calculateStartedFromElapsedSeconds(
+                                    progress.elapsedTimeSeconds
                                 ).format('D/MMM/YY h:mm A')
                             )}
                         </OperationTimingParagraph>
@@ -184,8 +176,9 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                             {duration &&
                                 I18n.getText(
                                     'atlassian.migration.datacenter.common.progress.mins_elapsed',
-                                    `${duration.days * 24 + duration.hours}`,
-                                    `${duration.minutes}`
+                                    `${duration.hours}`,
+                                    `${duration.minutes}`,
+                                    `${duration.seconds}`
                                 )}
                         </OperationTimingParagraph>
                     </>
