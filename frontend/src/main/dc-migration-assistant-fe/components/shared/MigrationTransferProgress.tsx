@@ -24,7 +24,7 @@ import Button from '@atlaskit/button';
 import styled from 'styled-components';
 import { Checkbox } from '@atlaskit/checkbox';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
-import { warningPath } from '../../utils/RoutePaths';
+import { warningPath, validationPath } from '../../utils/RoutePaths';
 
 import { Progress } from './Progress';
 import {
@@ -154,7 +154,12 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                             {retryText || 'retry'}
                         </Button>
                         <Button
-                            href={warningPath}
+                            href={
+                                retryText ===
+                                I18n.getText('atlassian.migration.datacenter.fs.retry')
+                                    ? warningPath
+                                    : validationPath
+                            }
                             style={{ marginTop: '10px', marginLeft: '10px' }}
                         >
                             {I18n.getText('atlassian.migration.datacenter.fs.continue')}
