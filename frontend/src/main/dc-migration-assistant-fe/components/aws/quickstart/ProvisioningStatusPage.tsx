@@ -47,6 +47,7 @@ const getDeploymentProgress: ProgressCallback = async () => {
                 onRetry: provisioning.retry,
                 retryText: I18n.getText('atlassian.migration.datacenter.provision.aws.retry.text'),
                 onRetryRoute: asiConfigurationPath,
+                canContinueOnFailure: false,
             });
             switch (result.status) {
                 case ProvisioningStatus.Complete:

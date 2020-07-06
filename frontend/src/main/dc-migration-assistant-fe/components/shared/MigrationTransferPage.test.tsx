@@ -43,6 +43,7 @@ const props: MigrationTransferProps = {
                         retryProps: {
                             retryText: 'Retry',
                             onRetry: (): Promise<void> => Promise.resolve(),
+                            canContinueOnFailure: false,
                         },
                     },
                 ]);
