@@ -44,6 +44,11 @@ export type RetryProperties = {
      * A route to redirect the user to when
      */
     onRetryRoute?: string;
+    /**
+     * A boolean to dictate whether or not failures
+     * can be ignored and the migration continued
+     */
+    canContinueWhenFailure: boolean;
 };
 
 /**

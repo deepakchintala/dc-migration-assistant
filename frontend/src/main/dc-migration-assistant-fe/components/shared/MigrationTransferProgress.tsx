@@ -24,7 +24,7 @@ import Button from '@atlaskit/button';
 import styled from 'styled-components';
 import { Checkbox } from '@atlaskit/checkbox';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
-import { warningPath, validationPath } from '../../utils/RoutePaths';
+import { warningPath } from '../../utils/RoutePaths';
 
 import { Progress } from './Progress';
 import {
@@ -76,7 +76,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     const [shouldRedirectToStart, setShouldRedirectToStart] = useState<boolean>(false);
 
     const failed = (progress.errorMessage && true) || progress.failed;
-    const { onRetryRoute, retryText, onRetry } = progress?.retryProps;
+    const { onRetryRoute, retryText, onRetry, canContinueWhenFailure } = progress?.retryProps;
 
     if (loading) {
         return (
@@ -153,17 +153,14 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                         >
                             {retryText || 'retry'}
                         </Button>
-                        <Button
-                            href={
-                                retryText ===
-                                I18n.getText('atlassian.migration.datacenter.fs.retry')
-                                    ? warningPath
-                                    : validationPath
-                            }
-                            style={{ marginTop: '10px', marginLeft: '10px' }}
-                        >
-                            {I18n.getText('atlassian.migration.datacenter.fs.continue')}
-                        </Button>
+                        {canContinueWhenFailure && (
+                            <Button
+                                href={warningPath}
+                                style={{ marginTop: '10px', marginLeft: '10px' }}
+                            >
+                                {I18n.getText('atlassian.migration.datacenter.fs.continue')}
+                            </Button>
+                        )}
                     </div>
                 ) : (
                     // If operation has not failed, render timing information - start time and duration
