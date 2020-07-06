@@ -155,6 +155,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                         </Button>
                         {canContinueWhenFailure && (
                             <Button
+                                appearance="subtle-link"
                                 href={warningPath}
                                 style={{ marginTop: '10px', marginLeft: '10px' }}
                             >
