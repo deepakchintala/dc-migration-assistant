@@ -57,7 +57,7 @@ const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => 
     builder.setRetryProps({
         retryText: I18n.getText('atlassian.migration.datacenter.sync.db.retry'),
         onRetry: finalSync.retryDbMigration,
-        canContinueWhenFailure: false,
+        canContinueOnFailure: false,
     });
 
     if (status.status === DBMigrationStatus.DONE) {
@@ -88,7 +88,7 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
     builder.setRetryProps({
         retryText: I18n.getText('atlassian.migration.datacenter.sync.fs.retry'),
         onRetry: finalSync.retryFsSync,
-        canContinueWhenFailure: false,
+        canContinueOnFailure: false,
     });
 
     if (downloaded === uploaded) {

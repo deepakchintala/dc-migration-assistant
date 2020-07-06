@@ -48,7 +48,7 @@ export type RetryProperties = {
      * A boolean to dictate whether or not failures
      * can be ignored and the migration continued
      */
-    canContinueWhenFailure: boolean;
+    canContinueOnFailure: boolean;
 };
 
 /**

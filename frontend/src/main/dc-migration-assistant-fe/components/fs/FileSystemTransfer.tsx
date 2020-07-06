@@ -95,7 +95,7 @@ const getFsMigrationProgress: ProgressCallback = async () => {
         onRetryRoute: fsPath,
         retryText: I18n.getText('atlassian.migration.datacenter.fs.retry'),
         onRetry: () => fs.retryFsMigration(),
-        canContinueWhenFailure: true,
+        canContinueOnFailure: true,
     };
     return fs
         .getFsMigrationStatus()
