@@ -86,14 +86,11 @@ import com.atlassian.migration.datacenter.core.fs.jira.captor.DefaultAttachmentC
 import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
-import com.atlassian.migration.datacenter.permissions.PermissionValidator;
-import com.atlassian.migration.datacenter.permissions.PermissionValidatorImpl;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
 import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
-import com.atlassian.sal.api.user.UserManager;
 import com.atlassian.scheduler.SchedulerService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -441,11 +438,6 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public QuickstartStandaloneMigrationStackInputGatheringStrategy standaloneMigrationStackInputGatheringStrategy(CfnApi cfnApi) {
         return new QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi);
-    }
-
-    @Bean
-    public PermissionValidator permissionValidator(UserManager userManager) {
-        return new PermissionValidatorImpl(userManager);
     }
 
     @Bean
