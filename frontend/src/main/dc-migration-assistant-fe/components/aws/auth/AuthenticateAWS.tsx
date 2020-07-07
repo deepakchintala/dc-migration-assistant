@@ -62,9 +62,12 @@ const AuthenticationContainer = styled.div`
 
 const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props): ReactElement => {
     const { getRegions } = props;
-    const regionListPromiseOptions = (): Promise<Array<OptionType>> => {
+
+    const regionListPromiseOptions = (inputValue: string): Promise<Array<OptionType>> => {
         return getRegions().then(regions => {
-            return regions.map(region => ({ label: region, value: region, key: region }));
+            return regions
+                .filter(region => region.toLowerCase().includes(inputValue.toLowerCase()))
+                .map(region => ({ label: region, value: region, key: region }));
         });
     };
 
@@ -76,8 +79,8 @@ const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props):
             }}
             cacheOptions
             defaultOptions
-            isSearchable
             loadOptions={regionListPromiseOptions}
+            placeholder="Select a region"
         />
     );
 };
@@ -154,7 +157,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                         >
                             {({ fieldProps }: any): ReactElement => (
                                 <TextField
-                                    autocomplete="off"
+                                    autoComplete="off"
                                     type="password"
                                     width="xlarge"
                                     data-test="aws-auth-key"
@@ -172,7 +175,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                         >
                             {({ fieldProps }: any): ReactElement => (
                                 <TextField
-                                    autocomplete="off"
+                                    autoComplete="off"
                                     type="password"
                                     width="xlarge"
                                     data-test="aws-auth-secret"
