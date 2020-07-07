@@ -32,7 +32,7 @@ class ApplicationPropertiesEndpointTest {
     lateinit var configuration: ApplicationConfiguration
 
     @InjectMockKs
-    lateinit var applicationPropertiesEndpoint: ApplicationPropertiesEndpoint
+    lateinit var endpoint: ApplicationPropertiesEndpoint
 
     @BeforeEach
     fun init() = MockKAnnotations.init(this)
@@ -42,7 +42,7 @@ class ApplicationPropertiesEndpointTest {
         val version = "8.8.3"
         every { configuration.applicationVersion } returns version
 
-        val applicationProperties = applicationPropertiesEndpoint.getApplicationProperties()
+        val applicationProperties = endpoint.getApplicationProperties()
 
         val expectedProps =
             ObjectMapper().writeValueAsString(ApplicationPropertiesEndpoint.ApplicationProperties(version))

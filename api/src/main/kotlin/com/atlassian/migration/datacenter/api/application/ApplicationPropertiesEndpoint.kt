@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.api.application
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.slf4j.LoggerFactory
@@ -27,7 +28,10 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/application")
-class ApplicationPropertiesEndpoint(private val configuration: ApplicationConfiguration) {
+@WebSudoRequired
+class ApplicationPropertiesEndpoint(
+    private val configuration: ApplicationConfiguration
+) {
     private val mapper = ObjectMapper().registerKotlinModule()
 
     companion object {

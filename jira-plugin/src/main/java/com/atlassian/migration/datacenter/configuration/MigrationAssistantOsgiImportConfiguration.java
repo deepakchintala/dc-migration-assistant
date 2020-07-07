@@ -25,6 +25,8 @@ import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.sal.api.permission.PermissionEnforcer;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
+import com.atlassian.sal.api.user.UserManager;
+import com.atlassian.sal.api.websudo.WebSudoManager;
 import com.atlassian.scheduler.SchedulerService;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import org.springframework.context.annotation.Bean;
@@ -85,6 +87,16 @@ public class MigrationAssistantOsgiImportConfiguration {
     @Bean
     public BuildUtilsInfo buildUtilsInfo() {
         return importOsgiService(BuildUtilsInfo.class);
+    }
+
+    @Bean
+    public UserManager userManager() {
+        return importOsgiService(UserManager.class);
+    }
+
+    @Bean
+    public WebSudoManager webSudoManager() {
+        return importOsgiService(WebSudoManager.class);
     }
 
     @Bean

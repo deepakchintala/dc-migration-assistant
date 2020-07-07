@@ -22,6 +22,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
@@ -29,11 +30,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.stream.Collectors
-import javax.ws.rs.*
+import javax.ws.rs.Consumes
+import javax.ws.rs.DELETE
+import javax.ws.rs.GET
+import javax.ws.rs.PUT
+import javax.ws.rs.Path
+import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/migration/fs")
+@WebSudoRequired
 class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigrationService,
                                   private val attachmentSyncManager: AttachmentSyncManager,
                                   private val reportManager: FileSystemMigrationReportManager,
