@@ -141,17 +141,17 @@ export const ReadyStatus: FunctionComponent<ReadyProps> = ({ ready }) => {
                     {readyString(ready?.pgDumpAvailable)}
                 </li>
                 <li>
-                    <strong>pg_dump</strong> utility is compatible with the server version &nbsp;{' '}
+                    <strong>pg_dump</strong> utility is compatible with the server version &nbsp;
                     &nbsp; {readyString(ready?.pgDumpCompatible)}
                 </li>
                 <li>
-                    is using a <strong>Data Center license</strong> &nbsp;{' '}
+                    is using a &nbsp;
                     <a
                         target="_blank"
                         rel="noreferrer noopener"
                         href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-dclicense"
                     >
-                        {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                        Data Center license
                     </a>
                 </li>
             </ul>
