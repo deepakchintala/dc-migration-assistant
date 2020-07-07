@@ -145,7 +145,7 @@ export const ReadyStatus: FunctionComponent<ReadyProps> = ({ ready }) => {
                     &nbsp; {readyString(ready?.pgDumpCompatible)}
                 </li>
                 <li>
-                    is using a &nbsp;
+                    is using a&nbsp;
                     <a
                         target="_blank"
                         rel="noreferrer noopener"
