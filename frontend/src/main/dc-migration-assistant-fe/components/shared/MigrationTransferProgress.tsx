@@ -40,7 +40,7 @@ const SectionMessageParagraph = styled.p`
 `;
 
 const OperationTitle = styled.h4`
-    margin-bottom: 5px;
+    margin-bottom: 12px;
 `;
 
 const OperationTimingParagraph = styled.p`
