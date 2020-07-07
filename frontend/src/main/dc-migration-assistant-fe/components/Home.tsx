@@ -145,8 +145,14 @@ export const ReadyStatus: FunctionComponent<ReadyProps> = ({ ready }) => {
                     &nbsp; {readyString(ready?.pgDumpCompatible)}
                 </li>
                 <li>
-                    has a home directory <strong>under 400GB</strong> &nbsp;{' '}
-                    <Lozenge appearance="moved">User should check</Lozenge>
+                    is using a <strong>Data Center license</strong> &nbsp;{' '}
+                    <a
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-dclicense"
+                    >
+                        {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                    </a>
                 </li>
             </ul>
         </SectionMessage>
