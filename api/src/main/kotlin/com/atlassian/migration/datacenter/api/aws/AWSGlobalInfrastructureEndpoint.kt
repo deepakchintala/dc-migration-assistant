@@ -17,6 +17,7 @@ package com.atlassian.migration.datacenter.api.aws
 
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import javax.ws.rs.Consumes
 import javax.ws.rs.GET
 import javax.ws.rs.Path
@@ -25,6 +26,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/aws/global-infrastructure")
+@WebSudoRequired
 class AWSGlobalInfrastructureEndpoint(private val globalInfrastructure: GlobalInfrastructure,
                                       private val atlassianInfrastructureService: AtlassianInfrastructureService) {
     /**

@@ -23,6 +23,7 @@ import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
@@ -42,6 +43,7 @@ import javax.ws.rs.core.Response
 typealias MigrationOperation = () -> Boolean
 
 @Path("/migration/final-sync")
+@WebSudoRequired
 class FinalSyncEndpoint(
         private val databaseMigrationService: DatabaseMigrationService,
         private val migrationService: MigrationService,

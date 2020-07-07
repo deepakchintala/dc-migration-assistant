@@ -20,14 +20,23 @@ import com.atlassian.migration.datacenter.core.aws.region.RegionService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
-import com.atlassian.migration.datacenter.spi.infrastructure.*
+import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService
+import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
 import java.net.URLEncoder
-import javax.ws.rs.*
+import javax.ws.rs.Consumes
+import javax.ws.rs.GET
+import javax.ws.rs.POST
+import javax.ws.rs.Path
+import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -35,6 +44,7 @@ import javax.ws.rs.core.Response
  * REST API Endpoint for managing AWS provisioning.
  */
 @Path("/aws/stack")
+@WebSudoRequired
 class CloudFormationEndpoint(
         private val applicationDeploymentService: ApplicationDeploymentService,
         private val migrationService: MigrationService,

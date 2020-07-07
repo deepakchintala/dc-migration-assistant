@@ -16,8 +16,8 @@
 
 package com.atlassian.migration.datacenter;
 
-import com.atlassian.sal.api.auth.LoginUriProvider;
-import com.atlassian.sal.api.permission.PermissionEnforcer;
+import com.atlassian.sal.api.websudo.WebSudoManager;
+import com.atlassian.sal.api.websudo.WebSudoSessionException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,18 +29,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URI;
 
 import static javax.ws.rs.core.MediaType.TEXT_HTML;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class TemplateServletTest {
-
-    private static final String DUMMY_LOGIN_URL_STRING = "dummy-app.com/login";
-    private static final URI DUMMY_LOGIN_URI = URI.create(DUMMY_LOGIN_URL_STRING);
 
     private TemplateServlet sut;
 
@@ -48,10 +46,7 @@ public class TemplateServletTest {
     private SoyTemplateRenderer mockRenderer;
 
     @Mock
-    private PermissionEnforcer mockPermissionEnforcer;
-
-    @Mock
-    private LoginUriProvider mockLoginUriProvider;
+    private WebSudoManager mockWebSudoManager;
 
     @Spy
     private HttpServletResponse mockResp;
@@ -61,48 +56,32 @@ public class TemplateServletTest {
 
     @BeforeEach
     public void init() {
-        sut = new TemplateServlet(mockRenderer, mockPermissionEnforcer, mockLoginUriProvider);
+        sut = new TemplateServlet(mockRenderer, mockWebSudoManager);
     }
 
     @Test
     public void itShouldReturnHtmlPageWhenSuccessful() {
-        when(mockPermissionEnforcer.isSystemAdmin()).thenReturn(true);
+
         try {
             sut.doGet(mockReq, mockResp);
             verify(mockResp).setContentType(TEXT_HTML);
+            verify(mockWebSudoManager, never()).enforceWebSudoProtection(mockReq, mockResp);
         } catch (IOException ioe) {
             fail();
         }
     }
 
     @Test
-    public void itShouldReturnForbiddenWhenNotSysAdmin() {
-        when(mockPermissionEnforcer.isSystemAdmin()).thenReturn(false);
-        when(mockPermissionEnforcer.isAuthenticated()).thenReturn(true);
+    public void itShouldEnforceWebSudoWhenNotAdmin() {
+        doThrow(WebSudoSessionException.class).when(mockWebSudoManager).willExecuteWebSudoRequest(any());
 
         try {
+            final TemplateServlet sut = this.sut;
             sut.doGet(mockReq, mockResp);
-            verify(mockResp).sendError(HttpServletResponse.SC_FORBIDDEN);
+
+            verify(mockWebSudoManager).enforceWebSudoProtection(mockReq, mockResp);
         } catch (IOException ioe) {
             fail();
         }
     }
-
-    @Test
-    public void itShouldRedirectWhenUnauthenticated() {
-        when(mockPermissionEnforcer.isSystemAdmin()).thenReturn(false);
-        when(mockPermissionEnforcer.isAuthenticated()).thenReturn(false);
-
-        when(mockLoginUriProvider.getLoginUri(DUMMY_LOGIN_URI)).thenReturn(DUMMY_LOGIN_URI);
-
-        when(mockReq.getRequestURL()).thenReturn(new StringBuffer(DUMMY_LOGIN_URL_STRING));
-
-        try {
-            sut.doGet(mockReq, mockResp);
-            verify(mockResp).sendRedirect(DUMMY_LOGIN_URL_STRING);
-        } catch (IOException ioe) {
-            fail();
-        }
-    }
-
 }

@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.api.aws
 import com.atlassian.migration.datacenter.core.aws.cloud.AWSConfigurationService
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidCredentialsException
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import javax.ws.rs.Consumes
 import javax.ws.rs.POST
@@ -27,6 +28,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("aws/configure")
+@WebSudoRequired
 class AWSConfigureEndpoint(private val awsConfigurationService: AWSConfigurationService) {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -35,22 +37,22 @@ class AWSConfigureEndpoint(private val awsConfigurationService: AWSConfiguration
         return try {
             configure?.let {
                 awsConfigurationService.configureCloudProvider(
-                        configure.accessKeyId,
-                        configure.secretAccessKey,
-                        configure.region
+                    configure.accessKeyId,
+                    configure.secretAccessKey,
+                    configure.region
                 )
             }
             Response.noContent().build()
         } catch (e: InvalidMigrationStageError) {
             Response
-                    .status(Response.Status.CONFLICT)
-                    .entity(mapOf("message" to e.message))
-                    .build()
+                .status(Response.Status.CONFLICT)
+                .entity(mapOf("message" to e.message))
+                .build()
         } catch (e: InvalidCredentialsException) {
             Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity(mapOf("message" to e.message))
-                    .build()
+                .status(Response.Status.BAD_REQUEST)
+                .entity(mapOf("message" to e.message))
+                .build()
         }
     }
 

@@ -21,16 +21,30 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
-import io.mockk.*
+import com.atlassian.plugins.rest.common.sal.websudo.WebSudoRequiredException
+import com.atlassian.plugins.rest.common.sal.websudo.WebSudoResourceContext
+import com.atlassian.plugins.rest.common.sal.websudo.WebSudoResourceFilterFactory
+import com.sun.jersey.api.model.AbstractResource
+import com.sun.jersey.api.model.AbstractResourceMethod
+import com.sun.jersey.api.model.PathValue
+import com.sun.jersey.spi.container.ContainerRequest
+import io.mockk.MockKAnnotations
+import io.mockk.Runs
+import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.verify
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import javax.ws.rs.core.Response
 
@@ -181,5 +195,26 @@ class MigrationEndpointTest {
 
         assertThat(response.status, equalTo(Response.Status.BAD_REQUEST.statusCode))
         assertThat((response.entity as Map<String, String>)["message"], equalTo(message))
+    }
+
+    @Test
+    fun shouldRequireWebSudo() {
+        val context = mockk<WebSudoResourceContext>()
+        every { context.shouldEnforceWebSudoProtection() } returns true
+
+        val clazz = MigrationEndpoint::class.java
+        val abstractResource = AbstractResource(clazz, PathValue("/migration"))
+        val method = AbstractResourceMethod(
+            abstractResource,
+            clazz.getMethod("getMigrationSummary"),
+            clazz,
+            clazz,
+            "GET",
+            arrayOf()
+        )
+        val filter = WebSudoResourceFilterFactory(context).create(method)
+        val request = mockk<ContainerRequest>()
+
+        assertThrows<WebSudoRequiredException> { filter[0].requestFilter.filter(request) }
     }
 }
