@@ -56,7 +56,12 @@ export const callAppRest = (
     const basePath = `${contextPathWrapper()}/rest/dc-migration/1.0/${path}`;
     const callPath = queryParams ? `${basePath}?${queryParams}` : basePath;
 
-    return fetch(callPath, options);
+    return fetch(callPath, options).then(response => {
+        if (response.status === 401) {
+            window.location.reload();
+        }
+        return response;
+    });
 };
 
 export enum RestApiPathConstants {

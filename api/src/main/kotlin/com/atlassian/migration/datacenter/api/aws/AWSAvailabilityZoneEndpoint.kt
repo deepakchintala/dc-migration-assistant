@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.api.aws
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneService
 import com.atlassian.migration.datacenter.core.aws.region.InvalidAWSRegionException
 import com.atlassian.migration.datacenter.core.aws.region.RegionService
+import com.atlassian.sal.api.websudo.WebSudoRequired
 import software.amazon.awssdk.regions.Region
 import javax.ws.rs.GET
 import javax.ws.rs.Path
@@ -27,6 +28,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("aws/availabilityZones")
+@WebSudoRequired
 class AWSAvailabilityZoneEndpoint(
     private val availabilityZoneService: AvailabilityZoneService,
     private val regionService: RegionService
