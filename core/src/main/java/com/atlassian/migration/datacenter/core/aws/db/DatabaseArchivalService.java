@@ -40,7 +40,7 @@ public class DatabaseArchivalService {
 
     public Path archiveDatabase(Path tempDirectory) throws InvalidMigrationStageError {
         Path target = tempDirectory.resolve("db.dump");
-        logger.info("Dumping database to "+target);
+        logger.info("Dumping database to {}", target);
 
         this.migrationStageCallback.assertInStartingStage();
 
