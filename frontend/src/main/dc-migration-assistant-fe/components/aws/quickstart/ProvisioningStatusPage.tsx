@@ -29,7 +29,15 @@ const buildErrorFromMessageAndUrl = (message: string, stackurl: string): ReactNo
             <p>{I18n.getText('atlassian.migration.datacenter.provision.aws.error.header')}</p>
             <p>{message}</p>
             <p>
-                {I18n.getText('atlassian.migration.datacenter.provision.aws.error.callToConsole')}
+                {I18n.getText('atlassian.migration.datacenter.provision.aws.error.check.allstacks')}
+                &nbsp;
+                <a href={'wwww.google.com'} target="_blank" rel="noreferrer noopener">
+                    {I18n.getText(
+                        'atlassian.migration.datacenter.provision.aws.error.stack.url'
+                    )}
+                </a>
+                &nbsp;
+                {I18n.getText('atlassian.migration.datacenter.provision.aws.error.call.to.action')}
                 &nbsp;
                 <a
                     href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html"
