@@ -47,6 +47,7 @@ const buildErrorFromMessageAndUrl = (message: string, stackurl: string): ReactNo
                     )}
                 </a>
             </p>
+            <p />
         </>
     );
 };
