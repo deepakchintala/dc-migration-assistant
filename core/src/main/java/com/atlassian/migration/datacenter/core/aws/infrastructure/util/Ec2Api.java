@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class AwsResourceManager {
+public class Ec2Api {
 
     public static Ec2Client getEc2Client(Supplier<Ec2Client> ec2ClientSupplier) {
         return Optional.of(ec2ClientSupplier)
@@ -29,8 +29,8 @@ public class AwsResourceManager {
                 .orElse(null);
     }
 
-    public static Optional<String> getInstanceId(DescribeInstancesResponse ec2Instance) {
-        return ec2Instance.reservations()
+    public static Optional<String> getInstanceId(String stackName, Ec2Client ec2Client) {
+        return describeInstances(stackName, ec2Client).reservations()
                 .stream()
                 .map(Reservation::instances)
                 .flatMap(Collection::stream)
@@ -38,7 +38,7 @@ public class AwsResourceManager {
                 .findFirst();
     }
 
-    public static DescribeInstancesResponse describeInstances(String stackName, Ec2Client ec2Client) throws AwsServiceException, SdkClientException {
+    private static DescribeInstancesResponse describeInstances(String stackName, Ec2Client ec2Client) throws AwsServiceException, SdkClientException {
         return ec2Client.describeInstances(builder -> {
             builder.filters(Filter.builder()
                     .name("tag-key")

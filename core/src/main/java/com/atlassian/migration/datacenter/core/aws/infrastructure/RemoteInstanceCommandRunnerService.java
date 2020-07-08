@@ -1,6 +1,6 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure;
-import com.atlassian.migration.datacenter.core.aws.db.restore.JiraState;
-import com.atlassian.migration.datacenter.core.aws.infrastructure.util.AwsResourceManager;
+import com.atlassian.migration.datacenter.core.aws.db.restore.RemoteServiceState;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.util.Ec2Api;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -31,32 +31,31 @@ public class RemoteInstanceCommandRunnerService {
         this.ec2ClientSupplier = ec2ClientSupplier; 
     }
     
-    public void setJiraRunStateTo(JiraState jiraState) {
-        String logMessageState = jiraState.equals(JiraState.START) ? "start" : "stop";
-        String stackName = AwsResourceManager.getStackName(migrationService);
-        Ec2Client ec2Client = AwsResourceManager.getEc2Client(ec2ClientSupplier);
+    public void setJiraRunStateTo(RemoteServiceState remoteServiceState) {
+        String logMessageState = remoteServiceState.equals(RemoteServiceState.START) ? "start" : "stop";
+        String stackName = Ec2Api.getStackName(migrationService);
+        Ec2Client ec2Client = Ec2Api.getEc2Client(ec2ClientSupplier);
         if(stackName != null && ec2Client != null) {
             try {
-                DescribeInstancesResponse ec2InstanceMetaData = AwsResourceManager.describeInstances(stackName, ec2Client);
-                Optional<String> instanceId = AwsResourceManager.getInstanceId(ec2InstanceMetaData);
+                Optional<String> instanceId = Ec2Api.getInstanceId(stackName, ec2Client);
                 if (instanceId.isPresent()) {
                     try {
-                        logger.info(String.format("[%s] Jira instance [%s] on stack [%s] now...", logMessageState, instanceId.get(), stackName));
+                        logger.info("{} Jira instance {} on stack {} now...", logMessageState, instanceId.get(), stackName);
                         ssm.runSSMDocument(AWS_RUN_SHELL_SCRIPT, instanceId.get(),
-                                ImmutableMap.of("commands", Collections.singletonList(jiraState.equals(JiraState.START) 
+                                ImmutableMap.of("commands", Collections.singletonList(remoteServiceState.equals(RemoteServiceState.START) 
                                         ? SYSTEMCTL_START_JIRA 
                                         : SYSTEMCTL_STOP_JIRA)));
                     } catch (S3SyncFileSystemDownloader.CannotLaunchCommandException e) {
-                        logger.error(String.format("Failed to [%s] Jira instance [%s] on stack [%s]", logMessageState, instanceId.get(), stackName), e);
+                        logger.error("Failed to {} Jira instance {} on stack {}", logMessageState, instanceId.get(), stackName, e);
                     }
                 } else {    
-                    logger.error(String.format("No Jira instance found to [%s] on stack [%s]", logMessageState, stackName));
+                    logger.error("No Jira instance found to {} on stack {}", logMessageState, stackName);
                 }
             } catch(AwsServiceException | SdkClientException e) {
-                logger.error(String.format("Jira [%s] not possible for stack [%s]. Problem encountered when trying to obtain EC2 meta data:", logMessageState, stackName), e);
+                logger.error("Jira {} not possible for stack {}. Problem encountered when trying to obtain EC2 meta data:", logMessageState, stackName, e);
             }
         } else {
-            logger.error(String.format("Jira [%s] not possible. No value for stack name and or no EC2 client present", logMessageState));
+            logger.error("Jira {} not possible. No value for stack name and or no EC2 client present", logMessageState);
         }
     }
 }

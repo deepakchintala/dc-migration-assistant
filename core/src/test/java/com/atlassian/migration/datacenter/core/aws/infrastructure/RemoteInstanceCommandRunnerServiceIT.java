@@ -1,7 +1,7 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
-import com.atlassian.migration.datacenter.core.aws.db.restore.JiraState;
-import com.atlassian.migration.datacenter.core.aws.infrastructure.util.AwsResourceManager;
+import com.atlassian.migration.datacenter.core.aws.db.restore.RemoteServiceState;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.util.Ec2Api;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
@@ -86,8 +86,7 @@ class RemoteInstanceCommandRunnerServiceIT {
         });
         createEC2Instance(ec2Client);
 
-        DescribeInstancesResponse ec2InstanceMetaData = AwsResourceManager.describeInstances(JIRA_STACK_NAME, ec2Client);
-        instanceId = AwsResourceManager.getInstanceId(ec2InstanceMetaData).get();
+        instanceId = Ec2Api.getInstanceId(JIRA_STACK_NAME, ec2Client).get();
     }
 
     @Test
@@ -95,7 +94,7 @@ class RemoteInstanceCommandRunnerServiceIT {
         remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
         when(migrationService.getCurrentContext()).thenReturn(migrationContext);
         when(migrationContext.getApplicationDeploymentId()).thenReturn(JIRA_STACK_NAME);
-        remoteInstanceCommandRunnerService.setJiraRunStateTo(JiraState.START);
+        remoteInstanceCommandRunnerService.setJiraRunStateTo(RemoteServiceState.START);
         verify(ssmApi, times(1)).runSSMDocument(AWS_RUN_SHELL_SCRIPT, instanceId, ImmutableMap.of("commands", Collections.singletonList(SYSTEMCTL_START_JIRA)));
     }
     
@@ -104,7 +103,7 @@ class RemoteInstanceCommandRunnerServiceIT {
         remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
         when(migrationService.getCurrentContext()).thenReturn(migrationContext);
         when(migrationContext.getApplicationDeploymentId()).thenReturn(JIRA_STACK_NAME);
-        remoteInstanceCommandRunnerService.setJiraRunStateTo(JiraState.STOP);
+        remoteInstanceCommandRunnerService.setJiraRunStateTo(RemoteServiceState.STOP);
         verify(ssmApi, times(1)).runSSMDocument(AWS_RUN_SHELL_SCRIPT, instanceId, ImmutableMap.of("commands", Collections.singletonList(SYSTEMCTL_STOP_JIRA)));
     }
     
@@ -113,7 +112,7 @@ class RemoteInstanceCommandRunnerServiceIT {
         remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
         when(migrationService.getCurrentContext()).thenReturn(migrationContext);
         when(migrationContext.getApplicationDeploymentId()).thenReturn("NOT_JIRA_STACK");
-        remoteInstanceCommandRunnerService.setJiraRunStateTo(JiraState.STOP);
+        remoteInstanceCommandRunnerService.setJiraRunStateTo(RemoteServiceState.STOP);
         verify(ssmApi, times(0)).runSSMDocument(anyString(), anyString(), any());
     }
 
@@ -122,7 +121,7 @@ class RemoteInstanceCommandRunnerServiceIT {
         remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> null);
         when(migrationService.getCurrentContext()).thenReturn(migrationContext);
         when(migrationContext.getApplicationDeploymentId()).thenReturn(JIRA_STACK_NAME);
-        remoteInstanceCommandRunnerService.setJiraRunStateTo(JiraState.STOP);
+        remoteInstanceCommandRunnerService.setJiraRunStateTo(RemoteServiceState.STOP);
         verify(ssmApi, times(0)).runSSMDocument(anyString(), anyString(), any());
     }
 
@@ -130,7 +129,7 @@ class RemoteInstanceCommandRunnerServiceIT {
     public void shouldNotPerformStopIfMigrationContextIsNull() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
         when(migrationService.getCurrentContext()).thenReturn(null);
-        remoteInstanceCommandRunnerService.setJiraRunStateTo(JiraState.STOP);
+        remoteInstanceCommandRunnerService.setJiraRunStateTo(RemoteServiceState.STOP);
         verify(ssmApi, times(0)).runSSMDocument(anyString(), anyString(), any());
     }
 
@@ -139,7 +138,7 @@ class RemoteInstanceCommandRunnerServiceIT {
         remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
         when(migrationService.getCurrentContext()).thenReturn(migrationContext);
         when(migrationContext.getApplicationDeploymentId()).thenReturn(null);
-        remoteInstanceCommandRunnerService.setJiraRunStateTo(JiraState.STOP);
+        remoteInstanceCommandRunnerService.setJiraRunStateTo(RemoteServiceState.STOP);
         verify(ssmApi, times(0)).runSSMDocument(anyString(), anyString(), any());
     }
 
