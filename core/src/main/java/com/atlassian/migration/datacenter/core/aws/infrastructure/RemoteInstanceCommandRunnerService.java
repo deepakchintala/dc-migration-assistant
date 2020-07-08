@@ -42,7 +42,7 @@ public class RemoteInstanceCommandRunnerService {
                 Optional<String> instanceId = getInstanceId(ec2InstanceMetaData);
                 if (instanceId.isPresent()) {
                     try {
-                        logger.info(String.format("[%s]'ing Jira instance [%s] on stack [%s] now...", logMessageState, instanceId.get(), stackName));
+                        logger.info(String.format("[%s] Jira instance [%s] on stack [%s] now...", logMessageState, instanceId.get(), stackName));
                         ssm.runSSMDocument(AWS_RUN_SHELL_SCRIPT, instanceId.get(),
                                 ImmutableMap.of("commands", Collections.singletonList(jiraState.equals(JiraState.START) 
                                         ? SYSTEMCTL_START_JIRA 
