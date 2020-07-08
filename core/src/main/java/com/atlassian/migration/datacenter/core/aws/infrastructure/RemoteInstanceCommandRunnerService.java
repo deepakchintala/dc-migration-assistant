@@ -33,8 +33,12 @@ public class RemoteInstanceCommandRunnerService {
         this.ec2ClientSupplier = ec2ClientSupplier; 
     }
     
-    public void changeJiraRunState(JiraState jiraState) {
-        String logMessageState = jiraState.equals(JiraState.START) ? "start" : "stop";
+    public void setJiraRunStateTo(JiraState jiraState) {
+        
+        String logMessageState = jiraState.equals(JiraState.START) 
+                ? "start" 
+                : "stop";
+        
         String stackName = getStackName();
         Ec2Client ec2Client = getEc2Client();
         if(stackName != null && ec2Client != null) {
