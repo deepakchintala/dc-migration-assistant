@@ -1,8 +1,8 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure;
 import com.atlassian.migration.datacenter.core.aws.db.restore.JiraState;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.util.AwsResourceManager;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
-import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
@@ -12,7 +12,6 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -34,12 +33,12 @@ public class RemoteInstanceCommandRunnerService {
     
     public void setJiraRunStateTo(JiraState jiraState) {
         String logMessageState = jiraState.equals(JiraState.START) ? "start" : "stop";
-        String stackName = getStackName();
-        Ec2Client ec2Client = getEc2Client();
+        String stackName = AwsResourceManager.getStackName(migrationService);
+        Ec2Client ec2Client = AwsResourceManager.getEc2Client(ec2ClientSupplier);
         if(stackName != null && ec2Client != null) {
             try {
-                DescribeInstancesResponse ec2InstanceMetaData = describeInstances(stackName, ec2Client);
-                Optional<String> instanceId = getInstanceId(ec2InstanceMetaData);
+                DescribeInstancesResponse ec2InstanceMetaData = AwsResourceManager.describeInstances(stackName, ec2Client);
+                Optional<String> instanceId = AwsResourceManager.getInstanceId(ec2InstanceMetaData);
                 if (instanceId.isPresent()) {
                     try {
                         logger.info(String.format("[%s] Jira instance [%s] on stack [%s] now...", logMessageState, instanceId.get(), stackName));
@@ -50,7 +49,7 @@ public class RemoteInstanceCommandRunnerService {
                     } catch (S3SyncFileSystemDownloader.CannotLaunchCommandException e) {
                         logger.error(String.format("Failed to [%s] Jira instance [%s] on stack [%s]", logMessageState, instanceId.get(), stackName), e);
                     }
-                } else {
+                } else {    
                     logger.error(String.format("No Jira instance found to [%s] on stack [%s]", logMessageState, stackName));
                 }
             } catch(AwsServiceException | SdkClientException e) {
@@ -59,39 +58,5 @@ public class RemoteInstanceCommandRunnerService {
         } else {
             logger.error(String.format("Jira [%s] not possible. No value for stack name and or no EC2 client present", logMessageState));
         }
-    }
-    
-    private Ec2Client getEc2Client() {
-        return Optional.of(ec2ClientSupplier)
-                .map(Supplier<Ec2Client>::get)
-                .orElse(null);
-    }
-
-    private String getStackName() {
-        return Optional.of(migrationService)
-                .map(MigrationService::getCurrentContext)
-                .map(MigrationContext::getApplicationDeploymentId)
-                .orElse(null);
-    }
-
-    private Optional<String> getInstanceId(DescribeInstancesResponse ec2Instance) {
-        return ec2Instance.reservations()
-                    .stream()
-                    .map(Reservation::instances)
-                    .flatMap(Collection::stream)
-                    .map(Instance::instanceId)
-                    .findFirst();
-    }
-
-    private DescribeInstancesResponse describeInstances(String stackName, Ec2Client ec2Client) throws AwsServiceException, SdkClientException {
-        return ec2Client.describeInstances(builder -> {
-            builder.filters(Filter.builder()
-                    .name("tag-key")
-                    .values("tag:aws:cloudformation:stack-name")
-                    .name("tag-value")
-                    .values(stackName)
-                    .build()
-            );
-        });
     }
 }
