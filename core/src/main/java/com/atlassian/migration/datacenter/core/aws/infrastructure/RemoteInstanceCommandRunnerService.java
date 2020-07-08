@@ -53,8 +53,8 @@ public class RemoteInstanceCommandRunnerService {
                 } else {
                     logger.error(String.format("No Jira instance found to [%s] on stack [%s]", logMessageState, stackName));
                 }
-            } catch(AwsServiceException | SdkClientException ex) {
-                logger.error(String.format("Jira [%s] not possible for stack [%s]. Problem encountered when trying to obtain EC2 meta data:", logMessageState, stackName), ex);
+            } catch(AwsServiceException | SdkClientException e) {
+                logger.error(String.format("Jira [%s] not possible for stack [%s]. Problem encountered when trying to obtain EC2 meta data:", logMessageState, stackName), e);
             }
         } else {
             logger.error(String.format("Jira [%s] not possible. No value for stack name and or no EC2 client present", logMessageState));
