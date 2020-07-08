@@ -89,6 +89,15 @@ class RemoteInstanceCommandRunnerServiceIT {
         DescribeInstancesResponse ec2InstanceMetaData = AwsResourceManager.describeInstances(JIRA_STACK_NAME, ec2Client);
         instanceId = AwsResourceManager.getInstanceId(ec2InstanceMetaData).get();
     }
+
+    @Test
+    public void shouldCallStartOnStackInstance() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
+        remoteInstanceCommandRunnerService = new RemoteInstanceCommandRunnerService(ssmApi, migrationService, () -> ec2Client);
+        when(migrationService.getCurrentContext()).thenReturn(migrationContext);
+        when(migrationContext.getApplicationDeploymentId()).thenReturn(JIRA_STACK_NAME);
+        remoteInstanceCommandRunnerService.setJiraRunStateTo(JiraState.START);
+        verify(ssmApi, times(1)).runSSMDocument(AWS_RUN_SHELL_SCRIPT, instanceId, ImmutableMap.of("commands", Collections.singletonList(SYSTEMCTL_START_JIRA)));
+    }
     
     @Test
     public void shouldCallStopOnStackInstance() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
