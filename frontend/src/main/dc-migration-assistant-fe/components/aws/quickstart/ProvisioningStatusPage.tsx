@@ -63,47 +63,41 @@ const getDeploymentProgress: ProgressCallback = async () => {
                 onRetryRoute: asiConfigurationPath,
                 canContinueOnFailure: false,
             });
-            // switch (result.status) {
-            //     case ProvisioningStatus.Complete:
-            //         builder.setPhase('Deployment Complete');
-            //         builder.setCompleteness(1);
-            //         builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
-            //         break;
-            //     case ProvisioningStatus.ProvisioningApplicationStack:
-            //         builder.setPhase('Deploying Jira infrastructure');
-            //         builder.setCompleteness(0.25);
-            //         builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
-            //         break;
-            //     case ProvisioningStatus.PreProvisionMigrationStack:
-            //         builder.setPhase('Preparing migration infrastructure deployment');
-            //         builder.setCompleteness(0.5);
-            //         builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
-            //         break;
-            //     case ProvisioningStatus.ProvisioningMigrationStack:
-            //         builder.setPhase('Deploying migration infrastructure');
-            //         builder.setCompleteness(0.75);
-            //         builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
-            //         break;
-            //     case ProvisioningStatus.Failed:
-            //         builder.setPhase(
-            //             I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
-            //         );
-            //         builder.setCompleteness(0);
-            //         builder.setFailed(true);
-            //         builder.setError(buildErrorFromMessageAndUrl(result.error, result.stackUrl));
-            //         break;
-            //     default:
-            //         builder.setPhase(
-            //             I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
-            //         );
-            //         builder.setError(`Unexpected deployment status ${result}`);
-            // }
-            builder.setPhase(
-                I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
-            );
-            builder.setCompleteness(0);
-            builder.setFailed(true);
-            builder.setError(buildErrorFromMessageAndUrl(result.error, result.stackUrl));
+            switch (result.status) {
+                case ProvisioningStatus.Complete:
+                    builder.setPhase('Deployment Complete');
+                    builder.setCompleteness(1);
+                    builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
+                    break;
+                case ProvisioningStatus.ProvisioningApplicationStack:
+                    builder.setPhase('Deploying Jira infrastructure');
+                    builder.setCompleteness(0.25);
+                    builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
+                    break;
+                case ProvisioningStatus.PreProvisionMigrationStack:
+                    builder.setPhase('Preparing migration infrastructure deployment');
+                    builder.setCompleteness(0.5);
+                    builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
+                    break;
+                case ProvisioningStatus.ProvisioningMigrationStack:
+                    builder.setPhase('Deploying migration infrastructure');
+                    builder.setCompleteness(0.75);
+                    builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
+                    break;
+                case ProvisioningStatus.Failed:
+                    builder.setPhase(
+                        I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
+                    );
+                    builder.setCompleteness(0);
+                    builder.setFailed(true);
+                    builder.setError(buildErrorFromMessageAndUrl(result.error, result.stackUrl));
+                    break;
+                default:
+                    builder.setPhase(
+                        I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
+                    );
+                    builder.setError(`Unexpected deployment status ${result}`);
+            }
             return builder.build();
         })
         .catch(err => {
