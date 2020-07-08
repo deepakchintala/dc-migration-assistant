@@ -31,10 +31,8 @@ const buildErrorFromMessageAndUrl = (message: string, stackurl: string): ReactNo
             <p>
                 {I18n.getText('atlassian.migration.datacenter.provision.aws.error.check.allstacks')}
                 &nbsp;
-                <a href={'wwww.google.com'} target="_blank" rel="noreferrer noopener">
-                    {I18n.getText(
-                        'atlassian.migration.datacenter.provision.aws.error.stack.url'
-                    )}
+                <a href={stackurl} target="_blank" rel="noreferrer noopener">
+                    {I18n.getText('atlassian.migration.datacenter.provision.aws.error.stack.url')}
                 </a>
                 &nbsp;
                 {I18n.getText('atlassian.migration.datacenter.provision.aws.error.call.to.action')}
