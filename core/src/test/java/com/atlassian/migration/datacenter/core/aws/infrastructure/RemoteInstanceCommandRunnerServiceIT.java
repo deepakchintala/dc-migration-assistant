@@ -86,7 +86,7 @@ class RemoteInstanceCommandRunnerServiceIT {
         });
         createEC2Instance(ec2Client);
 
-        instanceId = Ec2Api.getInstanceId(JIRA_STACK_NAME, ec2Client).get();
+         instanceId = Ec2Api.getInstanceId(JIRA_STACK_NAME, ec2Client).get();
     }
 
     @Test

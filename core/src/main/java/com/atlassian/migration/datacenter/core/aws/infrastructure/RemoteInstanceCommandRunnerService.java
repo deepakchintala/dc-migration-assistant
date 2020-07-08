@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.*;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -19,8 +18,8 @@ import java.util.function.Supplier;
 public class RemoteInstanceCommandRunnerService {
     private static final Logger logger = LoggerFactory.getLogger(RemoteInstanceCommandRunnerService.class);
     private static final String AWS_RUN_SHELL_SCRIPT = "AWS-RunShellScript";
-    public static final String SYSTEMCTL_START_JIRA = "sudo systemctl start jira";
-    public static final String SYSTEMCTL_STOP_JIRA = "sudo systemctl stop jira";
+    private static final String SYSTEMCTL_START_JIRA = "sudo systemctl start jira";
+    private static final String SYSTEMCTL_STOP_JIRA = "sudo systemctl stop jira";
     private final SSMApi ssm;
     private final MigrationService migrationService;
     private final Supplier<Ec2Client> ec2ClientSupplier;
