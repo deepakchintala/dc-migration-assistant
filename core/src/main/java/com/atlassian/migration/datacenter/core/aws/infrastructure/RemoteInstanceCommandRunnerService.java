@@ -1,4 +1,5 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure;
+import com.atlassian.migration.datacenter.core.aws.db.restore.JiraState;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
@@ -15,21 +16,25 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Supplier;
+import 
 
 public class RemoteInstanceCommandRunnerService {
     private static final Logger logger = LoggerFactory.getLogger(RemoteInstanceCommandRunnerService.class);
     private static final String AWS_RUN_SHELL_SCRIPT = "AWS-RunShellScript";
+    public static final String SYSTEMCTL_START_JIRA = "sudo systemctl start jira";
+    public static final String SYSTEMCTL_STOP_JIRA = "sudo systemctl stop jira";
     private final SSMApi ssm;
     private final MigrationService migrationService;
     private final Supplier<Ec2Client> ec2ClientSupplier;
-
+    
     public RemoteInstanceCommandRunnerService(SSMApi ssm, MigrationService migrationService, Supplier<Ec2Client> ec2ClientSupplier) {
         this.ssm = ssm;
         this.migrationService = migrationService;
         this.ec2ClientSupplier = ec2ClientSupplier; 
     }
     
-    public void restartJiraService() {
+    public void changeJiraRunState(JiraState jiraState) {
+        String logMessageState = jiraState.equals(JiraState.START) ? "start" : "stop";
         String stackName = getStackName();
         Ec2Client ec2Client = getEc2Client();
         if(stackName != null && ec2Client != null) {
@@ -38,20 +43,22 @@ public class RemoteInstanceCommandRunnerService {
                 Optional<String> instanceId = getInstanceId(ec2InstanceMetaData);
                 if (instanceId.isPresent()) {
                     try {
-                        logger.info(String.format("Restarting Jira instance [%s] now...", instanceId.get()));
+                        logger.info(String.format("[%s]'ing Jira instance [%s] on stack [%s] now...", logMessageState, instanceId.get(), stackName));
                         ssm.runSSMDocument(AWS_RUN_SHELL_SCRIPT, instanceId.get(),
-                                ImmutableMap.of("commands", Collections.singletonList("sudo systemctl restart jira")));
+                                ImmutableMap.of("commands", Collections.singletonList(jiraState.equals(JiraState.START) 
+                                        ? SYSTEMCTL_START_JIRA 
+                                        : SYSTEMCTL_STOP_JIRA)));
                     } catch (S3SyncFileSystemDownloader.CannotLaunchCommandException e) {
-                        logger.error(String.format("Failed to restart Jira instance [%s] with exception: %s", instanceId.get(), e));
+                        logger.error(String.format("Failed to [%s] Jira instance [%s] on stack [%s]", logMessageState, instanceId.get(), stackName), e);
                     }
                 } else {
-                    logger.error(String.format("Jira restart not possible. Could not find a Jira instance to restart for the stack [%s]", stackName));
+                    logger.error(String.format("No Jira instance found to [%s] on stack [%s]", logMessageState, stackName));
                 }
             } catch(AwsServiceException | SdkClientException ex) {
-                logger.error("Jira restart not possible. Problem encountered when trying to obtain EC2 meta data:", ex);
+                logger.error(String.format("Jira [%s] not possible for stack [%s]. Problem encountered when trying to obtain EC2 meta data:", logMessageState, stackName), ex);
             }
         } else {
-            logger.error("Jira restart not possible. No value for stack name and or no EC2 client present");
+            logger.error(String.format("Jira [%s] not possible. No value for stack name and or no EC2 client present", logMessageState));
         }
     }
     
