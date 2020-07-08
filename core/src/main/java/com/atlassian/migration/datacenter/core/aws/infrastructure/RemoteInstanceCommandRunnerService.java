@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Supplier;
-import 
 
 public class RemoteInstanceCommandRunnerService {
     private static final Logger logger = LoggerFactory.getLogger(RemoteInstanceCommandRunnerService.class);
@@ -34,11 +33,7 @@ public class RemoteInstanceCommandRunnerService {
     }
     
     public void setJiraRunStateTo(JiraState jiraState) {
-        
-        String logMessageState = jiraState.equals(JiraState.START) 
-                ? "start" 
-                : "stop";
-        
+        String logMessageState = jiraState.equals(JiraState.START) ? "start" : "stop";
         String stackName = getStackName();
         Ec2Client ec2Client = getEc2Client();
         if(stackName != null && ec2Client != null) {
