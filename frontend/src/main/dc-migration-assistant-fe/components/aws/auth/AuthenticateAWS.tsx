@@ -26,7 +26,6 @@ import styled from 'styled-components';
 import { asiConfigurationPath } from '../../../utils/RoutePaths';
 import { ErrorFlag } from '../../shared/ErrorFlag';
 import { CancelButton } from '../../shared/CancelButton';
-import { useCurrentStageRedirect } from '../../../hooks/useCurrentStageRedirect';
 
 export type AWSCreds = {
     accessKeyId: string;
@@ -93,8 +92,6 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
     const [credentialPersistError, setCredentialPersistError] = useState<boolean>(false);
     const [awaitResponseFromApi, setAwaitResponseFromApi] = useState<boolean>(false);
     const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
-
-    useCurrentStageRedirect();
 
     const submitCreds = (formCreds: {
         accessKeyId: string;

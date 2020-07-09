@@ -25,7 +25,6 @@ import { homePath } from '../../utils/RoutePaths';
 import { migration, MigrationStage } from '../../api/migration';
 import { provisioning } from '../../api/provisioning';
 import { ErrorFlag } from '../shared/ErrorFlag';
-import { useCurrentStageRedirect } from '../../hooks/useCurrentStageRedirect';
 
 const ValidationRoot = styled.div`
     max-width: 920px;
@@ -200,8 +199,6 @@ const InvalidMigrationStageErrorMessage = (): ReactElement => (
 
 export const ValidateStagePage: FunctionComponent = () => {
     const [isStageValid, setIsStageValid]: [boolean, Function] = useState<boolean>(true);
-
-    useCurrentStageRedirect();
 
     useEffect(() => {
         migration

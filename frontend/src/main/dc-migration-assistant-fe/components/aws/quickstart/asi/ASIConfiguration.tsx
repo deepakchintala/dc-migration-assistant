@@ -25,7 +25,6 @@ import { CancelButton } from '../../../shared/CancelButton';
 import { quickstartPath } from '../../../../utils/RoutePaths';
 import { provisioning } from '../../../../api/provisioning';
 import { DeploymentMode } from '../QuickstartRoutes';
-import { useCurrentStageRedirect } from '../../../../hooks/useCurrentStageRedirect';
 
 type ASIConfigurationProps = {
     updateASIPrefix: (prefix: string) => void;
@@ -64,8 +63,6 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
     const [readyToTransition, setReadyToTransition] = useState<boolean>(false);
     const [existingASIPrefixes, setExistingASIPrefixes] = useState<Array<ASIDescription>>([]);
     const [loadingPrefixes, setLoadingPrefixes] = useState<boolean>(false);
-
-    useCurrentStageRedirect();
 
     useEffect(() => {
         setLoadingPrefixes(true);

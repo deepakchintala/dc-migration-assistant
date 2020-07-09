@@ -24,7 +24,6 @@ import { ProgressBuilder, ProgressCallback, RetryProperties } from '../shared/Pr
 import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
 import { MigrationStage } from '../../api/migration';
 import { fsPath, warningPath } from '../../utils/RoutePaths';
-import { useCurrentStageRedirect } from '../../hooks/useCurrentStageRedirect';
 
 const dummyStarted = moment();
 
@@ -152,7 +151,5 @@ const fsMigrationTranferPageProps: MigrationTransferProps = {
 };
 
 export const FileSystemTransferPage: FunctionComponent = () => {
-    useCurrentStageRedirect();
-
     return <MigrationTransferPage {...fsMigrationTranferPageProps} />;
 };

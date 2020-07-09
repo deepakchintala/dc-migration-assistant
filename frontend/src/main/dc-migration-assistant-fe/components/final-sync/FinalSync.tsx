@@ -33,7 +33,6 @@ import {
 } from '../../api/final-sync';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
-import { useCurrentStageRedirect } from '../../hooks/useCurrentStageRedirect';
 
 const finalSyncInProgressStages = [
     MigrationStage.DATA_MIGRATION_IMPORT,
@@ -149,7 +148,5 @@ const props: MigrationTransferProps = {
 };
 
 export const FinalSyncPage: FunctionComponent = () => {
-    useCurrentStageRedirect();
-
     return <MigrationTransferPage {...props} />;
 };

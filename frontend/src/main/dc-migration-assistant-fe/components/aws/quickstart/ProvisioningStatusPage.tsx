@@ -22,7 +22,6 @@ import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
 import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
 import { MigrationStage } from '../../../api/migration';
 import { asiConfigurationPath, fsPath } from '../../../utils/RoutePaths';
-import { useCurrentStageRedirect } from '../../../hooks/useCurrentStageRedirect';
 
 const buildErrorFromMessageAndUrl = (message: string, stackurl: string): ReactNode => {
     return (
@@ -127,8 +126,6 @@ type DeploymentMode = {
 };
 
 export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ deploymentMode }) => {
-    useCurrentStageRedirect();
-
     /*
      * Pages that are navigated to from long content pages
      * stay scrolled down. Scroll the window up after render.
