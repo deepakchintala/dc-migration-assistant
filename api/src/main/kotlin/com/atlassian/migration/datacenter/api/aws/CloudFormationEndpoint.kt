@@ -25,6 +25,7 @@ import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeplo
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
+import com.atlassian.sal.api.websudo.WebSudoNotRequired
 import com.atlassian.sal.api.websudo.WebSudoRequired
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
@@ -94,6 +95,7 @@ class CloudFormationEndpoint(
     @Path("/status")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @WebSudoNotRequired // Avoids tripping the websudo redirect until advancing to the next stage. The status should not contain any sensitive information.
     fun infrastructureStatus(): Response {
         return when (val currentMigrationStage = migrationService.currentStage) {
             MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION, MigrationStage.PROVISION_APPLICATION -> handleInvalidStage()
