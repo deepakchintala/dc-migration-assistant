@@ -108,6 +108,7 @@ class QuickstartDeploymentServiceTest {
             return null;
         }).when(dbCredentialsStorageService).storeCredentials(anyString());
         when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISION_APPLICATION);
 
         lenient().when(mockCfnApi.getStack(STACK_NAME)).thenReturn(Optional.of(Stack.builder().stackName(STACK_NAME).outputs(MOCK_OUTPUTS).build()));
 
@@ -125,6 +126,19 @@ class QuickstartDeploymentServiceTest {
     void shouldDeployQuickStart() throws InvalidMigrationStageError, InfrastructureDeploymentError {
         deploySimpleStack();
 
+        verify(mockCfnApi).provisionStack(
+                "https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc.template.yaml",
+                STACK_NAME, STACK_PARAMS);
+    }
+
+
+    @Test
+    void shouldDeployQuickStartWhenStateIsTransitionedToError() throws InvalidMigrationStageError, InfrastructureDeploymentError {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISIONING_ERROR);
+        deploySimpleStack();
+
+        verify(mockMigrationService).transition(MigrationStage.PROVISION_APPLICATION);
+        verify(mockMigrationService).transition(MigrationStage.PROVISION_APPLICATION_WAIT);
         verify(mockCfnApi).provisionStack(
                 "https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc.template.yaml",
                 STACK_NAME, STACK_PARAMS);
