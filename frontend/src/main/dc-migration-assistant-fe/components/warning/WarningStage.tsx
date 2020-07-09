@@ -22,6 +22,7 @@ import styled from 'styled-components';
 import { finalSyncPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../shared/CancelButton';
+import { Redirect } from 'react-router-dom';
 
 const Paragraph = styled.p`
     margin-bottom: '20px';
@@ -81,14 +82,19 @@ const LearnMore: FunctionComponent = () => {
 
 export const WarningStagePage: FunctionComponent = () => {
     const [agreed, setAgreed] = useState<boolean>(false);
+    const [redirectToNext, setRedirectToNext] = useState<boolean>(false);
 
     const agreeOnClick = (event: any): void => {
         setAgreed(event.target.checked);
     };
 
+    if (redirectToNext) {
+        return <Redirect to={finalSyncPath} push />;
+    }
+
     const NextButton = (
         <Button
-            href={finalSyncPath}
+            onClick={(): void => setRedirectToNext(true)}
             isDisabled={!agreed}
             appearance="primary"
             style={nextButtonStyle}
