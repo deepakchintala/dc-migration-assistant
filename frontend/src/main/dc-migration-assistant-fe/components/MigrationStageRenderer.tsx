@@ -25,5 +25,6 @@ export const MigrationStageRenderer: FunctionComponent = () => {
         return <Spinner />;
     }
 
-    return <>I have stopped loading</>;
+    // This should never render becasue when we are not loading, we will be redirected to the appropriate stage
+    return null;
 };
