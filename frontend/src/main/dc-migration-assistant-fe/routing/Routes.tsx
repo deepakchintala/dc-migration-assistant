@@ -17,6 +17,7 @@
 import React, { FunctionComponent } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import Spinner from '@atlaskit/spinner';
 
 import {
     homePath,
@@ -38,7 +39,11 @@ import { MigrationErrorPage } from '../components/MigrationErrorPage';
 import { useCurrentStageRedirect } from '../hooks/useCurrentStageRedirect';
 
 export const Routes: FunctionComponent = () => {
-    useCurrentStageRedirect();
+    const loading = useCurrentStageRedirect();
+
+    if (loading) {
+        return <Spinner />;
+    }
 
     return (
         <Switch>
