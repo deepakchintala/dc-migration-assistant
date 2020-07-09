@@ -15,7 +15,7 @@
  */
 
 import React, { FunctionComponent } from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import {
@@ -27,17 +27,20 @@ import {
     validationPath,
     migrationErrorPath,
 } from '../utils/RoutePaths';
-import { FileSystemTransferPage } from './fs/FileSystemTransfer';
-import { FinalSyncPage } from './final-sync/FinalSync';
-import { Home } from './Home';
-import { AWSRoutes } from './aws/AwsRoutes';
-import { ValidateStagePage } from './stage/Validation';
-import { WarningStagePage } from './warning/WarningStage';
-import { MigrationStageRenderer } from './MigrationStageRenderer';
-import { MigrationErrorPage } from './MigrationErrorPage';
+import { FileSystemTransferPage } from '../components/fs/FileSystemTransfer';
+import { FinalSyncPage } from '../components/final-sync/FinalSync';
+import { Home } from '../components/Home';
+import { AWSRoutes } from './AwsRoutes';
+import { ValidateStagePage } from '../components/stage/Validation';
+import { WarningStagePage } from '../components/warning/WarningStage';
+import { MigrationStageRenderer } from '../components/MigrationStageRenderer';
+import { MigrationErrorPage } from '../components/MigrationErrorPage';
+import { useCurrentStageRedirect } from '../hooks/useCurrentStageRedirect';
 
-export const Routes: FunctionComponent = () => (
-    <Router>
+export const Routes: FunctionComponent = () => {
+    useCurrentStageRedirect();
+
+    return (
         <Switch>
             <Route path={awsBasePath}>
                 <AWSRoutes />
@@ -70,5 +73,5 @@ export const Routes: FunctionComponent = () => (
                 <MigrationStageRenderer />
             </Route>
         </Switch>
-    </Router>
-);
+    );
+};
