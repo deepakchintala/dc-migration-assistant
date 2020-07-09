@@ -15,7 +15,6 @@ export const useCurrentStageRedirect = (): boolean => {
         migration
             .getMigrationStage()
             .then(stage => {
-                console.log(location.pathname);
                 const stagePath = getPathForStage(stage);
                 if (location.pathname.indexOf(stagePath) < 0) history.replace(stagePath);
             })

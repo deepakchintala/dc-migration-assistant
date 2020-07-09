@@ -34,6 +34,7 @@ import { DeploymentMode } from './QuickstartRoutes';
 import { provisioning } from '../../../api/provisioning';
 import { ErrorFlag } from '../../shared/ErrorFlag';
 import { fetchApplicationProperties } from '../../../api/application';
+import { useCurrentStageRedirect } from '../../../hooks/useCurrentStageRedirect';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 
@@ -267,6 +268,8 @@ export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({
     const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
     const [error, setError] = useState<string>();
     const [appVersion, setAppVersion] = useState<string>();
+
+    useCurrentStageRedirect();
 
     useEffect(() => {
         setLoading(true);

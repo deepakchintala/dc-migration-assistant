@@ -25,6 +25,7 @@ import Spinner from '@atlaskit/spinner';
 import { migration, MigrationStage } from '../api/migration';
 import { homePath } from '../utils/RoutePaths';
 import { getPathForStage } from '../utils/migration-stage-to-path';
+import { useCurrentStageRedirect } from '../hooks/useCurrentStageRedirect';
 
 const MigrationErrorContainer = styled.div`
     display: flex;
@@ -43,6 +44,8 @@ const buttonStyle = {
 const MigrationError = ({ resetMigrationFunc }: ResetMigrationProps): ReactElement => {
     const [errorReason, setErrorReason] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
+
+    useCurrentStageRedirect();
 
     useEffect(() => {
         setLoading(true);

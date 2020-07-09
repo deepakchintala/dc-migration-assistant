@@ -16,6 +16,7 @@
 
 import React, { FunctionComponent } from 'react';
 import Spinner from '@atlaskit/spinner';
+import { I18n } from '@atlassian/wrm-react-i18n';
 import { useCurrentStageRedirect } from '../hooks/useCurrentStageRedirect';
 
 export const MigrationStageRenderer: FunctionComponent = () => {
@@ -25,5 +26,5 @@ export const MigrationStageRenderer: FunctionComponent = () => {
         return <Spinner />;
     }
 
-    return <>I have stopped loading</>;
+    return <div>{I18n.getText('atlassian.migration.datacenter.generic.internet.error')}</div>;
 };

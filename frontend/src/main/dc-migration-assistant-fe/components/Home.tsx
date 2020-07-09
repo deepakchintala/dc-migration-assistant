@@ -26,6 +26,7 @@ import Spinner from '@atlaskit/spinner';
 import { migration, MigrationReadyStatus } from '../api/migration';
 import { ErrorFlag } from './shared/ErrorFlag';
 import { awsAuthPath } from '../utils/RoutePaths';
+import { useCurrentStageRedirect } from '../hooks/useCurrentStageRedirect';
 
 type HomeProps = {
     title: string;
@@ -160,6 +161,8 @@ export const ReadyStatus: FunctionComponent<ReadyProps> = ({ ready }) => {
 };
 
 export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElement => {
+    useCurrentStageRedirect();
+
     return (
         <HomeContainer>
             <h1>{title}</h1>
