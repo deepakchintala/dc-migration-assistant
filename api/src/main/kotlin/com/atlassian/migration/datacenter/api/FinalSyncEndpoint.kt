@@ -23,6 +23,7 @@ import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
+import com.atlassian.sal.api.websudo.WebSudoNotRequired
 import com.atlassian.sal.api.websudo.WebSudoRequired
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
@@ -112,9 +113,10 @@ class FinalSyncEndpoint(
         }
     }
 
+    @GET
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
-    @GET
+    @WebSudoNotRequired // Avoids tripping the websudo redirect until advancing to the next stage. The status should not contain any sensitive information.
     fun getMigrationStatus(): Response {
         val elapsed = databaseMigrationService.elapsedTime
                 .orElse(Duration.ZERO)

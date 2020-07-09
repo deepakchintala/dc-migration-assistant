@@ -22,6 +22,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
+import com.atlassian.sal.api.websudo.WebSudoNotRequired
 import com.atlassian.sal.api.websudo.WebSudoRequired
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
@@ -95,9 +96,10 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
                 .build()
     }
 
+    @GET
     @Path("/report")
     @Produces(MediaType.APPLICATION_JSON)
-    @GET
+    @WebSudoNotRequired // Avoids tripping the websudo redirect until advancing to the next stage. The report should not contain any sensitive information.
     fun getFilesystemMigrationStatus(): Response {
         val report = reportManager.getCurrentReport(ReportType.Filesystem)
             ?: return Response
