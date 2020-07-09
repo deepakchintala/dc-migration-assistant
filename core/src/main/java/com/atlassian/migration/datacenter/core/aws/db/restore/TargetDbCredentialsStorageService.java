@@ -89,6 +89,6 @@ public class TargetDbCredentialsStorageService {
 
     public String getSecretName() {
         MigrationContext context = migrationService.getCurrentContext();
-        return String.format("atl-%s-migration-app-rds-password", context.getApplicationDeploymentId());
+        return String.format("atl-%s-migration-app-rds-password-%s", context.getApplicationDeploymentId(), context.getStartEpoch());
     }
 }
