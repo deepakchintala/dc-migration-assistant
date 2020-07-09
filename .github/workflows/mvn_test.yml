@@ -62,7 +62,7 @@ jobs:
           CYPRESS_AWS_SECRET_ACCESS_KEY: ${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}
         run: |
           mvn package -DskipTests
-          mv jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
+          mv jira-plugin/target/jira-plugin-*.jar jira-e2e-tests/jira/
           cd jira-e2e-tests
           ./postgres/inject-license
           JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit postgresql jira cypress
@@ -74,7 +74,7 @@ jobs:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
         run: |
           mvn package -DskipTests
-          mv jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
+          mv jira-plugin/target/jira-plugin-*.jar jira-e2e-tests/jira/
           cd jira-e2e-tests
           ./postgres/inject-license
           JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from functests --abort-on-container-exit postgresql jira functests
@@ -84,7 +84,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: plugin-jar
-          path: jira-plugin/target/jira-plugin-1.0.0.jar
+          path: jira-plugin/target/jira-plugin-*.jar
 
       - name: Archive code coverage results
         if: matrix.profile == '!integration' && matrix.java == 8
@@ -117,7 +117,8 @@ jobs:
             echo "Token is not set"
             exit 1
           else
-            curl -vvv -u "$DOGFOODING_USER:$DOGFOODING_PASSWORD" -POST "${url}?token=${token}" -F plugin=@plugin-jar/jira-plugin-1.0.0.jar | tee install.log
+            JIRA_PLUGIN_JAR_FILE=$(ls ./plugin-jar/jira-plugin-*.jar | head -n1)
+            curl -vvv -u "$DOGFOODING_USER:$DOGFOODING_PASSWORD" -POST "${url}?token=${token}" -F plugin=@"${JIRA_PLUGIN_JAR_FILE}" | tee install.log
             grep -E '"type":"INSTALL".*"statusCode":200' install.log
             exit $?
           fi

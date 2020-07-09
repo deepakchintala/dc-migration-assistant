@@ -10,7 +10,7 @@ EOF
 
 docker cp /tmp/setup.sh helpers_jira_1:/tmp/
 
-docker cp jira-plugin/target/jira-plugin-1.0.0.obr \
+docker cp jira-plugin/target/jira-plugin-*.obr \
        helpers_jira_1:/tmp/
 
 docker exec -t helpers_jira_1 /bin/bash -x /tmp/setup.sh
