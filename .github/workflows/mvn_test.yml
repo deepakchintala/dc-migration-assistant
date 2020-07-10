@@ -113,15 +113,14 @@ jobs:
           DOGFOODING_USER: ${{ secrets.DOGFOODING_USER }}
           DOGFOODING_PASSWORD: ${{ secrets.DOGFOODING_PASSWORD }}
         run: |
-          echo "$(PWD)"
           url="$DOGFOODING_URL/rest/plugins/1.0/"
           token=$(curl -u "$DOGFOODING_USER:$DOGFOODING_PASSWORD" -Is ${url}?os_authType=basic | grep upm-token | cut -d: -f2- | tr -d '[[:space:]]')
           if [[ -z "$token" ]]; then
             echo "Token is not set"
             exit 1
           else
-            ls -al
-            JIRA_PLUGIN_JAR_FILE=$(ls `pwd`/plugin-jar/jira-plugin-*.jar | head -n1)
+            echo "$(ls -al)"
+            JIRA_PLUGIN_JAR_FILE=$(ls `pwd`/jira-plugin-*.jar | head -n1)
             curl -vvv -u "$DOGFOODING_USER:$DOGFOODING_PASSWORD" -POST "${url}?token=${token}" -F plugin=@"${JIRA_PLUGIN_JAR_FILE}" | tee install.log
             grep -E '"type":"INSTALL".*"statusCode":200' install.log
             exit $?
