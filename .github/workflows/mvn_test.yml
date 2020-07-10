@@ -15,7 +15,7 @@ jobs:
       matrix:
 #        java: [ 8, 11 ]
 #        profile: ['integration', '!integration', 'smoketest', 'functest']
-        java: [ 8 ]
+        java: [ 11 ]
         profile: ['!integration']
 
     steps:
@@ -120,7 +120,7 @@ jobs:
             echo "Token is not set"
             exit 1
           else
-            ls -al 
+            ls -al
             JIRA_PLUGIN_JAR_FILE=$(ls `pwd`/plugin-jar/jira-plugin-*.jar | head -n1)
             curl -vvv -u "$DOGFOODING_USER:$DOGFOODING_PASSWORD" -POST "${url}?token=${token}" -F plugin=@"${JIRA_PLUGIN_JAR_FILE}" | tee install.log
             grep -E '"type":"INSTALL".*"statusCode":200' install.log
