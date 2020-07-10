@@ -22,14 +22,14 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.atlassian.migration.datacenter</groupId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </parent>
 
     <artifactId>jira-plugin</artifactId>
     <packaging>atlassian-plugin</packaging>
 
     <name>Jira Data Center Migration App</name>
-    <description>This is an alpha release of the Jira Data Center Migration App. It is currently unsupported, and only available for testing and evaluation.</description>
+    <description>This is the first supported release of the Jira Data Center Migration App. It's supported on Jira Software 8.0.0 (and up), and compatible with instances running on a PostgreSQL database.</description>
 
     <dependencies>
         <dependency>
