@@ -61,5 +61,8 @@ fun main(args: Array<String>) {
     val json = GsonBuilder()
             .setPrettyPrinting()
             .create()
-    File(target).writeText(json.toJson(whitelist))
+
+    val fd = File(target)
+    fd.parentFile.mkdirs()
+    fd.writeText(json.toJson(whitelist))
 }
