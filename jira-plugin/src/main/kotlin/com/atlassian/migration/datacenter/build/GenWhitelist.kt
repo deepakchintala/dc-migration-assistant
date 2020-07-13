@@ -40,7 +40,6 @@ fun main(args: Array<String>) {
             val fclass = try {
                 ClassLoader.getSystemClassLoader().loadClass(field.typeDescriptor.toString())
             } catch (e: Exception) {
-                println(e)
                 null  // Probably native, skip
             }
             // Each parameter is either map of the name to a list of valid values, or just the name
