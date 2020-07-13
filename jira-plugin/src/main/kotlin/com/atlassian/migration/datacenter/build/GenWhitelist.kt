@@ -16,8 +16,39 @@
 
 package com.atlassian.migration.datacenter.build
 
-import java.io.File
+import io.github.classgraph.ClassGraph
 
 fun main(args: Array<String>) {
-    File("/tmp/run.log").writeText("Hello World!")
+//    val pkg = args[0]
+//    val target = args[1]
+    val pkg = "com.atlassian.migration.datacenter.analytics.events"
+    val event = "com.atlassian.analytics.api.annotations.EventName"
+    val scanned = ClassGraph()
+            .enableAllInfo()
+            .acceptPackages(pkg)
+            .scan()
+
+    for (c in scanned.getClassesWithAnnotation(event)) {
+        println(c.name)
+        for (f in c.fieldInfo) {
+            val td = f.typeDescriptor
+            val fc = try {
+                ClassLoader.getSystemClassLoader().loadClass(td.toString())
+            } catch (e: Exception) {
+                null
+                // Probably native, skip
+            }
+
+            println("\t${f.name}\t${f.typeDescriptor}")
+            if (fc != null && fc.isEnum) {
+                for (ev in fc.enumConstants) {
+                    println("\t\t\t${ev.toString().toUpperCase()}")
+                }
+            }
+        }
+    }
+
+
+
+//    File(target).writeText(str)
 }

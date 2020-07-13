@@ -84,6 +84,13 @@
         </dependency>
 
         <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+            <version>4.8.87</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
@@ -107,8 +114,8 @@
                 <configuration>
                     <mainClass>com.atlassian.migration.datacenter.build.GenWhitelistKt</mainClass>
                     <arguments>
-                        <argument>foo</argument>
-                        <argument>bar</argument>
+                        <argument>com.atlassian.migration.datacenter.analytics.events</argument>
+                        <argument>${project.build.outputDirectory}/whitelist/run.log</argument>
                     </arguments>
                 </configuration>
             </plugin>
