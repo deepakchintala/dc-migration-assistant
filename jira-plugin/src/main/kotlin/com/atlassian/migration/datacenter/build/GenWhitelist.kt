@@ -16,6 +16,8 @@
 
 package com.atlassian.migration.datacenter.build
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import io.github.classgraph.ClassGraph
 
 fun main(args: Array<String>) {
@@ -28,27 +30,31 @@ fun main(args: Array<String>) {
             .acceptPackages(pkg)
             .scan()
 
-    for (c in scanned.getClassesWithAnnotation(event)) {
-        println(c.name)
-        for (f in c.fieldInfo) {
-            val td = f.typeDescriptor
-            val fc = try {
-                ClassLoader.getSystemClassLoader().loadClass(td.toString())
-            } catch (e: Exception) {
-                null
-                // Probably native, skip
-            }
+    val whitelist = HashMap<String, List<Any>>()
 
-            println("\t${f.name}\t${f.typeDescriptor}")
-            if (fc != null && fc.isEnum) {
-                for (ev in fc.enumConstants) {
-                    println("\t\t\t${ev.toString().toUpperCase()}")
-                }
+    for (event in scanned.getClassesWithAnnotation(event)) {
+        val eventName = event.annotationInfo[0].parameterValues[0].value
+        val parmList = event.fieldInfo.map {
+            val fclass = try {
+                ClassLoader.getSystemClassLoader().loadClass(it.typeDescriptor.toString())
+            } catch (e: Exception) {
+                null  // Probably native, skip
+            }
+            if (fclass != null && fclass.isEnum) {
+                // FIXME: Slight hack; we override the enum toString() to make it simpler to serialise,
+                //  so we need to uppercase it here. We should really make the serialisation more elegant.
+                mapOf(it.name to fclass.enumConstants.map { it.toString().toUpperCase() })
+            } else {
+                it.name
             }
         }
+        whitelist.put(eventName.toString(), parmList)
     }
 
-
+    val json = GsonBuilder()
+            .setPrettyPrinting()
+            .create()
+    println("${json.toJson(whitelist)}")
 
 //    File(target).writeText(str)
 }
