@@ -39,17 +39,9 @@ fun main(args: Array<String>) {
                 println(e)
                 null  // Probably native, skip
             }
-            // Each parameter is either map of the name and valid values, or just the name
+            // Each parameter is either map of the name to a list of valid values, or just the name
             val param: Any = if (fclass != null && fclass.isEnum) {
-                mapOf(field.name to fclass.enumConstants.map { enumVal ->
-                    if (fclass.name.endsWith("MigrationStage")) {
-                        // FIXME: Slight hack; we override the MigrationStage toString() to make it simpler to serialise,
-                        //  so we need to uppercase it here. We should really make the serialisation more elegant.
-                        enumVal.toString().toUpperCase()
-                    } else {
-                        enumVal.toString()
-                }
-                })
+                mapOf(field.name to fclass.enumConstants.map { enumVal -> enumVal.toString() })
             } else {
                 field.name
             }
