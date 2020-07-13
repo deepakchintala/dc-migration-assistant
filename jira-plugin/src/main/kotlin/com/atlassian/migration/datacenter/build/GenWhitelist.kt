@@ -16,45 +16,50 @@
 
 package com.atlassian.migration.datacenter.build
 
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import io.github.classgraph.ClassGraph
+import java.io.File
 
 fun main(args: Array<String>) {
-//    val pkg = args[0]
-//    val target = args[1]
-    val pkg = "com.atlassian.migration.datacenter.analytics.events"
-    val event = "com.atlassian.analytics.api.annotations.EventName"
+    val pkg = args[0]
+    val target = args[1]
+
+    val eventAnno = "com.atlassian.analytics.api.annotations.EventName"
     val scanned = ClassGraph()
             .enableAllInfo()
             .acceptPackages(pkg)
             .scan()
 
-    val whitelist = HashMap<String, List<Any>>()
-
-    for (event in scanned.getClassesWithAnnotation(event)) {
+    val whitelist = scanned.getClassesWithAnnotation(eventAnno).map { event ->
         val eventName = event.annotationInfo[0].parameterValues[0].value
-        val parmList = event.fieldInfo.map {
+        val parmList = event.fieldInfo.map { field ->
             val fclass = try {
-                ClassLoader.getSystemClassLoader().loadClass(it.typeDescriptor.toString())
+                ClassLoader.getSystemClassLoader().loadClass(field.typeDescriptor.toString())
             } catch (e: Exception) {
+                println(e)
                 null  // Probably native, skip
             }
-            if (fclass != null && fclass.isEnum) {
-                // FIXME: Slight hack; we override the enum toString() to make it simpler to serialise,
-                //  so we need to uppercase it here. We should really make the serialisation more elegant.
-                mapOf(it.name to fclass.enumConstants.map { it.toString().toUpperCase() })
+            // Each parameter is either map of the name and valid values, or just the name
+            val param: Any = if (fclass != null && fclass.isEnum) {
+                mapOf(field.name to fclass.enumConstants.map { enumVal ->
+                    if (fclass.name.endsWith("MigrationStage")) {
+                        // FIXME: Slight hack; we override the MigrationStage toString() to make it simpler to serialise,
+                        //  so we need to uppercase it here. We should really make the serialisation more elegant.
+                        enumVal.toString().toUpperCase()
+                    } else {
+                        enumVal.toString()
+                }
+                })
             } else {
-                it.name
+                field.name
             }
+            param
         }
-        whitelist.put(eventName.toString(), parmList)
-    }
+        Pair(eventName, parmList)
+    }.toMap()
 
     val json = GsonBuilder()
             .setPrettyPrinting()
             .create()
-    println("${json.toJson(whitelist)}")
-
-//    File(target).writeText(str)
+    File(target).writeText(json.toJson(whitelist))
 }

@@ -113,15 +113,18 @@
                     <execution>
                         <phase>compile</phase>
                         <goals>
-                            <goal>java</goal>
+                            <goal>exec</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>com.atlassian.migration.datacenter.build.GenWhitelistKt</mainClass>
+                    <!-- For some reason exec:java doesn't give us the complete classpath -->
+                    <executable>java</executable>
                     <arguments>
+                        <argument>-classpath</argument><classpath/>
+                        <argument>com.atlassian.migration.datacenter.build.GenWhitelistKt</argument>
                         <argument>com.atlassian.migration.datacenter.analytics.events</argument>
-                        <argument>${project.build.outputDirectory}/whitelist/run.log</argument>
+                        <argument>${project.build.outputDirectory}/whitelist/run.json</argument>
                     </arguments>
                 </configuration>
             </plugin>
