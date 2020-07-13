@@ -93,6 +93,27 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${apache.maven.exec.version}</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>com.atlassian.migration.datacenter.build.GenWhitelistKt</mainClass>
+                    <arguments>
+                        <argument>foo</argument>
+                        <argument>bar</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>amps-maven-plugin</artifactId>
                 <version>${amps.version}</version>
