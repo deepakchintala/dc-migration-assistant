@@ -20,6 +20,10 @@ import com.google.gson.GsonBuilder
 import io.github.classgraph.ClassGraph
 import java.io.File
 
+/**
+ * Small util to generate an analytics whitelist from the defined events.
+ * Intended to be called during the build phase; see `pom.xml` and `atlassian-plugin.xml`.
+ */
 fun main(args: Array<String>) {
     val pkg = args[0]
     val target = args[1]
