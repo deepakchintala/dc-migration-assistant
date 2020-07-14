@@ -49,6 +49,7 @@
         <module>jira-plugin</module>
         <module>spi</module>
         <module>filesystem-processor</module>
+        <module>build-utils</module>
     </modules>
 
     <repositories>
