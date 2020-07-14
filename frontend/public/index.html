@@ -16,39 +16,39 @@
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <title>AWS Migration Plugin</title>
-    <script>
-        const WRM = {
-            contextPath() {
-                return '';
-            },
-            data: {
-                claim() {
-                    return ({});
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <title>AWS Migration Plugin</title>
+        <script>
+            const WRM = {
+                contextPath() {
+                    return '';
                 },
-            },
-            format: {
-                apply() {
-                    return Array.from(arguments).join('');
-                }
-            }
-        };
-    </script>
+                data: {
+                    claim() {
+                        return {};
+                    },
+                },
+                format: {
+                    apply() {
+                        return Array.from(arguments).join('');
+                    },
+                },
+            };
+        </script>
 
-    <!-- Testing hack; Cypress can't mock fetch, so force the installation of a polyfill that falls-back to XHR. -->
-    <script>
-     delete window.fetch;
-    </script>
-    <script src="https://unpkg.com/unfetch/polyfill"></script>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="dc-migration-assistant-root"></div>
-    <!--
+        <!-- Testing hack; Cypress can't mock fetch, so force the installation of a polyfill that falls-back to XHR. -->
+        <script>
+            delete window.fetch;
+        </script>
+        <script src="https://unpkg.com/unfetch/polyfill"></script>
+    </head>
+    <body>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="dc-migration-assistant-root"></div>
+        <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
 
@@ -57,6 +57,5 @@
 
       To begin the development, run `yarn start`.
       To create a production bundle, use `yarn build`.
-    -->
-  </body>
+    --></body>
 </html>
