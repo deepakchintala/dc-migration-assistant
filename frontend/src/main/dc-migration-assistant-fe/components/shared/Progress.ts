@@ -124,7 +124,7 @@ export class ProgressBuilder {
         return this;
     }
 
-    setRetryProps(retryProps: RetryProperties) {
+    setRetryProps(retryProps: RetryProperties): ProgressBuilder {
         this.retryProps = retryProps;
 
         return this;

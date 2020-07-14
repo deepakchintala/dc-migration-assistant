@@ -73,9 +73,7 @@ export const migration = {
                     return response.stage;
                 });
             }
-            if (res.status === 404) {
-                return MigrationStage.NOT_STARTED;
-            }
+            return MigrationStage.NOT_STARTED;
         });
     },
     createMigration: (): Promise<void> => {

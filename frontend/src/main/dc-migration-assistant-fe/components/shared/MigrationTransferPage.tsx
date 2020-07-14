@@ -115,7 +115,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     nextText,
     nextRoute,
     startButtonText,
-    startMoment,
     getProgress,
     inProgressStages,
     startMigrationPhase,
@@ -184,6 +183,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                     setCommandResult(d);
                 })
                 .catch(e => {
+                    // eslint-disable-next-line no-console
                     console.log(e);
                 });
         }

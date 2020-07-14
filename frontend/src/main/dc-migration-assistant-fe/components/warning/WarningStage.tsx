@@ -19,10 +19,10 @@ import SectionMessage from '@atlaskit/section-message';
 import { Checkbox } from '@atlaskit/checkbox';
 import Button from '@atlaskit/button';
 import styled from 'styled-components';
+import { Redirect } from 'react-router-dom';
 import { finalSyncPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../shared/CancelButton';
-import { Redirect } from 'react-router-dom';
 
 const Paragraph = styled.p`
     margin-bottom: '20px';

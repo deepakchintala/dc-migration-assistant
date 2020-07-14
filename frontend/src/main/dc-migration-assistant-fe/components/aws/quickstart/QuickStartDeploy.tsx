@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* global process */
+
 import React, { FunctionComponent, ReactElement, ReactFragment, useEffect, useState } from 'react';
 import Form, { ErrorMessage, Field, FormHeader, FormSection, HelperMessage } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
