@@ -13,7 +13,6 @@
                 const invocation = Array.from(arguments);
                 const args = invocation[1];
                 let expression = args[0];
-                console.log(expression);
                 args.forEach((arg, index) => {
                     if (index !== 0) {
                         const placeholdder = `{${index - 1}}`;
