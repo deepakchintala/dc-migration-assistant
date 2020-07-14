@@ -48,6 +48,8 @@ public class TemplateServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
+            response.setHeader("Pragma", "no-cache");
+            response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
             webSudoManager.willExecuteWebSudoRequest(request);
             render(response);
         } catch (WebSudoSessionException exception) {
