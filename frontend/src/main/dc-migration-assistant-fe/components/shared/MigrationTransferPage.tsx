@@ -19,7 +19,7 @@ import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
 
-import { MigrationTransferActions } from './MigrationTransferPageActions';
+import { MigrationTransferActions, MigrationStepState } from './MigrationTransferPageActions';
 import { Progress, ProgressCallback } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
@@ -107,6 +107,16 @@ const Divider = styled.div`
     margin-bottom: 20px;
     border-bottom: 2px solid rgb(223, 225, 230);
 `;
+
+const getMigrationStepState = (started: boolean, finished: boolean): MigrationStepState => {
+    if (finished) {
+        return 'finished';
+    }
+    if (started) {
+        return 'in_progress';
+    }
+    return 'not_started';
+};
 
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
@@ -239,15 +249,13 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                     </TransferContentContainer>
                     <TransferActionsContainer>
                         <MigrationTransferActions
-                            finished={finished}
+                            state={getMigrationStepState(started, finished)}
                             nextText={nextText}
                             startButtonText={startButtonText}
                             nextRoute={nextRoute}
                             startMigrationPhase={startMigration}
                             onRefresh={updateProgress}
-                            started={started}
                             loading={loading}
-                            failed={failed}
                         />
                     </TransferActionsContainer>
                 </>
