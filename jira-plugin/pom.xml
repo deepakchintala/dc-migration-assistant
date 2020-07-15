@@ -88,10 +88,45 @@
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.atlassian.migration.datacenter</groupId>
+            <artifactId>build-utils</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Generate the analytics whitelist from the analytics events. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${apache.maven.exec.version}</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- For some reason exec:java doesn't give us the complete classpath -->
+                    <classpathScope>compile</classpathScope>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-classpath</argument><classpath/>
+                        <argument>com.atlassian.migration.datacenter.build.GenWhitelistKt</argument>
+
+                        <argument>com.atlassian.migration.datacenter.analytics.events</argument>
+                        <argument>${project.build.outputDirectory}/whitelist/analytics_whitelist.json</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>amps-maven-plugin</artifactId>
