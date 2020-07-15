@@ -97,7 +97,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
     nextRoute,
     startButtonText,
     startMigrationPhase,
-    onRefresh: updateTransferProgress,
+    onRefresh,
     loading,
 }) => {
     let CurrentStepAction: ReactNode;
@@ -110,7 +110,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
         CurrentStepAction = (
             <ActionButton
                 loading={loading}
-                onClick={updateTransferProgress}
+                onClick={onRefresh}
                 isRefresh
                 text={I18n.getText('atlassian.migration.datacenter.generic.refresh')}
             />
