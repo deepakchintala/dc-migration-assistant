@@ -4,7 +4,7 @@ import { MigrationTransferPage } from './MigrationTransferPage';
 import { Progress } from './Progress';
 import { MigrationStage } from '../../api/migration';
 
-export default { title: 'Migration process' };
+export default { title: 'Migration step' };
 
 const finishedAfterCalls = 3;
 
