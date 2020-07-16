@@ -20,7 +20,7 @@ import { I18n } from '@atlassian/wrm-react-i18n';
 import moment from 'moment';
 import Panel from '@atlaskit/panel';
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
-import { ProgressBuilder, ProgressCallback, RetryProperties } from '../shared/Progress';
+import { ProgressBuilder, ProgressCallback } from '../shared/Progress';
 import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
 import { MigrationStage } from '../../api/migration';
 import { fsPath, warningPath } from '../../utils/RoutePaths';
@@ -91,12 +91,6 @@ const getPhaseFromStatus = (result: FileSystemMigrationStatusResponse): string =
 };
 
 const getFsMigrationProgress: ProgressCallback = async () => {
-    const retryProps: RetryProperties = {
-        onRetryRoute: fsPath,
-        retryText: I18n.getText('atlassian.migration.datacenter.fs.retry'),
-        onRetry: () => fs.retryFsMigration(),
-        canContinueOnFailure: true,
-    };
     return fs
         .getFsMigrationStatus()
         .then(result => {
@@ -106,7 +100,6 @@ const getFsMigrationProgress: ProgressCallback = async () => {
             builder.setCompleteness(getCompletenessFromResult(result));
             builder.setPhase(getPhaseFromStatus(result));
             builder.setElapsedSeconds(result.elapsedTime.seconds);
-            builder.setRetryProps(retryProps);
             builder.setCompleteMessage(
                 I18n.getText(
                     'atlassian.migration.datacenter.fs.completeMessage.boldPrefix',
@@ -123,17 +116,16 @@ const getFsMigrationProgress: ProgressCallback = async () => {
             // JSON parse error usually means we're querying the progress before the fs migration has started
             if (error.message.indexOf('JSON.parse') >= 0) {
                 return {
-                    retryProps,
                     phase: I18n.getText('atlassian.migration.datacenter.fs.phase.notStarted'),
+                    elapsedTimeSeconds: 0,
                 };
             }
             return {
                 phase: I18n.getText('atlassian.migration.datacenter.generic.error'),
-                error: error.message,
-                retryProps,
+                errorMessage: error.message,
+                elapsedTimeSeconds: 0,
             };
-        })
-        .then(progress => [progress]);
+        });
 };
 
 const fsMigrationTranferPageProps: MigrationTransferProps = {
@@ -142,7 +134,18 @@ const fsMigrationTranferPageProps: MigrationTransferProps = {
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
     inProgressStages: [MigrationStage.FS_MIGRATION_COPY_WAIT],
     startMigrationPhase: fs.startFsMigration,
-    getProgress: getFsMigrationProgress,
+    startButtonText: I18n.getText('atlassian.migration.datacenter.fs.startCopy'),
+    processes: [
+        {
+            getProgress: getFsMigrationProgress,
+            retryProps: {
+                onRetryRoute: fsPath,
+                retryText: I18n.getText('atlassian.migration.datacenter.fs.retry'),
+                onRetry: (): Promise<void> => fs.retryFsMigration(),
+                canContinueOnFailure: true,
+            },
+        },
+    ],
     nextRoute: warningPath,
 };
 
