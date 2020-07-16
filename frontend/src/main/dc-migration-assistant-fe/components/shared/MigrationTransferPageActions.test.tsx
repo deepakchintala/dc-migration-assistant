@@ -16,7 +16,7 @@
 
 import React from 'react';
 import { render } from '@testing-library/react';
-import { MemoryRouter as Router, useLocation, Route, useHistory } from 'react-router-dom';
+import { MemoryRouter as Router, Route } from 'react-router-dom';
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 
 describe('Migration step action', () => {
@@ -119,5 +119,21 @@ describe('Migration step action', () => {
 
         expect(getByText(nextPageContent)).toBeTruthy();
         expect(queryByText(nextButtonText)).not.toBeTruthy();
+    });
+
+    it('should render a spinner button when loading', () => {
+        const { getByRole } = render(
+            <MigrationTransferActions
+                state="not_started"
+                onRefresh={(): Promise<void> => Promise.resolve()}
+                nextText="Next"
+                nextRoute="/"
+                startButtonText="Start"
+                startMigrationPhase={(): Promise<void> => Promise.resolve()}
+                loading={true}
+            />
+        );
+
+        expect(getByRole('button', { name: 'Start' })).toMatchSnapshot();
     });
 });

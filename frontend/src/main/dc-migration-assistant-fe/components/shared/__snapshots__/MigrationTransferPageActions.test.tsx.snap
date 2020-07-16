@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Migration step action should render a spinner button when loading 1`] = `
+<button
+  class="css-1wbvwgu"
+  style="padding: 5px;"
+  type="button"
+>
+  <span
+    class="css-j8fq0c"
+  >
+    <div
+      class="css-d0s4f5"
+    >
+      <svg
+        class="css-wzerkf"
+        focusable="false"
+        height="24"
+        viewBox="0 0 16 16"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle
+          class="css-4mzqsf"
+          cx="8"
+          cy="8"
+          r="7"
+        />
+      </svg>
+    </div>
+    <span
+      class="css-ysfjrh"
+    >
+      Start
+    </span>
+  </span>
+</button>
+`;
