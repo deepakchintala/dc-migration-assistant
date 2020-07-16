@@ -16,7 +16,7 @@
 
 import React from 'react';
 import { render } from '@testing-library/react';
-import { MemoryRouter as Router } from 'react-router-dom';
+import { MemoryRouter as Router, useLocation, Route, useHistory } from 'react-router-dom';
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 
 describe('Migration step action', () => {
@@ -82,26 +82,42 @@ describe('Migration step action', () => {
     const nextRoute = '/next';
     const nextButtonText = 'Next';
     const NextButton = (
-        <Router>
-            <MigrationTransferActions
-                state="finished"
-                onRefresh={(): Promise<void> => Promise.resolve()}
-                nextText={nextButtonText}
-                nextRoute={nextRoute}
-                startButtonText="Start"
-                startMigrationPhase={(): Promise<void> => Promise.resolve()}
-                loading={false}
-            />
-        </Router>
+        <MigrationTransferActions
+            state="finished"
+            onRefresh={(): Promise<void> => Promise.resolve()}
+            nextText={nextButtonText}
+            nextRoute={nextRoute}
+            startButtonText="Start"
+            startMigrationPhase={(): Promise<void> => Promise.resolve()}
+            loading={false}
+        />
     );
 
     it('should render the next button when migration step is finished', () => {
-        const { getByText } = render(NextButton);
+        const { getByText } = render(<Router>{NextButton}</Router>);
 
         expect(getByText(nextButtonText)).toBeTruthy();
     });
 
     it('should redirect to the given next route when clicking next', () => {
-        // TODO
+        const nextPageContent = 'I am the next page';
+
+        const actionsPath = '/';
+
+        const { getByText, queryByText } = render(
+            <Router>
+                <Route exact path={actionsPath}>
+                    {NextButton}
+                </Route>
+                <Route exact path={nextRoute}>
+                    <div>{nextPageContent}</div>
+                </Route>
+            </Router>
+        );
+
+        getByText(nextButtonText).click();
+
+        expect(getByText(nextPageContent)).toBeTruthy();
+        expect(queryByText(nextButtonText)).not.toBeTruthy();
     });
 });
