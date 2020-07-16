@@ -106,19 +106,15 @@ const getFsMigrationProgress: ProgressCallback = async () => {
             builder.setCompleteness(getCompletenessFromResult(result));
             builder.setPhase(getPhaseFromStatus(result));
             builder.setElapsedSeconds(result.elapsedTime.seconds);
-            builder.setFailed(result.status === 'FAILED');
             builder.setRetryProps(retryProps);
-
-            if (result.status === 'DONE') {
-                builder.setCompleteMessage(
-                    I18n.getText(
-                        'atlassian.migration.datacenter.fs.completeMessage.boldPrefix',
-                        result.downloadedFiles,
-                        result.filesFound
-                    ),
-                    I18n.getText('atlassian.migration.datacenter.fs.completeMessage.message')
-                );
-            }
+            builder.setCompleteMessage(
+                I18n.getText(
+                    'atlassian.migration.datacenter.fs.completeMessage.boldPrefix',
+                    result.downloadedFiles,
+                    result.filesFound
+                ),
+                I18n.getText('atlassian.migration.datacenter.fs.completeMessage.message')
+            );
 
             return builder.build();
         })

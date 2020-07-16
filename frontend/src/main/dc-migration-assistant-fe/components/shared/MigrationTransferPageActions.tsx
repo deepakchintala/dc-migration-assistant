@@ -40,7 +40,7 @@ export type MigrationTransferActionsProps = {
     /**
      * The text to display on the start button that initiates the migration transfer. Defaults to `Start`
      */
-    startButtonText?: string;
+    startButtonText: string;
     /**
      * The path to take the user to whent hey click the "next" action button
      */

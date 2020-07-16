@@ -38,7 +38,6 @@ export type MigrationTransferProps = {
      * A description for what the current transfer does. Will be rendered below the title
      */
     description: string;
-
     /**
      * An optional hyperlink that can be used to direct the user to more detail
      */
@@ -54,11 +53,7 @@ export type MigrationTransferProps = {
     /**
      * @see MigrationTransferActionsProps
      */
-    startButtonText?: string;
-    /**
-     * @see MigrationProgressProps
-     */
-    startMoment?: moment.Moment;
+    startButtonText: string;
     /**
      * The MigrationStages where this transfer is "in progress"
      * @see MigrationStage
@@ -147,7 +142,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 setFinished(
                     result.length > 0 && result.every(progress => progress?.completeness === 1)
                 );
-                setFailed(result.some(progress => progress?.failed));
+                setFailed(result.some(progress => progress?.errorMessage));
             })
             .catch(err => {
                 setProgressFetchingError(err.message);

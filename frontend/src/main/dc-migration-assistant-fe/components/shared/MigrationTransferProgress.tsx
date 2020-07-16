@@ -73,7 +73,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     const [retryEnabled, setRetryEnabled] = useState<boolean>(false);
     const [shouldRedirectToStart, setShouldRedirectToStart] = useState<boolean>(false);
 
-    const failed = (progress.errorMessage && true) || progress.failed;
+    const failed = progress.errorMessage && true;
     const { onRetryRoute, retryText, onRetry, canContinueOnFailure } = progress?.retryProps;
 
     if (loading) {
@@ -86,11 +86,11 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
         );
     }
 
-    const duration = calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
-
     if (shouldRedirectToStart) {
         return <Redirect to={onRetryRoute} push />;
     }
+
+    const duration = calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
 
     return (
         <>

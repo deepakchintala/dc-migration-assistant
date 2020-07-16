@@ -12,10 +12,16 @@ const storybookTransferPageDefaultProps = {
     heading: 'Migrate content',
     nextText: 'Next step',
     nextRoute: '/',
+    startButtonText: 'Start',
     inProgressStages: new Array<MigrationStage>(),
     startMigrationPhase: (): Promise<void> => {
         return new Promise(resolve => setTimeout(resolve, 1000));
     },
+};
+
+const completeMessage = {
+    boldPrefix: '25 of 25 files',
+    message: 'were successfully migrated',
 };
 
 export const happyPath = (): ReactNode => {
@@ -40,10 +46,7 @@ export const happyPath = (): ReactNode => {
                                 completeness: 1,
                                 elapsedTimeSeconds: 18,
                                 retryProps,
-                                completeMessage: {
-                                    boldPrefix: '25 of 25 files',
-                                    message: 'were successfully migrated',
-                                },
+                                completeMessage,
                             },
                         ]);
                     }
@@ -53,6 +56,7 @@ export const happyPath = (): ReactNode => {
                             completeness: progressFetchCount / finishedAfterCalls,
                             elapsedTimeSeconds: 6 * progressFetchCount,
                             retryProps,
+                            completeMessage,
                         },
                     ]);
 
@@ -94,7 +98,7 @@ export const unhappyPath = (): ReactNode => {
                                 retryProps,
                                 errorMessage:
                                     'Something went wrong while running your migration. Retry and see if it improves things',
-                                failed: true,
+                                completeMessage,
                             },
                         ]);
                     }
@@ -104,6 +108,7 @@ export const unhappyPath = (): ReactNode => {
                             completeness: progressFetchCount / finishedAfterCalls,
                             elapsedTimeSeconds: 6 * progressFetchCount,
                             retryProps,
+                            completeMessage,
                         },
                     ]);
 
