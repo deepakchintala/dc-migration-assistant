@@ -1,0 +1,235 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`migration process progress Should render a full progress bar when process completeness is 1 1`] = `
+<div>
+  <section
+    class="sc-bxivhb brjzuU"
+  >
+    <div
+      class="sc-dnqmqq PgEDm"
+    >
+      <span
+        class="sc-htpNat jsDFjY"
+        role="presentation"
+      >
+        <svg
+          focusable="false"
+          height="24"
+          role="presentation"
+          viewBox="0 0 24 24"
+          width="24"
+        >
+          <g
+            fill-rule="evenodd"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              fill="currentColor"
+              r="10"
+            />
+            <path
+              d="M9.707 11.293a1 1 0 1 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4a1 1 0 1 0-1.414-1.414L11 12.586l-1.293-1.293z"
+              fill="inherit"
+            />
+          </g>
+        </svg>
+      </span>
+    </div>
+    <div
+      class="sc-ifAKCX ezQlwD"
+    >
+      <div
+        class="sc-bZQynM jBPlWM"
+      >
+        <strong>
+          180GB of database
+        </strong>
+         
+        were transferred successfully
+      </div>
+    </div>
+  </section>
+  <h4
+    class="sc-gZMcBi jPsQyQ"
+  >
+    Complete
+  </h4>
+  <div
+    aria-valuemax="1"
+    aria-valuemin="0"
+    aria-valuenow="1"
+    class="css-1656qb0"
+    role="progressbar"
+    tabindex="0"
+  >
+    <span
+      class="css-9m5vj-Bar"
+    />
+  </div>
+  <p
+    class="sc-gqjmRU kwvhvQ"
+  >
+    atlassian.migration.datacenter.common.progress.started
+  </p>
+  <p
+    class="sc-gqjmRU kwvhvQ"
+  >
+    atlassian.migration.datacenter.common.progress.mins_elapsed
+  </p>
+</div>
+`;
+
+exports[`migration process progress Should render a partially completed progress bar with timing data when completeness is between 0 and 1 1`] = `
+<div>
+  <h4
+    class="sc-gZMcBi jPsQyQ"
+  >
+    Downloading data into new instance
+  </h4>
+  <div
+    aria-valuemax="1"
+    aria-valuemin="0"
+    aria-valuenow="0.5"
+    class="css-1656qb0"
+    role="progressbar"
+    tabindex="0"
+  >
+    <span
+      class="css-9b3agr-Bar"
+    />
+  </div>
+  <p
+    class="sc-gqjmRU kwvhvQ"
+  >
+    atlassian.migration.datacenter.common.progress.started
+  </p>
+  <p
+    class="sc-gqjmRU kwvhvQ"
+  >
+    atlassian.migration.datacenter.common.progress.mins_elapsed
+  </p>
+</div>
+`;
+
+exports[`migration process progress Should render an error message when one is given 1`] = `
+<div>
+  <section
+    class="sc-bxivhb jsxfHf"
+  >
+    <div
+      class="sc-dnqmqq PgEDm"
+    >
+      <span
+        class="sc-htpNat kNbdZf"
+        role="presentation"
+      >
+        <svg
+          focusable="false"
+          height="24"
+          role="presentation"
+          viewBox="0 0 24 24"
+          width="24"
+        >
+          <g
+            fill-rule="evenodd"
+          >
+            <path
+              d="M13.416 4.417a2.002 2.002 0 0 0-2.832 0l-6.168 6.167a2.002 2.002 0 0 0 0 2.833l6.168 6.167a2.002 2.002 0 0 0 2.832 0l6.168-6.167a2.002 2.002 0 0 0 0-2.833l-6.168-6.167z"
+              fill="currentColor"
+            />
+            <path
+              d="M12 14a1 1 0 0 1-1-1V8a1 1 0 0 1 2 0v5a1 1 0 0 1-1 1m0 3a1 1 0 0 1 0-2 1 1 0 0 1 0 2"
+              fill="inherit"
+            />
+          </g>
+        </svg>
+      </span>
+    </div>
+    <div
+      class="sc-ifAKCX ezQlwD"
+    >
+      <div
+        class="sc-bZQynM jBPlWM"
+      >
+        <p
+          class="sc-iwsKbI fQqfNj"
+        >
+          Unable to connect to target database
+           
+          <a
+            href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors"
+            rel="noreferrer noopener"
+            target="_blank"
+          >
+            atlassian.migration.datacenter.common.learn_more
+          </a>
+        </p>
+      </div>
+    </div>
+  </section>
+  <h4
+    class="sc-gZMcBi jPsQyQ"
+  >
+    Failed to install data in new instance
+  </h4>
+  <div
+    aria-valuemax="1"
+    aria-valuemin="0"
+    aria-valuenow="0.7"
+    class="css-1656qb0"
+    role="progressbar"
+    tabindex="0"
+  >
+    <span
+      class="css-bpkja2-Bar"
+    />
+  </div>
+  <p
+    class="sc-gqjmRU kwvhvQ"
+  >
+    atlassian.migration.datacenter.common.progress.started
+  </p>
+  <p
+    class="sc-gqjmRU kwvhvQ"
+  >
+    atlassian.migration.datacenter.common.progress.mins_elapsed
+  </p>
+</div>
+`;
+
+exports[`migration process progress Should render indeterminate progress bar when completeness is not given 1`] = `
+<div>
+  <h4
+    class="sc-gZMcBi jPsQyQ"
+  >
+    Transferring your data. This may take a while...
+     (atlassian.migration.datacenter.common.estimating...)
+  </h4>
+  <div
+    aria-valuemax="1"
+    aria-valuemin="0"
+    aria-valuenow="0"
+    class="css-1656qb0"
+    role="progressbar"
+    tabindex="0"
+  >
+    <span
+      class="css-1w0nw0i-Bar"
+    />
+    <span
+      class="css-1xfl40c-Bar"
+    />
+  </div>
+  <p
+    class="sc-gqjmRU kwvhvQ"
+  >
+    atlassian.migration.datacenter.common.progress.started
+  </p>
+  <p
+    class="sc-gqjmRU kwvhvQ"
+  >
+    atlassian.migration.datacenter.common.progress.mins_elapsed
+  </p>
+</div>
+`;
