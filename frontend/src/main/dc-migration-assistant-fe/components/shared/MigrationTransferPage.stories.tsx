@@ -32,40 +32,37 @@ export const happyPath = (): ReactNode => {
             <MigrationTransferPage
                 {...storybookTransferPageDefaultProps}
                 description="This is a migration process which has not been started yet. Once you click start, it will finish after three ticks."
-                getProgress={(): Promise<Progress[]> => {
-                    const retryProps = {
-                        retryText: 'Retry',
-                        onRetry: (): Promise<void> => Promise.resolve(),
-                        canContinueOnFailure: false,
-                    };
-
-                    if (progressFetchCount === 3) {
-                        return Promise.resolve([
-                            {
-                                phase: 'Completed content migration',
-                                completeness: 1,
-                                elapsedTimeSeconds: 18,
-                                retryProps,
+                processes={[
+                    {
+                        getProgress: (): Promise<Progress> => {
+                            if (progressFetchCount === 3) {
+                                return Promise.resolve({
+                                    phase: 'Completed content migration',
+                                    completeness: 1,
+                                    elapsedTimeSeconds: 18,
+                                    completeMessage,
+                                });
+                            }
+                            const result = Promise.resolve({
+                                phase: 'Migrating content',
+                                completeness: progressFetchCount / finishedAfterCalls,
+                                elapsedTimeSeconds: 6 * progressFetchCount,
                                 completeMessage,
-                            },
-                        ]);
-                    }
-                    const result = Promise.resolve([
-                        {
-                            phase: 'Migrating content',
-                            completeness: progressFetchCount / finishedAfterCalls,
-                            elapsedTimeSeconds: 6 * progressFetchCount,
-                            retryProps,
-                            completeMessage,
+                            });
+
+                            if (progressFetchCount !== 3) {
+                                progressFetchCount += 1;
+                            }
+
+                            return result;
                         },
-                    ]);
-
-                    if (progressFetchCount !== 3) {
-                        progressFetchCount += 1;
-                    }
-
-                    return result;
-                }}
+                        retryProps: {
+                            retryText: 'Retry',
+                            onRetry: (): Promise<void> => Promise.resolve(),
+                            canContinueOnFailure: false,
+                        },
+                    },
+                ]}
             />
         </Router>
     );
@@ -79,45 +76,42 @@ export const unhappyPath = (): ReactNode => {
             <MigrationTransferPage
                 {...storybookTransferPageDefaultProps}
                 description="This is a migration process which has not been started yet. Once you click start, It will update twice, then fail."
-                getProgress={(): Promise<Progress[]> => {
-                    const retryProps = {
-                        retryText: 'Retry',
-                        onRetry: (): Promise<void> => {
-                            progressFetchCount = 0;
-                            return Promise.resolve();
-                        },
-                        canContinueOnFailure: false,
-                    };
-
-                    if (progressFetchCount === 3) {
-                        return Promise.resolve([
-                            {
-                                phase: 'Failed to migrate content',
-                                completeness: 0.7,
-                                elapsedTimeSeconds: 18,
-                                retryProps,
-                                errorMessage:
-                                    'Something went wrong while running your migration. Retry and see if it improves things',
+                processes={[
+                    {
+                        getProgress: (): Promise<Progress> => {
+                            if (progressFetchCount === 3) {
+                                return Promise.resolve({
+                                    phase: 'Failed to migrate content',
+                                    completeness: 0.7,
+                                    elapsedTimeSeconds: 18,
+                                    errorMessage:
+                                        'Something went wrong while running your migration. Retry and see if it improves things',
+                                    completeMessage,
+                                });
+                            }
+                            const result = Promise.resolve({
+                                phase: 'Migrating content',
+                                completeness: progressFetchCount / finishedAfterCalls,
+                                elapsedTimeSeconds: 6 * progressFetchCount,
                                 completeMessage,
-                            },
-                        ]);
-                    }
-                    const result = Promise.resolve([
-                        {
-                            phase: 'Migrating content',
-                            completeness: progressFetchCount / finishedAfterCalls,
-                            elapsedTimeSeconds: 6 * progressFetchCount,
-                            retryProps,
-                            completeMessage,
+                            });
+
+                            if (progressFetchCount !== 3) {
+                                progressFetchCount += 1;
+                            }
+
+                            return result;
                         },
-                    ]);
-
-                    if (progressFetchCount !== 3) {
-                        progressFetchCount += 1;
-                    }
-
-                    return result;
-                }}
+                        retryProps: {
+                            retryText: 'Retry',
+                            onRetry: (): Promise<void> => {
+                                progressFetchCount = 0;
+                                return Promise.resolve();
+                            },
+                            canContinueOnFailure: false,
+                        },
+                    },
+                ]}
             />
         </Router>
     );

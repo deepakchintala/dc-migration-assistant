@@ -27,30 +27,6 @@ export type CompleteMessage = {
     message: string;
 };
 
-export interface RetryCallback {
-    (): Promise<void>;
-}
-
-export type RetryProperties = {
-    /**
-     * Text to display on the retry button
-     */
-    retryText: string;
-    /**
-     * A callback which will retry the operation
-     */
-    onRetry: RetryCallback;
-    /**
-     * A route to redirect the user to when
-     */
-    onRetryRoute?: string;
-    /**
-     * A boolean to dictate whether or not failures
-     * can be ignored and the migration continued
-     */
-    canContinueOnFailure: boolean;
-};
-
 /**
  * **phase**: Text describing the current phase of the transfer e.g. uploading, downloading, importing..
  * **completeness**: A fraction representing the percentage complete the transfer is.
@@ -64,7 +40,6 @@ export type RetryProperties = {
 export type Progress = {
     phase: string;
     elapsedTimeSeconds: number;
-    retryProps: RetryProperties;
     completeness?: number;
     errorMessage?: ReactNode;
     completeMessage?: CompleteMessage;
@@ -83,8 +58,6 @@ export class ProgressBuilder {
     private completeMessage: CompleteMessage;
 
     private elapsedSeconds: number;
-
-    private retryProps: RetryProperties;
 
     setElapsedSeconds(seconds: number): ProgressBuilder {
         this.elapsedSeconds = seconds;
@@ -114,28 +87,14 @@ export class ProgressBuilder {
         return this;
     }
 
-    setRetryProps(retryProps: RetryProperties): ProgressBuilder {
-        this.retryProps = retryProps;
-
-        return this;
-    }
-
     build(): Progress {
-        if (!(this.phase && this.retryProps)) {
+        if (!(this.phase && this.elapsedSeconds)) {
             throw new Error('must include phase and retry props in progress object');
         }
 
-        const {
-            phase,
-            completeMessage,
-            completeness,
-            errorMessage,
-            elapsedSeconds,
-            retryProps,
-        } = this;
+        const { phase, completeMessage, completeness, errorMessage, elapsedSeconds } = this;
 
         return {
-            retryProps,
             phase,
             completeMessage,
             completeness,
@@ -146,6 +105,5 @@ export class ProgressBuilder {
 }
 
 export interface ProgressCallback {
-    // We return an array of progress because multiple transfers can occur on one page
-    (): Promise<Array<Progress>>;
+    (): Promise<Progress>;
 }
