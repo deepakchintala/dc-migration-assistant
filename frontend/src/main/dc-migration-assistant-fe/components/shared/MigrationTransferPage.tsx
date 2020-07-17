@@ -241,7 +241,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                         showError={progressFetchingError && progressFetchingError !== ''}
                         dismissErrorFunc={(): void => setProgressFetchingError('')}
                         title="Network error getting migration status"
-                        description="Check your internet connection and try refreshing"
+                        description={`Check your internet connection and try refreshing - ${progressFetchingError}`}
                         id={progressFetchingError}
                     />
                     <TransferContentContainer>
