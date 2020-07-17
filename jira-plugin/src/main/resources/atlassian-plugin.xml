@@ -21,6 +21,7 @@
         <vendor name="${project.organization.name}" url="${project.organization.url}"/>
     </plugin-info>
 
+    <!-- This is generated from the events at compile-time; see exec plugin in the pom and GenWhitelist.kt -->
     <analytics-whitelist key="analytics-whitelist" resource="whitelist/analytics_whitelist.json"/>
 
     <ao key="ao-module">
