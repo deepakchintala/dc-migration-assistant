@@ -18,7 +18,7 @@ import React, { FunctionComponent } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
-import { Progress, ProgressBuilder, ProgressCallback } from '../shared/Progress';
+import { Progress, ProgressBuilder } from '../shared/Progress';
 import { callAppRest } from '../../utils/api';
 import {
     finalSyncStatusEndpoint,
@@ -51,22 +51,28 @@ const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => 
     builder.setPhase(statusToI18nString(status.status));
     builder.setElapsedSeconds(status.elapsedTime.seconds);
     if (status.status === DBMigrationStatus.FAILED) {
-        builder.setFailed(true);
         builder.setError(I18n.getText('atlassian.migration.datacenter.db.retry.error'));
     }
-    builder.setRetryProps({
-        retryText: I18n.getText('atlassian.migration.datacenter.sync.db.retry'),
-        onRetry: finalSync.retryDbMigration,
-        canContinueOnFailure: false,
-    });
-
-    if (status.status === DBMigrationStatus.DONE) {
-        builder.setCompleteness(1);
-        builder.setCompleteMessage(
-            '',
-            I18n.getText('atlassian.migration.datacenter.db.completeMessage')
-        );
+    switch (status.status) {
+        case 'DONE':
+            builder.setCompleteness(1);
+            break;
+        case 'EXPORTING':
+            builder.setCompleteness(0.25);
+            break;
+        case 'UPLOADING':
+            builder.setCompleteness(0.5);
+            break;
+        case 'IMPORTING':
+            builder.setCompleteness(0.75);
+            break;
+        default:
+            builder.setCompleteness(0);
     }
+    builder.setCompleteMessage(
+        '',
+        I18n.getText('atlassian.migration.datacenter.db.completeMessage')
+    );
 
     return builder.build();
 };
@@ -85,25 +91,16 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
         builder.setCompleteness(uploaded === 0 ? 0 : downloaded / uploaded);
     }
 
-    builder.setRetryProps({
-        retryText: I18n.getText('atlassian.migration.datacenter.sync.fs.retry'),
-        onRetry: finalSync.retryFsSync,
-        canContinueOnFailure: false,
-    });
-
-    if (downloaded === uploaded) {
-        builder.setCompleteMessage(
-            I18n.getText(
-                'atlassian.migration.datacenter.sync.fs.completeMessage.boldPrefix',
-                downloaded,
-                uploaded
-            ),
-            I18n.getText('atlassian.migration.datacenter.sync.fs.completeMessage.message')
-        );
-    }
+    builder.setCompleteMessage(
+        I18n.getText(
+            'atlassian.migration.datacenter.sync.fs.completeMessage.boldPrefix',
+            downloaded,
+            uploaded
+        ),
+        I18n.getText('atlassian.migration.datacenter.sync.fs.completeMessage.message')
+    );
 
     if (failed) {
-        builder.setFailed(true);
         builder.setError(
             <p>
                 {I18n.getText('atlassian.migration.datacenter.sync.fs.download.error', fs.failed)}
@@ -125,7 +122,7 @@ const startFinalSync = async (): Promise<void> => {
     return callAppRest('PUT', finalSyncStartEndpoint).then(result => result.json());
 };
 
-const getProgressFromStatus: ProgressCallback = async () => {
+const getProgressFromStatus = async (): Promise<Array<Progress>> => {
     return fetchFinalSyncStatus().then(result => {
         return [dbStatusToProgress(result.db), fsSyncStatusToProgress(result)];
     });
@@ -143,7 +140,24 @@ const props: MigrationTransferProps = {
     startButtonText: I18n.getText('atlassian.migration.datacenter.finalSync.startButton'),
     startMigrationPhase: startFinalSync,
     inProgressStages: finalSyncInProgressStages,
-    getProgress: getProgressFromStatus,
+    processes: [
+        {
+            getProgress: (): Promise<Progress> => getProgressFromStatus().then(result => result[0]),
+            retryProps: {
+                retryText: I18n.getText('atlassian.migration.datacenter.sync.db.retry'),
+                onRetry: finalSync.retryDbMigration,
+                canContinueOnFailure: false,
+            },
+        },
+        {
+            getProgress: (): Promise<Progress> => getProgressFromStatus().then(result => result[1]),
+            retryProps: {
+                retryText: I18n.getText('atlassian.migration.datacenter.sync.fs.retry'),
+                onRetry: finalSync.retryFsSync,
+                canContinueOnFailure: false,
+            },
+        },
+    ],
     getDetails: fetchDBMigrationLogs,
 };
 
