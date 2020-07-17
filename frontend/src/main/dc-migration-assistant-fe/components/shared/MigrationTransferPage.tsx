@@ -142,30 +142,24 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     const updateProgress = async (): Promise<void> => {
         Promise.all(
             processes.map(process =>
-                process
-                    .getProgress()
-                    .then(result => {
-                        setProgressFetchingError('');
-                        setProcessInfo([
-                            ...processInfo,
-                            {
-                                progress: result,
-                                retryProps: process.retryProps,
-                            },
-                        ]);
-                    })
-                    .catch(err => {
-                        setProgressFetchingError(err.message);
-                        setLoading(false);
-                    })
+                process.getProgress().then(result => {
+                    return {
+                        progress: result,
+                        retryProps: process.retryProps,
+                    };
+                })
             )
-        ).finally((): void => {
-            setLoading(false);
-            setFinished(
-                processInfo.length > 0 &&
-                    processInfo.every(process => process.progress.completeness === 1)
-            );
-        });
+        )
+            .then(result => {
+                setProgressFetchingError('');
+                setProcessInfo(result);
+            })
+            .catch(err => {
+                setProgressFetchingError(err.message);
+            })
+            .finally((): void => {
+                setLoading(false);
+            });
     };
 
     const startMigration = async (): Promise<void> => {
@@ -224,6 +218,13 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         }
         return (): void => undefined;
     }, [started]);
+
+    useEffect(() => {
+        setFinished(
+            processInfo.length > 0 &&
+                processInfo.every(process => process.progress.completeness === 1)
+        );
+    }, [processInfo]);
 
     return (
         <TransferPageContainer>
