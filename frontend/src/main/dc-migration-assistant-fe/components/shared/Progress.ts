@@ -88,8 +88,8 @@ export class ProgressBuilder {
     }
 
     build(): Progress {
-        if (!(this.phase && this.elapsedSeconds)) {
-            throw new Error('must include phase and retry props in progress object');
+        if (!this.phase) {
+            throw new Error('must include phase');
         }
 
         const { phase, completeMessage, completeness, errorMessage, elapsedSeconds } = this;
@@ -99,7 +99,7 @@ export class ProgressBuilder {
             completeMessage,
             completeness,
             errorMessage,
-            elapsedTimeSeconds: elapsedSeconds,
+            elapsedTimeSeconds: elapsedSeconds || 0,
         };
     }
 }
