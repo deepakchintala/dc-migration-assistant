@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { FunctionComponent } from 'react';
 import { MigrationProgress } from './MigrationTransferProgress';
 
 export default { title: 'Migration process progress' };
@@ -8,7 +8,7 @@ const defaultCompleteMessage = {
     message: 'were restored to the target database',
 };
 
-export const nonDeterministicProcess = (): ReactNode => (
+export const nonDeterministicProcess: FunctionComponent = () => (
     <MigrationProgress
         loading={false}
         progress={{
@@ -19,7 +19,7 @@ export const nonDeterministicProcess = (): ReactNode => (
     />
 );
 
-export const halfwayFinishedProcess = (): ReactNode => (
+export const halfwayFinishedProcess: FunctionComponent = () => (
     <MigrationProgress
         loading={false}
         progress={{
@@ -31,7 +31,7 @@ export const halfwayFinishedProcess = (): ReactNode => (
     />
 );
 
-export const failedProcess = (): ReactNode => (
+export const failedProcess: FunctionComponent = () => (
     <MigrationProgress
         loading={false}
         progress={{
@@ -44,7 +44,7 @@ export const failedProcess = (): ReactNode => (
     />
 );
 
-export const finishedProcess = (): ReactNode => (
+export const finishedProcess: FunctionComponent = () => (
     <MigrationProgress
         loading={false}
         progress={{

@@ -5,7 +5,6 @@ import { I18n } from '@atlassian/wrm-react-i18n';
 import Button from '@atlaskit/button';
 import { Redirect } from 'react-router-dom';
 
-import { warningPath } from '../../utils/RoutePaths';
 import { RetryProperties } from './MigrationProcess';
 
 const CheckboxContainer = styled.div`
@@ -16,6 +15,7 @@ const CheckboxContainer = styled.div`
 
 export const RetryMenu: FunctionComponent<RetryProperties> = ({
     canContinueOnFailure,
+    continuePath,
     onRetry,
     onRetryRoute,
     retryText,
@@ -55,7 +55,7 @@ export const RetryMenu: FunctionComponent<RetryProperties> = ({
             {canContinueOnFailure && (
                 <Button
                     appearance="subtle-link"
-                    href={warningPath}
+                    href={continuePath}
                     style={{
                         marginTop: '10px',
                         marginLeft: '10px',

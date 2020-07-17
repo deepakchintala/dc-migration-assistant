@@ -22,6 +22,11 @@ export type RetryProperties = {
      * can be ignored and the migration continued
      */
     canContinueOnFailure: boolean;
+    /**
+     * The path to be directed to when ignoring errors and continuing.
+     * Must be set when canContinueOnFailure is true
+     */
+    continuePath?: string;
 };
 
 export interface MigrationProcess {
