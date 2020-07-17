@@ -15,7 +15,6 @@
  */
 
 import React, { FunctionComponent, useState } from 'react';
-import { Moment } from 'moment';
 import SectionMessage from '@atlaskit/section-message';
 import Spinner from '@atlaskit/spinner';
 import ProgressBar, { SuccessProgressBar } from '@atlaskit/progress-bar';
@@ -23,12 +22,11 @@ import { Redirect } from 'react-router-dom';
 import Button from '@atlaskit/button';
 import styled from 'styled-components';
 import { Checkbox } from '@atlaskit/checkbox';
-import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
+import { I18n } from '@atlassian/wrm-react-i18n';
 import { warningPath } from '../../utils/RoutePaths';
 
 import { Progress } from './Progress';
 import {
-    calculateDurationFromBeginning,
     calcualateDurationFromElapsedSeconds,
     calculateStartedFromElapsedSeconds,
 } from './migration-timing';

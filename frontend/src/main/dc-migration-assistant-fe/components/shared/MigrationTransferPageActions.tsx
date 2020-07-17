@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, ReactFragment, useState } from 'react';
+import React, { FunctionComponent } from 'react';
 import Button, { ButtonGroup } from '@atlaskit/button';
-import { Link, Redirect } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { Checkbox } from '@atlaskit/checkbox';
+import {} from '@atlaskit/checkbox';
 import { CancelButton } from './CancelButton';
 
 export type MigrationTransferActionsProps = {
