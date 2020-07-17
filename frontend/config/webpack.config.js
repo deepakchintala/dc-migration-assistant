@@ -140,7 +140,7 @@ module.exports = (env, argv = {}) => {
             },
             context: FRONTEND_SRC_DIR,
             plugins: [
-                ...plugins(!isProduction),
+                ...plugins(!isProduction, env && env.analyze),
                 new webpack.DefinePlugin(loadDotEnvVariables(argv.mode)),
             ],
             module: {
