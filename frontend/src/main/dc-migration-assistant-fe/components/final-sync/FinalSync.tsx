@@ -53,7 +53,22 @@ const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => 
     if (status.status === DBMigrationStatus.FAILED) {
         builder.setError(I18n.getText('atlassian.migration.datacenter.db.retry.error'));
     }
-    builder.setCompleteness(1);
+    switch (status.status) {
+        case 'DONE':
+            builder.setCompleteness(1);
+            break;
+        case 'EXPORTING':
+            builder.setCompleteness(0.25);
+            break;
+        case 'UPLOADING':
+            builder.setCompleteness(0.5);
+            break;
+        case 'IMPORTING':
+            builder.setCompleteness(0.75);
+            break;
+        default:
+            builder.setCompleteness(0);
+    }
     builder.setCompleteMessage(
         '',
         I18n.getText('atlassian.migration.datacenter.db.completeMessage')
