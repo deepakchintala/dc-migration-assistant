@@ -117,9 +117,10 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
 
 export const ReadyStatus: FunctionComponent<ReadyProps> = ({ ready }) => {
     const readyString = (state: boolean | undefined): ReactNode => {
-        return state === undefined ? (
-            <Spinner size="small" />
-        ) : state ? (
+        if (state === undefined) {
+            return <Spinner size="small" />;
+        }
+        return state ? (
             <Lozenge appearance="success">OK</Lozenge>
         ) : (
             <Lozenge appearance="removed">Incompatible</Lozenge>

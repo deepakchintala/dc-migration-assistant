@@ -16,16 +16,17 @@
 
 import React, { FunctionComponent, ReactNode, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
 
-import { MigrationTransferActions } from './MigrationTransferPageActions';
-import { Progress, ProgressCallback } from './Progress';
+import { MigrationTransferActions, MigrationStepState } from './MigrationTransferPageActions';
+import { Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
 import { ErrorFlag } from './ErrorFlag';
+import { MigrationProcess, RetryProperties } from './MigrationProcess';
+import { RetryMenu } from './RetryMigrationProcessMenu';
 
 const POLL_INTERVAL_MILLIS = 8000;
 
@@ -38,7 +39,6 @@ export type MigrationTransferProps = {
      * A description for what the current transfer does. Will be rendered below the title
      */
     description: string;
-
     /**
      * An optional hyperlink that can be used to direct the user to more detail
      */
@@ -54,11 +54,7 @@ export type MigrationTransferProps = {
     /**
      * @see MigrationTransferActionsProps
      */
-    startButtonText?: string;
-    /**
-     * @see MigrationProgressProps
-     */
-    startMoment?: moment.Moment;
+    startButtonText: string;
     /**
      * The MigrationStages where this transfer is "in progress"
      * @see MigrationStage
@@ -71,7 +67,7 @@ export type MigrationTransferProps = {
     /**
      * A function which will be called to get the progress of the current transfer
      */
-    getProgress: ProgressCallback;
+    processes: Array<MigrationProcess>;
 
     getDetails?: () => Promise<CommandResult>;
 };
@@ -108,6 +104,20 @@ const Divider = styled.div`
     border-bottom: 2px solid rgb(223, 225, 230);
 `;
 
+const RetryMenuContainer = styled.div`
+    margin-top: 5px;
+`;
+
+const getMigrationStepState = (started: boolean, finished: boolean): MigrationStepState => {
+    if (finished) {
+        return 'finished';
+    }
+    if (started) {
+        return 'in_progress';
+    }
+    return 'not_started';
+};
+
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
     infoLink,
@@ -115,35 +125,40 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     nextText,
     nextRoute,
     startButtonText,
-    startMoment,
-    getProgress,
+    processes,
     inProgressStages,
     startMigrationPhase,
     getDetails: getCommandresult,
 }) => {
-    const [progressList, setProgressList] = useState<Array<Progress>>([]);
+    const [processInfo, setProcessInfo] = useState<
+        Array<{ progress: Progress; retryProps: RetryProperties }>
+    >([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
     const [finished, setFinished] = useState<boolean>(false);
-    const [failed, setFailed] = useState<boolean>(false);
     const [commandResult, setCommandResult] = useState<CommandResult>();
 
     const updateProgress = async (): Promise<void> => {
-        return getProgress()
+        Promise.all(
+            processes.map(process =>
+                process.getProgress().then(result => {
+                    return {
+                        progress: result,
+                        retryProps: process.retryProps,
+                    };
+                })
+            )
+        )
             .then(result => {
                 setProgressFetchingError('');
-                setProgressList(result);
-                setLoading(false);
-                setFinished(
-                    result.length > 0 && result.every(progress => progress?.completeness === 1)
-                );
-                setFailed(result.some(progress => progress?.failed));
+                setProcessInfo(result);
             })
             .catch(err => {
                 setProgressFetchingError(err.message);
+            })
+            .finally((): void => {
                 setLoading(false);
-                setFailed(true);
             });
     };
 
@@ -184,6 +199,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                     setCommandResult(d);
                 })
                 .catch(e => {
+                    // eslint-disable-next-line no-console
                     console.log(e);
                 });
         }
@@ -203,6 +219,13 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         return (): void => undefined;
     }, [started]);
 
+    useEffect(() => {
+        setFinished(
+            processInfo.length > 0 &&
+                processInfo.every(process => process.progress.completeness === 1)
+        );
+    }, [processInfo]);
+
     return (
         <TransferPageContainer>
             <TransferContentContainer>
@@ -218,36 +241,42 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                         showError={progressFetchingError && progressFetchingError !== ''}
                         dismissErrorFunc={(): void => setProgressFetchingError('')}
                         title="Network error getting migration status"
-                        description="Check your internet connection and try refreshing"
+                        description={`Check your internet connection and try refreshing - ${progressFetchingError}`}
                         id={progressFetchingError}
                     />
                     <TransferContentContainer>
                         {started &&
-                            progressList.map((progress, index) => (
-                                <>
-                                    <MigrationProgress
-                                        key={progress.phase}
-                                        progress={progress}
-                                        loading={loading}
-                                    />
-                                    {index !== progressList.length - 1 && <Divider />}
-                                </>
-                            ))}
+                            processInfo.map((process, index) => {
+                                const { progress, retryProps } = process;
+                                return (
+                                    <>
+                                        <MigrationProgress
+                                            key={progress.phase}
+                                            progress={progress}
+                                            loading={loading}
+                                        />
+                                        {index !== processInfo.length - 1 && <Divider />}
+                                        {progress.errorMessage && (
+                                            <RetryMenuContainer>
+                                                <RetryMenu {...retryProps} />
+                                            </RetryMenuContainer>
+                                        )}
+                                    </>
+                                );
+                            })}
                         {commandResult?.errorMessage && (
                             <MigrationErrorSection result={commandResult} />
                         )}
                     </TransferContentContainer>
                     <TransferActionsContainer>
                         <MigrationTransferActions
-                            finished={finished}
+                            state={getMigrationStepState(started, finished)}
                             nextText={nextText}
                             startButtonText={startButtonText}
                             nextRoute={nextRoute}
                             startMigrationPhase={startMigration}
                             onRefresh={updateProgress}
-                            started={started}
                             loading={loading}
-                            failed={failed}
                         />
                     </TransferActionsContainer>
                 </>

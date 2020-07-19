@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState } from 'react';
-import { Moment } from 'moment';
+import React, { FunctionComponent } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import Spinner from '@atlaskit/spinner';
 import ProgressBar, { SuccessProgressBar } from '@atlaskit/progress-bar';
-import { Redirect } from 'react-router-dom';
-import Button from '@atlaskit/button';
 import styled from 'styled-components';
-import { Checkbox } from '@atlaskit/checkbox';
-import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
-import { warningPath } from '../../utils/RoutePaths';
+import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { Progress } from './Progress';
 import {
-    calculateDurationFromBeginning,
     calcualateDurationFromElapsedSeconds,
     calculateStartedFromElapsedSeconds,
 } from './migration-timing';
@@ -45,12 +39,6 @@ const OperationTitle = styled.h4`
 
 const OperationTimingParagraph = styled.p`
     margin: 2px 0 2px 0;
-`;
-
-const CheckboxContainer = styled.div`
-    display: flex;
-    justify-content: flex-start;
-    margin-top: 10px;
 `;
 
 export type MigrationProgressProps = {
@@ -72,11 +60,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     progress,
     loading,
 }) => {
-    const [retryEnabled, setRetryEnabled] = useState<boolean>(false);
-    const [shouldRedirectToStart, setShouldRedirectToStart] = useState<boolean>(false);
-
-    const failed = (progress.errorMessage && true) || progress.failed;
-    const { onRetryRoute, retryText, onRetry, canContinueOnFailure } = progress?.retryProps;
+    const failed = progress.errorMessage && true;
 
     if (loading) {
         return (
@@ -89,10 +73,6 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     }
 
     const duration = calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
-
-    if (shouldRedirectToStart) {
-        return <Redirect to={onRetryRoute} push />;
-    }
 
     return (
         <>
@@ -127,64 +107,23 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                 ) : (
                     <ProgressBar isIndeterminate />
                 )}
-                {failed ? (
-                    // If operation failed render retry button below progress
-                    <div style={{ display: 'block', marginTop: '5px' }}>
-                        <CheckboxContainer>
-                            <Checkbox
-                                value="true"
-                                label={I18n.getText(
-                                    'atlassian.migration.datacenter.common.aws.retry.checkbox.text'
-                                )}
-                                onChange={(event: any): void => {
-                                    setRetryEnabled(event.target.checked);
-                                }}
-                                name="retryAgree"
-                            />
-                        </CheckboxContainer>
-                        <Button
-                            style={{ marginTop: '10px' }}
-                            isDisabled={!retryEnabled}
-                            onClick={(): void => {
-                                onRetry().then(() =>
-                                    setShouldRedirectToStart(onRetryRoute && true)
-                                );
-                            }}
-                        >
-                            {retryText || 'retry'}
-                        </Button>
-                        {canContinueOnFailure && (
-                            <Button
-                                appearance="subtle-link"
-                                href={warningPath}
-                                style={{ marginTop: '10px', marginLeft: '10px' }}
-                            >
-                                {I18n.getText('atlassian.migration.datacenter.fs.continue')}
-                            </Button>
+                <OperationTimingParagraph>
+                    {I18n.getText(
+                        'atlassian.migration.datacenter.common.progress.started',
+                        calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds).format(
+                            'D/MMM/YY h:mm A'
+                        )
+                    )}
+                </OperationTimingParagraph>
+                <OperationTimingParagraph>
+                    {duration &&
+                        I18n.getText(
+                            'atlassian.migration.datacenter.common.progress.mins_elapsed',
+                            `${duration.hours}`,
+                            `${duration.minutes}`,
+                            `${duration.seconds}`
                         )}
-                    </div>
-                ) : (
-                    // If operation has not failed, render timing information - start time and duration
-                    <>
-                        <OperationTimingParagraph>
-                            {I18n.getText(
-                                'atlassian.migration.datacenter.common.progress.started',
-                                calculateStartedFromElapsedSeconds(
-                                    progress.elapsedTimeSeconds
-                                ).format('D/MMM/YY h:mm A')
-                            )}
-                        </OperationTimingParagraph>
-                        <OperationTimingParagraph>
-                            {duration &&
-                                I18n.getText(
-                                    'atlassian.migration.datacenter.common.progress.mins_elapsed',
-                                    `${duration.hours}`,
-                                    `${duration.minutes}`,
-                                    `${duration.seconds}`
-                                )}
-                        </OperationTimingParagraph>
-                    </>
-                )}
+                </OperationTimingParagraph>
             </>
         </>
     );

@@ -18,9 +18,9 @@ import React, { FunctionComponent } from 'react';
 import { render } from '@testing-library/react';
 import { BrowserRouter as Router } from 'react-router-dom';
 
-import moment from 'moment';
 import { MigrationTransferProps, MigrationTransferPage } from './MigrationTransferPage';
 import { MigrationStage } from '../../api/migration';
+import { Progress } from './Progress';
 
 const mockFetch = jest.fn();
 mockFetch.mockReturnValue(Promise.resolve());
@@ -30,26 +30,29 @@ const props: MigrationTransferProps = {
     heading: 'heading',
     description: 'description',
     nextText: 'nextText',
-    startMoment: moment().subtract(20, 'minutes'),
+    startButtonText: 'Start',
     startMigrationPhase: Promise.resolve,
     inProgressStages: [MigrationStage.AUTHENTICATION],
-    getProgress: () => {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve([
-                    {
-                        completeness: 0.5,
-                        phase: 'uploading files...',
-                        retryProps: {
-                            retryText: 'Retry',
-                            onRetry: (): Promise<void> => Promise.resolve(),
-                            canContinueOnFailure: false,
-                        },
-                    },
-                ]);
-            }, 500);
-        });
-    },
+    processes: [
+        {
+            retryProps: {
+                retryText: 'Retry',
+                onRetry: Promise.resolve,
+                canContinueOnFailure: false,
+            },
+            getProgress: (): Promise<Progress> => {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve({
+                            completeness: 0.5,
+                            phase: 'uploading files...',
+                            elapsedTimeSeconds: 120,
+                        });
+                    }, 500);
+                });
+            },
+        },
+    ],
     nextRoute: '',
 };
 

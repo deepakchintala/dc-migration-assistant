@@ -57,12 +57,6 @@ const getDeploymentProgress: ProgressCallback = async () => {
         .getProvisioningStatus()
         .then(result => {
             const builder = new ProgressBuilder();
-            builder.setRetryProps({
-                onRetry: provisioning.retry,
-                retryText: I18n.getText('atlassian.migration.datacenter.provision.aws.retry.text'),
-                onRetryRoute: asiConfigurationPath,
-                canContinueOnFailure: false,
-            });
             switch (result.status) {
                 case ProvisioningStatus.Complete:
                     builder.setPhase('Deployment Complete');
@@ -89,7 +83,6 @@ const getDeploymentProgress: ProgressCallback = async () => {
                         I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
                     );
                     builder.setCompleteness(0);
-                    builder.setFailed(true);
                     builder.setError(buildErrorFromMessageAndUrl(result.error, result.stackUrl));
                     break;
                 default:
@@ -107,10 +100,8 @@ const getDeploymentProgress: ProgressCallback = async () => {
             );
             builder.setError(JSON.stringify(err));
             builder.setCompleteness(0);
-            builder.setFailed(true);
             return builder.build();
-        })
-        .then(progress => [progress]);
+        });
 };
 
 const inProgressStages = [
@@ -154,11 +145,24 @@ export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ depl
                     )}
                 </a>
             }
-            getProgress={getDeploymentProgress}
+            processes={[
+                {
+                    getProgress: getDeploymentProgress,
+                    retryProps: {
+                        onRetry: provisioning.retry,
+                        retryText: I18n.getText(
+                            'atlassian.migration.datacenter.provision.aws.retry.text'
+                        ),
+                        onRetryRoute: asiConfigurationPath,
+                        canContinueOnFailure: false,
+                    },
+                },
+            ]}
             inProgressStages={inProgressStages}
             heading={I18n.getText('atlassian.migration.datacenter.provision.aws.title')}
             nextText={I18n.getText('atlassian.migration.datacenter.generic.next')}
             // This page is only rendered when provisioning has already started. The deployment will be started by the QuickstartDeploy page
+            startButtonText=""
             startMigrationPhase={Promise.resolve}
             nextRoute={fsPath}
         />

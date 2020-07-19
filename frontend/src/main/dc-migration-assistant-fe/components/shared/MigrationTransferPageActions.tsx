@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, ReactFragment, useState } from 'react';
+import React, { ReactNode, FunctionComponent } from 'react';
 import Button, { ButtonGroup } from '@atlaskit/button';
-import { Link, Redirect } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { Checkbox } from '@atlaskit/checkbox';
+import { I18n } from '@atlassian/wrm-react-i18n';
 import { CancelButton } from './CancelButton';
 
+export type MigrationStepState = 'not_started' | 'in_progress' | 'finished';
+
 export type MigrationTransferActionsProps = {
+    /**
+     * The state of the migration step. If not_started, the action will be a start button. If in_progress, the action
+     * will be a refresh button. If finished, the action will be a link to the next step.
+     */
+    state: MigrationStepState;
     /**
      * A function which will be called when the Refresh button is clicked
      */
     onRefresh: () => Promise<void>;
-    /**
-     * Whether the current migration transfer has completed or not
-     */
-    finished: boolean;
     /**
      * The text to display on the button that takes the user to the next step of the migration
      */
@@ -37,7 +40,7 @@ export type MigrationTransferActionsProps = {
     /**
      * The text to display on the start button that initiates the migration transfer. Defaults to `Start`
      */
-    startButtonText?: string;
+    startButtonText: string;
     /**
      * The path to take the user to whent hey click the "next" action button
      */
@@ -47,15 +50,9 @@ export type MigrationTransferActionsProps = {
      */
     startMigrationPhase: () => Promise<void>;
     /**
-     * Whether the current migration transfer has already started or not
-     */
-    started: boolean;
-    /**
      * Should be true if any of the above properties are being fetched
      */
     loading: boolean;
-
-    failed?: boolean;
 };
 
 const PageActionContainer = styled.div`
@@ -68,6 +65,24 @@ const ButtonRow = styled.div`
     margin: 15px 0px 0px 0px;
 `;
 
+const ActionButton: FunctionComponent<{
+    loading: boolean;
+    onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+    text: string;
+    isRefresh?: boolean;
+}> = ({ loading, onClick, text, isRefresh }) => (
+    <Button
+        style={{
+            padding: '5px',
+        }}
+        onClick={onClick || ((): void => undefined)}
+        isLoading={loading}
+        appearance={isRefresh ? 'default' : 'primary'}
+    >
+        {text}
+    </Button>
+);
+
 /**
  * A component which renders the actions that can be taken at a given step of the migration.
  * The "Cancel" action is always available and cancels the current step. There are three other
@@ -77,61 +92,42 @@ const ButtonRow = styled.div`
  *   **Next**: Will be available when the current transfer is completed. It's text can be overriden
  */
 export const MigrationTransferActions: FunctionComponent<MigrationTransferActionsProps> = ({
-    finished,
+    state,
     nextText,
     nextRoute,
     startButtonText,
     startMigrationPhase,
-    onRefresh: updateTransferProgress,
-    started,
+    onRefresh,
     loading,
 }) => {
-    const defaultButtonStyle = {
-        padding: '5px',
-        display: 'flex',
-    };
+    let CurrentStepAction: ReactNode;
 
-    const marginButtonStyle = {
-        ...defaultButtonStyle,
-        marginRight: '5px',
-    };
-
-    const StartButton = (
-        <Button
-            style={marginButtonStyle}
-            isLoading={loading}
-            appearance="primary"
-            onClick={startMigrationPhase}
-        >
-            {startButtonText ?? 'Start'}
-        </Button>
-    );
-
-    let ActionButton = StartButton;
-
-    if (finished) {
-        const NextButton = (
+    if (state === 'not_started') {
+        CurrentStepAction = (
+            <ActionButton onClick={startMigrationPhase} loading={loading} text={startButtonText} />
+        );
+    } else if (state === 'in_progress') {
+        CurrentStepAction = (
+            <ActionButton
+                loading={loading}
+                onClick={onRefresh}
+                isRefresh
+                text={I18n.getText('atlassian.migration.datacenter.generic.refresh')}
+            />
+        );
+    } else {
+        CurrentStepAction = (
             <Link to={nextRoute}>
-                <Button style={defaultButtonStyle} appearance="primary">
-                    {nextText}
-                </Button>
+                <ActionButton text={nextText} loading={loading} />
             </Link>
         );
-        ActionButton = NextButton;
-    } else if (started) {
-        const RefreshButton = (
-            <Button style={marginButtonStyle} isLoading={loading} onClick={updateTransferProgress}>
-                Refresh
-            </Button>
-        );
-        ActionButton = RefreshButton;
     }
 
     return (
         <PageActionContainer>
             <ButtonRow>
                 <ButtonGroup>
-                    {ActionButton}
+                    {CurrentStepAction}
                     <CancelButton />
                 </ButtonGroup>
             </ButtonRow>
