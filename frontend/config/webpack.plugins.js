@@ -18,10 +18,11 @@ const path = require('path');
 const WrmPlugin = require('atlassian-webresource-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const WriteFilePlugin = require('write-file-webpack-plugin');
 const { PLUGIN_KEY, WRM_OUTPUT, JQUERY_EXTERNAL } = require('./webpack.constants');
 
-const plugins = shouldWatch => [
+const plugins = (shouldWatch, shouldAnalyze = false) => [
     new WrmPlugin({
         pluginKey: PLUGIN_KEY,
         xmlDescriptors: WRM_OUTPUT,
@@ -54,6 +55,9 @@ const plugins = shouldWatch => [
     new HtmlWebpackPlugin({
         inject: true,
         template: path.join(__dirname, '../public/index.html'),
+    }),
+    new BundleAnalyzerPlugin({
+        analyzerMode: shouldAnalyze ? 'server' : 'disabled',
     }),
     new WriteFilePlugin(),
 ];

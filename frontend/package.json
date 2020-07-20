@@ -102,7 +102,8 @@
         "react-hot-loader": "^4.12.11",
         "react-select-event": "^4.1.4",
         "ts-jest": "^25.4.0",
-        "typescript": "^3.6.3"
+        "typescript": "^3.6.3",
+        "webpack-bundle-analyzer": "^3.8.0"
     },
     "resolutions": {
         "**/websocket-extensions": "~0.1.4",
@@ -114,6 +115,7 @@
         "build": "webpack --config ./config/webpack.config.js",
         "build:dev": "webpack --config ./config/webpack.config.js --mode=development",
         "dev-server": "webpack-dev-server --config ./config/webpack.config.js --mode=development --env=dev-server",
+        "analyze": "yarn build --env.analyze",
         "test": "jest --setupFiles dotenv/config --config ./config/jest/jest.config.js --passWithNoTests",
         "update-snapshots": "jest --updateSnapshot --config ./config/jest/jest.config.js",
         "eject": "react-scripts eject",
