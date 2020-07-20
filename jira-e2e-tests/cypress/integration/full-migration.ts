@@ -28,7 +28,7 @@ const getAwsTokens = (): [string, string] => {
 };
 
 describe('Migration plugin', () => {
-    const ctx = jira.compose_context;
+    const ctx = jira.amps_context; // TODO temp workaround
     const region = 'ap-southeast-2';
     const testId = Math.random().toString(36).substring(2, 8);
 
@@ -63,11 +63,35 @@ describe('Migration plugin', () => {
 
         cy.get('[data-test=aws-auth-submit]').should('exist').click();
 
-        // ASI config page.
         cy.location().should((loc: Location) => {
             expect(loc.pathname).to.eq(
                 ctx.context + '/plugins/servlet/dc-migration-assistant/aws/asi'
             );
         });
+
+        cy.get('[data-test=asi-submit]').contains('Next', { timeout: 20000 });
+        cy.get('[name=deploymentMode]').check('new');
+        // cy.get(`[id^=react-select]:contains(ATL-)`).click();
+
+        cy.get('[data-test=asi-submit]');
+        cy.pause();
+
+        // Configure CloudFormation create page
+        cy.get('[data-test=start-migration]').should('exist').click();
+
+        // Quickstart page; bare minimum config
+        // Note: These names are generated from the QS yaml
+        cy.get('[name=stackName]').type('teststack-' + testId);
+        cy.get('[name=DBMasterUserPassword]').type('LKJLKJLlkjlkjl7987987#');
+        cy.get('[name=DBPassword]').type('LKJLKJLlkjlkjl7987987#');
+        cy.get('[name=DBMultiAZ]').type('false', { force: true });
+        cy.get('[name=AccessCIDR]').type('0.0.0.0/0');
+        cy.get('[name=KeyPairName]').type('taskcat-ci-key');
+        cy.get('#AvailabilityZones-uid28').click();
+        cy.get('#react-select-11-option-0').click();
+        cy.get('#AvailabilityZones-uid28').click();
+        cy.get('#react-select-11-option-1').click();
+        cy.get('[name=ExportPrefix]').type('TEST-VPC-' + testId + '-');
+        cy.get('[data-test=qs-submit]').click();
     });
 });
