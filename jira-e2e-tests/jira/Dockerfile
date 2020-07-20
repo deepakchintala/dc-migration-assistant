@@ -14,5 +14,7 @@ RUN apt-get update && apt-get upgrade -y \
 
 COPY waitport /usr/local/bin/waitport
 
+COPY jira-home/ /var/atlassian/application-data/jira/
+
 # jira-plugin-1.0.0.jar is expected to have been placed in this directory first.
 COPY jira-plugin-*.jar /var/atlassian/application-data/jira/plugins/installed-plugins/
