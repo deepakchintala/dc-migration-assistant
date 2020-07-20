@@ -56,7 +56,7 @@ The Jira container configuration injects a copy of the plugin, which should have
 been placed in the container directory. For local runs this can be done with:
 
     mvn clean package -DskipTests
-    cp jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
+    rm -f jira-e2e-tests/jira/jira-plugin-*.jar && cp jira-plugin/target/jira-plugin-*.jar jira-e2e-tests/jira/
 
 ### Cypress container setup
 
