@@ -15,8 +15,8 @@ export const fillCrendetialsOnAuthPage = (
         expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/auth');
     });
 
-    cy.get('[data-test=aws-auth-key]').type(Cypress.env('AWS_ACCESS_KEY_ID'));
-    cy.get('[data-test=aws-auth-secret]').type(Cypress.env('AWS_SECRET_ACCESS_KEY'));
+    cy.get('[data-test=aws-auth-key]').type(credentials.keyId);
+    cy.get('[data-test=aws-auth-secret]').type(credentials.secretKey);
     // FIXME: This may be flaky; the AtlasKit AsyncSelect
     // component is hard to instrument.
     cy.get('#region-uid3').click();
