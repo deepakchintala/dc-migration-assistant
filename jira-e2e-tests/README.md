@@ -29,7 +29,7 @@ license can be aquired from several places:
 * Non-Atlassians can generate an evaluation license at
   [my.atlassian.com](https://my.atlassian.com/).
 
-If generating a new license the Server ID is `BFAP-W4RG-46TJ-B5TK`.
+If generating a new license the Server ID is `BEEW-DT3K-EFO9-XNDI`.
 
 Once acquired the license can be injected with:
 
