@@ -101,11 +101,11 @@ const getFsMigrationProgress: ProgressCallback = async () => {
             builder.setPhase(getPhaseFromStatus(result));
             builder.setElapsedSeconds(result.elapsedTime.seconds);
             builder.setCompleteMessage(
-                I18n.getText(
-                    'atlassian.migration.datacenter.fs.completeMessage.boldPrefix',
-                    result.downloadedFiles,
-                    result.filesFound
-                ),
+                `${result.downloadedFiles} ${I18n.getText(
+                    'atlassian.migration.datacenter.fs.completeMessage.boldPrefix.of'
+                )} ${result.filesFound} ${I18n.getText(
+                    'atlassian.migration.datacenter.fs.completeMessage.boldPrefix.files'
+                )}`,
                 I18n.getText('atlassian.migration.datacenter.fs.completeMessage.message')
             );
 

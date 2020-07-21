@@ -108,21 +108,23 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                     <ProgressBar isIndeterminate />
                 )}
                 <OperationTimingParagraph>
-                    {I18n.getText(
-                        'atlassian.migration.datacenter.common.progress.started',
-                        calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds).format(
-                            'D/MMM/YY h:mm A'
-                        )
-                    )}
+                    {`${I18n.getText(
+                        'atlassian.migration.datacenter.common.progress.started'
+                    )} ${calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds).format(
+                        'D/MMM/YY h:mm A'
+                    )}`}
                 </OperationTimingParagraph>
                 <OperationTimingParagraph>
                     {duration &&
-                        I18n.getText(
-                            'atlassian.migration.datacenter.common.progress.mins_elapsed',
-                            `${duration.hours}`,
-                            `${duration.minutes}`,
-                            `${duration.seconds}`
-                        )}
+                        `${duration.hours} ${I18n.getText(
+                            'atlassian.migration.datacenter.common.progress.hours'
+                        )}, ${duration.minutes} ${I18n.getText(
+                            'atlassian.migration.datacenter.common.progress.minutes'
+                        )}, ${duration.seconds} ${I18n.getText(
+                            'atlassian.migration.datacenter.common.progress.seconds'
+                        )} ${I18n.getText(
+                            'atlassian.migration.datacenter.common.progress.elapsed'
+                        )}`}
                 </OperationTimingParagraph>
             </>
         </>

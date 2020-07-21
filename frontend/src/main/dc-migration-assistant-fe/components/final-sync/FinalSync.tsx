@@ -92,18 +92,22 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
     }
 
     builder.setCompleteMessage(
-        I18n.getText(
-            'atlassian.migration.datacenter.sync.fs.completeMessage.boldPrefix',
-            downloaded,
-            uploaded
-        ),
+        `${downloaded} ${I18n.getText(
+            'atlassian.migration.datacenter.sync.fs.completeMessage.boldPrefix.of'
+        )} ${uploaded} ${I18n.getText(
+            'atlassian.migration.datacenter.sync.fs.completeMessage.boldPrefix.newFiles'
+        )}`,
         I18n.getText('atlassian.migration.datacenter.sync.fs.completeMessage.message')
     );
 
     if (failed) {
         builder.setError(
             <p>
-                {I18n.getText('atlassian.migration.datacenter.sync.fs.download.error', fs.failed)}
+                {`${I18n.getText(
+                    'atlassian.migration.datacenter.sync.fs.download.error.thereWasAnErrorDownloading'
+                )} ${fs.failed} ${I18n.getText(
+                    'atlassian.migration.datacenter.sync.fs.download.error.FilesToYourNewInstance'
+                )}`}
                 <a href="https://status.aws.amazon.com/" target="_blank" rel="noreferrer noopener">
                     {I18n.getText('atlassian.migration.datacenter.common.aws.status')}
                 </a>

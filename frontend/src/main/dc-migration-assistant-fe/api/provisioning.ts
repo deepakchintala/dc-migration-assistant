@@ -142,10 +142,9 @@ export const provisioning = {
                             };
                         default:
                             throw new Error(
-                                I18n.getText(
-                                    'atlassian.migration.datacenter.provision.aws.status.unexpected',
-                                    `${phase}`
-                                )
+                                `${I18n.getText(
+                                    'atlassian.migration.datacenter.provision.aws.status.unexpected'
+                                )} ${phase}`
                             );
                     }
                 }
@@ -155,10 +154,9 @@ export const provisioning = {
                     throw new Error(errorResponse.error);
                 }
                 throw new Error(
-                    I18n.getText(
-                        'atlassian.migration.datacenter.provision.aws.status.badServer',
-                        `${JSON.stringify(resp)}`
-                    )
+                    `${I18n.getText(
+                        'atlassian.migration.datacenter.provision.aws.status.badServer'
+                    )} ${JSON.stringify(resp)}`
                 );
             });
     },

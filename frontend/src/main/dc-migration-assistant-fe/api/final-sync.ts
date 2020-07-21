@@ -48,10 +48,9 @@ const handleRetryResponse = (res: Response): Promise<void> => {
         default:
             return Promise.reject(
                 Error(
-                    I18n.getText(
-                        'atlassian.migration.datacenter.sync.fs.retry.error.unexpected',
-                        res.status
-                    )
+                    `${I18n.getText(
+                        'atlassian.migration.datacenter.sync.fs.retry.error.unexpected'
+                    )} ${res.status}`
                 )
             );
     }
