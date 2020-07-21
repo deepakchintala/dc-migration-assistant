@@ -17,14 +17,24 @@
 /// <reference types="Cypress" />
 
 import * as jira from '../support';
+import {
+    configureQuickStartFormWithoutVPC,
+    submitQuickstartForm,
+    selectPrefixOnASIPage,
+    fillCrendetialsOnAuthPage,
+    startMigration,
+} from '../support/migrationWorkflow';
 
 // Set these externally via e.g:
 //
 //     export CYPRESS_AWS_ACCESS_KEY_ID=xxxx
 //     export CYPRESS_AWS_SECRET_ACCESS_KEY='yyyyyy'
 //
-const getAwsTokens = (): [string, string] => {
-    return [Cypress.env('AWS_ACCESS_KEY_ID'), Cypress.env('AWS_SECRET_ACCESS_KEY')];
+const getAwsTokens = (): AWSCredentials => {
+    return {
+        keyId: Cypress.env('AWS_ACCESS_KEY_ID'),
+        secretKey: Cypress.env('AWS_SECRET_ACCESS_KEY'),
+    };
 };
 
 describe('Migration plugin', () => {
@@ -39,59 +49,14 @@ describe('Migration plugin', () => {
     });
 
     it('Run full migration', () => {
-        cy.visit(ctx.migrationHome);
-        cy.location().should((loc: Location) => {
-            expect(loc.pathname).to.eq(
-                ctx.context + '/plugins/servlet/dc-migration-assistant/home'
-            );
-        });
-        cy.get('[data-test=start-migration]').should('exist').click();
+        startMigration(ctx);
 
-        // AWS auth page.
-        cy.location().should((loc: Location) => {
-            expect(loc.pathname).to.eq(
-                ctx.context + '/plugins/servlet/dc-migration-assistant/aws/auth'
-            );
-        });
+        fillCrendetialsOnAuthPage(ctx, region, getAwsTokens());
 
-        cy.get('[data-test=aws-auth-key]').type(Cypress.env('AWS_ACCESS_KEY_ID'));
-        cy.get('[data-test=aws-auth-secret]').type(Cypress.env('AWS_SECRET_ACCESS_KEY'));
-        // FIXME: This may be flaky; the AtlasKit AsyncSelect
-        // component is hard to instrument.
-        cy.get('#region-uid3').click();
-        cy.get(`[id^=react-select]:contains(${region})`).click();
+        selectPrefixOnASIPage(ctx);
 
-        cy.get('[data-test=aws-auth-submit]').should('exist').click();
+        configureQuickStartFormWithoutVPC(ctx, { stackName: `teststack-${testId}` });
 
-        cy.location().should((loc: Location) => {
-            expect(loc.pathname).to.eq(
-                ctx.context + '/plugins/servlet/dc-migration-assistant/aws/asi'
-            );
-        });
-
-        cy.get('[data-test=asi-submit]').contains('Next', { timeout: 20000 });
-        cy.get('[name=deploymentMode]').check('new');
-        // cy.get(`[id^=react-select]:contains(ATL-)`).click();
-
-        cy.get('[data-test=asi-submit]');
-        cy.pause();
-
-        // Configure CloudFormation create page
-        cy.get('[data-test=start-migration]').should('exist').click();
-
-        // Quickstart page; bare minimum config
-        // Note: These names are generated from the QS yaml
-        cy.get('[name=stackName]').type('teststack-' + testId);
-        cy.get('[name=DBMasterUserPassword]').type('LKJLKJLlkjlkjl7987987#');
-        cy.get('[name=DBPassword]').type('LKJLKJLlkjlkjl7987987#');
-        cy.get('[name=DBMultiAZ]').type('false', { force: true });
-        cy.get('[name=AccessCIDR]').type('0.0.0.0/0');
-        cy.get('[name=KeyPairName]').type('taskcat-ci-key');
-        cy.get('#AvailabilityZones-uid28').click();
-        cy.get('#react-select-11-option-0').click();
-        cy.get('#AvailabilityZones-uid28').click();
-        cy.get('#react-select-11-option-1').click();
-        cy.get('[name=ExportPrefix]').type('TEST-VPC-' + testId + '-');
-        cy.get('[data-test=qs-submit]').click();
+        submitQuickstartForm();
     });
 });
