@@ -12,9 +12,7 @@ export const fillCrendetialsOnAuthPage = (
     credentials: AWSCredentials
 ) => {
     cy.location().should((loc: Location) => {
-        expect(loc.pathname).to.eq(
-            ctx.context + '/plugins/servlet/dc-migration-assistant/aws/auth'
-        );
+        expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/auth');
     });
 
     cy.get('[data-test=aws-auth-key]').type(Cypress.env('AWS_ACCESS_KEY_ID'));
@@ -29,7 +27,7 @@ export const fillCrendetialsOnAuthPage = (
 
 export const selectPrefixOnASIPage = (ctx: Context, prefix: string = 'ATL-') => {
     cy.location().should((loc: Location) => {
-        expect(loc.pathname).to.eq(ctx.context + '/plugins/servlet/dc-migration-assistant/aws/asi');
+        expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/asi');
     });
 
     cy.get('section').contains("We're scanning your AWS account for existing ASIs.");
@@ -49,13 +47,22 @@ export const configureQuickStartFormWithoutVPC = (
     ctx: Context,
     values: CloudFormationFormValues
 ) => {
+    cy.location().should((loc: Location) => {
+        expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/provision');
+    });
     cy.get('[name=stackName]').type(values.stackName);
-    cy.get('[name=DBMasterUserPassword]').type('LKJLKJLlkjlkjl7987987#');
-    cy.get('[name=DBPassword]').type('LKJLKJLlkjlkjl7987987#');
-    cy.get('[name=DBMultiAZ]').type('false', { force: true });
-    cy.get('[name=CidrBlock]').type('0.0.0.0/0');
+    cy.get('[name=DBMasterUserPassword]').type(values.dbMasterPassword);
+    cy.get('[name=DBPassword]').type(values.dbPassword);
+    cy.get('[name=DBMultiAZ]').type(String(values.dbMultiAz || false), { force: true });
+    cy.get('[name=CidrBlock]').type(values.cidrBlock || '0.0.0.0/0');
 };
 
 export const submitQuickstartForm = () => {
     cy.get('[data-test=qs-submit]').contains('Deploy').click();
+};
+
+export const waitForDeployment = (ctx: Context) => {
+    cy.location().should((loc: Location) => {
+        expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/provision/status');
+    });
 };

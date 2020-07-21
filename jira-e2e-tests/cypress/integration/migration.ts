@@ -24,8 +24,7 @@ import * as jira from '../support';
 //     export CYPRESS_AWS_SECRET_ACCESS_KEY='yyyyyy'
 //
 const getAwsTokens = (): [string, string] => {
-    return [Cypress.env('AWS_ACCESS_KEY_ID'),
-            Cypress.env('AWS_SECRET_ACCESS_KEY')];
+    return [Cypress.env('AWS_ACCESS_KEY_ID'), Cypress.env('AWS_SECRET_ACCESS_KEY')];
 };
 
 describe('Database Migration page', () => {
@@ -37,18 +36,16 @@ describe('Database Migration page', () => {
     });
 
     it('Can provision a cloudformation template', () => {
-        let testid =  Math.random().toString(36).substring(2, 8);
+        let testid = Math.random().toString(36).substring(2, 8);
         let region = 'ap-southeast-2';
 
         // Home; should be no migration; start one
         cy.visit(jira.migrationHome);
-        cy.get('[data-test=start-migration]')
-            .should('exist')
-            .click();
+        cy.get('[data-test=start-migration]').should('exist').click();
 
         // AWS auth page.
         cy.location().should((loc: Location) => {
-            expect(loc.pathname).to.eq("/jira/plugins/servlet/dc-migration-assistant/aws/auth")
+            expect(loc.pathname).to.eq('/jira/plugins/servlet/dc-migration-assistant/aws/auth');
         });
         let [key, secret] = getAwsTokens();
         cy.get('[data-test=aws-auth-key]').type(key);
@@ -61,19 +58,17 @@ describe('Database Migration page', () => {
 
         // Quickstart page; bare minimum config
         // Note: These names are generated from the QS yaml
-        cy.get('[name=stackName]').type('teststack-'+testid);
+        cy.get('[name=stackName]').type('teststack-' + testid);
         cy.get('[name=DBMasterUserPassword]').type('LKJLKJLlkjlkjl7987987#');
         cy.get('[name=DBPassword]').type('LKJLKJLlkjlkjl7987987#');
-        cy.get('[name=DBMultiAZ]').type('false', {force: true});
+        cy.get('[name=DBMultiAZ]').type('false', { force: true });
         cy.get('[name=AccessCIDR]').type('0.0.0.0/0');
         cy.get('[name=KeyPairName]').type('taskcat-ci-key');
         cy.get('#AvailabilityZones-uid28').click();
         cy.get('#react-select-11-option-0').click();
         cy.get('#AvailabilityZones-uid28').click();
         cy.get('#react-select-11-option-1').click();
-        cy.get('[name=ExportPrefix]').type('TEST-VPC-'+testid+'-');
+        cy.get('[name=ExportPrefix]').type('TEST-VPC-' + testid + '-');
         cy.get('[data-test=qs-submit]').click();
-
     });
-
 });

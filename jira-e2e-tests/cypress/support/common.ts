@@ -6,12 +6,17 @@ type Context = {
     loginURL: string;
     sudoURL: string;
     upmURL: string;
+    pluginPath: string;
     migrationBase: string;
     migrationHome: string;
 };
 
 type CloudFormationFormValues = {
     stackName: string;
+    dbMasterPassword: string;
+    dbPassword: string;
+    dbMultiAz?: boolean;
+    cidrBlock?: string;
 };
 
 type AWSCredentials = {

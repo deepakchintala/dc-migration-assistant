@@ -17,6 +17,7 @@
 /// <reference types="Cypress" />
 
 import * as jira from '../support';
+import { waitForDeployment } from '../support/migrationWorkflow';
 import {
     configureQuickStartFormWithoutVPC,
     submitQuickstartForm,
@@ -55,8 +56,14 @@ describe('Migration plugin', () => {
 
         selectPrefixOnASIPage(ctx);
 
-        configureQuickStartFormWithoutVPC(ctx, { stackName: `teststack-${testId}` });
+        configureQuickStartFormWithoutVPC(ctx, {
+            stackName: `teststack-${testId}`,
+            dbPassword: `XadD54^${testId}`,
+            dbMasterPassword: `YadD54^${testId}`,
+        });
 
         submitQuickstartForm();
+
+        waitForDeployment(ctx);
     });
 });
