@@ -28,30 +28,30 @@ describe('Plugin installation smoke tests', () => {
     });
 
     it('Ensure plugin loaded', () => {
-        cy.visit(ctx.upmURL)
+        cy.visit(ctx.upmURL);
 
-        cy.get('[data-key="com.atlassian.migration.datacenter.jira-plugin"]',
-               {timeout: 60*1000})
+        cy.get('[data-key="com.atlassian.migration.datacenter.jira-plugin"]', {
+            timeout: 60 * 1000,
+        })
             .should('exist')
-            .click()
+            .click();
 
-        cy.get('.upm-count-enabled')
-            .should((el) => {
-                expect(el.first()).to.contain('9 of 9 modules enabled')
-            })
+        cy.get('.upm-count-enabled').should((el) => {
+            expect(el.first()).to.contain('9 of 9 modules enabled');
+        });
     });
 
     it('Test AWS Auth', () => {
         cy.reset_migration(ctx);
         cy.visit(ctx.migrationHome);
 
-        cy.get('[data-test=start-migration]')
-            .should('exist')
-            .click();
+        cy.get('[data-test=start-migration]').should('exist').click();
 
         // AWS auth page.
         cy.location().should((loc: Location) => {
-            expect(loc.pathname).to.eq(ctx.context+'/plugins/servlet/dc-migration-assistant/aws/auth')
+            expect(loc.pathname).to.eq(
+                ctx.context + '/plugins/servlet/dc-migration-assistant/aws/auth'
+            );
         });
 
         cy.get('[data-test=aws-auth-key]').type(Cypress.env('AWS_ACCESS_KEY_ID'));
@@ -65,8 +65,9 @@ describe('Plugin installation smoke tests', () => {
 
         // ASI config page.
         cy.location().should((loc: Location) => {
-            expect(loc.pathname).to.eq(ctx.context+'/plugins/servlet/dc-migration-assistant/aws/asi')
+            expect(loc.pathname).to.eq(
+                ctx.context + '/plugins/servlet/dc-migration-assistant/aws/asi'
+            );
         });
     });
-
 });

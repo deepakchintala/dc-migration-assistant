@@ -98,6 +98,7 @@ export const ASISelector: FunctionComponent<ASISelectorProps> = ({
             {useExisting ? (
                 <Select
                     className="asi-select"
+                    classNamePrefix="asi-select"
                     cacheOptions
                     defaultOptions
                     options={ASIPrefixOptionsFromList(existingASIs)}

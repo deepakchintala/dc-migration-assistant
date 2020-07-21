@@ -15,5 +15,12 @@
     "scripts": {
         "cypress": "cypress open",
         "test": "cypress run"
+    },
+    "prettier": {
+        "tabWidth": 4,
+        "semi": true,
+        "trailingComma": "es5",
+        "singleQuote": true,
+        "printWidth": 100
     }
 }
