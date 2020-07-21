@@ -70,12 +70,12 @@ exports[`migration process progress Should render a full progress bar when proce
   <p
     class="sc-gqjmRU kwvhvQ"
   >
-    atlassian.migration.datacenter.common.progress.started
+    atlassian.migration.datacenter.common.progress.started 21/Jul/20 4:03 PM
   </p>
   <p
     class="sc-gqjmRU kwvhvQ"
   >
-    atlassian.migration.datacenter.common.progress.mins_elapsed
+    0 atlassian.migration.datacenter.common.progress.hours, 18 atlassian.migration.datacenter.common.progress.minutes, 0 atlassian.migration.datacenter.common.progress.seconds atlassian.migration.datacenter.common.progress.elapsed
   </p>
 </div>
 `;
@@ -102,12 +102,12 @@ exports[`migration process progress Should render a partially completed progress
   <p
     class="sc-gqjmRU kwvhvQ"
   >
-    atlassian.migration.datacenter.common.progress.started
+    atlassian.migration.datacenter.common.progress.started 21/Jul/20 4:15 PM
   </p>
   <p
     class="sc-gqjmRU kwvhvQ"
   >
-    atlassian.migration.datacenter.common.progress.mins_elapsed
+    0 atlassian.migration.datacenter.common.progress.hours, 6 atlassian.migration.datacenter.common.progress.minutes, 0 atlassian.migration.datacenter.common.progress.seconds atlassian.migration.datacenter.common.progress.elapsed
   </p>
 </div>
 `;
@@ -188,12 +188,12 @@ exports[`migration process progress Should render an error message when one is g
   <p
     class="sc-gqjmRU kwvhvQ"
   >
-    atlassian.migration.datacenter.common.progress.started
+    atlassian.migration.datacenter.common.progress.started 21/Jul/20 4:09 PM
   </p>
   <p
     class="sc-gqjmRU kwvhvQ"
   >
-    atlassian.migration.datacenter.common.progress.mins_elapsed
+    0 atlassian.migration.datacenter.common.progress.hours, 12 atlassian.migration.datacenter.common.progress.minutes, 0 atlassian.migration.datacenter.common.progress.seconds atlassian.migration.datacenter.common.progress.elapsed
   </p>
 </div>
 `;
@@ -224,12 +224,12 @@ exports[`migration process progress Should render indeterminate progress bar whe
   <p
     class="sc-gqjmRU kwvhvQ"
   >
-    atlassian.migration.datacenter.common.progress.started
+    atlassian.migration.datacenter.common.progress.started 21/Jul/20 4:19 PM
   </p>
   <p
     class="sc-gqjmRU kwvhvQ"
   >
-    atlassian.migration.datacenter.common.progress.mins_elapsed
+    0 atlassian.migration.datacenter.common.progress.hours, 2 atlassian.migration.datacenter.common.progress.minutes, 0 atlassian.migration.datacenter.common.progress.seconds atlassian.migration.datacenter.common.progress.elapsed
   </p>
 </div>
 `;

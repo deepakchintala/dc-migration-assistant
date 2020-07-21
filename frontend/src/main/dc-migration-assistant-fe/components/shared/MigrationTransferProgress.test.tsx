@@ -7,6 +7,8 @@ const defaultCompleteMessage = {
     message: 'were transferred successfully',
 };
 
+Date.now = jest.fn(() => 1595312472000);
+
 describe('migration process progress', () => {
     it('Should render indeterminate progress bar when completeness is not given', () => {
         const { container } = render(
